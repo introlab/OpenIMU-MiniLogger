@@ -8,6 +8,9 @@ namespace Actions
 
     extern void IMUStartSerial();
     extern void IMUStopSerial();
+
+    extern void IMUStartSD();
+    extern void IMUStopSD();
 }
 
 #endif

@@ -14,6 +14,7 @@ Menu menu;
 SDCard sdCard;
 Buttons buttons;
 IMU imu;
+QueueHandle_t imuLoggingQueue = NULL;
 
 
 void setup() {
@@ -85,5 +86,17 @@ namespace Actions
     void IMUStopSerial()
     {
         imu.stopSerialLogging();
+    }
+
+    void IMUStartSD()
+    {
+        imuLoggingQueue = xQueueCreate(20, sizeof(IMUDataPoint*));
+        imu.startQueueLogging(imuLoggingQueue);
+    }
+
+    void IMUStopSD()
+    {
+        imu.stopQueueLogging();
+        vQueueDelete(imuLoggingQueue);
     }
 }

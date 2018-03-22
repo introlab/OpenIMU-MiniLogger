@@ -137,6 +137,20 @@ Menu::Menu()
     item->addSubmenu(subMenu);
     _currentSubMenu->addItem(item);
 
+    subMenu = new SubMenu("IMU SD", _currentSubMenu);
+
+    item = new MenuItem("Stop log");
+    item->addAction(Actions::IMUStopSD);
+    subMenu->addItem(item);
+
+    item = new MenuItem("Start log");
+    item->addAction(Actions::IMUStartSD);
+    subMenu->addItem(item);
+
+    item = new MenuItem("IMU SD");
+    item->addSubmenu(subMenu);
+    _currentSubMenu->addItem(item);
+
     item = new MenuItem("Action item");
     _currentSubMenu->addItem(item);
 
