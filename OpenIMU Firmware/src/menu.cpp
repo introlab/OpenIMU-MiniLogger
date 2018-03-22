@@ -1,7 +1,5 @@
 #include "menu.h"
-
-extern void SDToESP32();
-extern void SDToExternal();
+#include "sdcard.h"
 
 MenuItem::MenuItem(std::string text)
 {
@@ -113,11 +111,11 @@ Menu::Menu()
     subMenu = new SubMenu("SD Card", _currentSubMenu);
 
     item = new MenuItem("ESP 32");
-    item->addAction(SDToESP32);
+    item->addAction(SDCardAction::SDToESP32);
     subMenu->addItem(item);
 
     item = new MenuItem("PC");
-    item->addAction(SDToExternal);
+    item->addAction(SDCardAction::SDToExternal);
     subMenu->addItem(item);
 
     item = new MenuItem("SD Card");
