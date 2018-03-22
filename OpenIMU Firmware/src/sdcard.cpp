@@ -18,11 +18,6 @@ extern "C" {
 #include <ff.h>
 #include <Arduino.h>
 
-namespace
-{
-    SDCard sd;
-}
-
 SDCard::SDCard()
 {
 
@@ -141,17 +136,4 @@ void SDCard::toExternal()
 
     digitalWrite(5, LOW);
     digitalWrite(25, LOW);
-}
-
-namespace SDCardAction
-{
-    void SDToESP32()
-    {
-        sd.toESP32();
-    }
-
-    void SDToExternal()
-    {
-        sd.toExternal();
-    }
 }

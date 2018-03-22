@@ -1,5 +1,6 @@
 #include "menu.h"
-#include "sdcard.h"
+
+#include "actions.h"
 
 MenuItem::MenuItem(std::string text)
 {
@@ -111,14 +112,28 @@ Menu::Menu()
     subMenu = new SubMenu("SD Card", _currentSubMenu);
 
     item = new MenuItem("ESP 32");
-    item->addAction(SDCardAction::SDToESP32);
+    item->addAction(Actions::SDToESP32);
     subMenu->addItem(item);
 
     item = new MenuItem("PC");
-    item->addAction(SDCardAction::SDToExternal);
+    item->addAction(Actions::SDToExternal);
     subMenu->addItem(item);
 
     item = new MenuItem("SD Card");
+    item->addSubmenu(subMenu);
+    _currentSubMenu->addItem(item);
+
+    subMenu = new SubMenu("IMU Serial", _currentSubMenu);
+
+    item = new MenuItem("Stop log");
+    item->addAction(Actions::IMUStopSerial);
+    subMenu->addItem(item);
+
+    item = new MenuItem("Start log");
+    item->addAction(Actions::IMUStartSerial);
+    subMenu->addItem(item);
+
+    item = new MenuItem("IMU Serial");
     item->addSubmenu(subMenu);
     _currentSubMenu->addItem(item);
 

@@ -1,5 +1,7 @@
 #include "buttons.h"
 
+#include "locks.h"
+
 namespace
 {
     // Flags for buttons read
@@ -41,11 +43,13 @@ void Buttons::begin()
     _mcp.pinMode(7, INPUT);
     _mcp.pullUp(7, HIGH);
 
+    delay(200);
+
     xTaskCreate(&readButton, "Buttons", 2048, NULL, 5, NULL);
 }
 
 namespace {
-    
+
     void readButton(void *pvParameters) {
         bool action, previous, next;
 
@@ -53,9 +57,19 @@ namespace {
 
         while(1) {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
-            action = _mcp.digitalRead(2) != 0;
-            previous = _mcp.digitalRead(6) != 0;
-            next = _mcp.digitalRead(7) != 0;
+
+            if(xSemaphoreTake(Locks::i2cMutex, 100 / portTICK_RATE_MS) == pdTRUE) {
+
+                action = _mcp.digitalRead(2) != 0;
+                previous = _mcp.digitalRead(6) != 0;
+                next = _mcp.digitalRead(7) != 0;
+
+                xSemaphoreGive(Locks::i2cMutex);
+            }
+
+            else {
+                continue;
+            }
 
             if(action && action != _lastAction) {
                 _actionCtn++;

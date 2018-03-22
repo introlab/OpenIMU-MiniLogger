@@ -6,13 +6,20 @@
 #include "menu.h"
 #include "sdcard.h"
 #include "buttons.h"
+#include "imu.h"
+#include "locks.h"
 
 Display display;
 Menu menu;
 SDCard sdCard;
 Buttons buttons;
+IMU imu;
+
 
 void setup() {
+
+    // Init Locks
+    Locks::create();
 
     // Start serial
     Serial.begin(115200);
@@ -31,6 +38,9 @@ void setup() {
 
     // Initialize SD-card
     sdCard.begin();
+
+    // Start IMU
+    imu.begin();
 
     Serial.println("System ready");
 }
@@ -53,4 +63,27 @@ void loop() {
     }
 
     display.updateMenu(&menu);
+}
+
+namespace Actions
+{
+    void SDToESP32()
+    {
+        sdCard.toESP32();
+    }
+
+    void SDToExternal()
+    {
+        sdCard.toExternal();
+    }
+
+    void IMUStartSerial()
+    {
+        imu.startSerialLogging();
+    }
+
+    void IMUStopSerial()
+    {
+        imu.stopSerialLogging();
+    }
 }
