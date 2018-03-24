@@ -16,11 +16,7 @@ typedef struct {
     float magZ;
 } imuData_t;
 
-union IMUDataPoint
-{
-    imuData_t data;
-    uint8_t bytes[36];
-};
+typedef imuData_t* imuData_ptr;
 
 class IMU
 {

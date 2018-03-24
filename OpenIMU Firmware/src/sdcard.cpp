@@ -18,6 +18,14 @@ extern "C" {
 #include <ff.h>
 #include <Arduino.h>
 
+namespace
+{
+    File _logFile;
+    QueueHandle_t _logQueue;
+    TaskHandle_t _logTask = NULL;
+    void logToFile(void *pvParameters);
+}
+
 SDCard::SDCard()
 {
 
@@ -136,4 +144,52 @@ void SDCard::toExternal()
 
     digitalWrite(5, LOW);
     digitalWrite(25, LOW);
+}
+
+void SDCard::startLog(QueueHandle_t queue)
+{
+    if(_logTask == NULL) {
+        _logQueue = queue;
+        toESP32();
+        _logFile = SD_MMC.open("/log.oimu", FILE_APPEND);
+        if(_logFile) {
+            _logFile.write('h');
+            xTaskCreate(&logToFile, "SD card log", 2048, NULL, 5, &_logTask);
+        }
+
+        else {
+            Serial.println("Failed to open log file");
+        }
+    }
+}
+
+void SDCard::stopLog()
+{
+    if(_logTask != NULL) {
+        vTaskDelete(_logTask);
+        _logTask = NULL;
+        _logFile.close();
+    }
+}
+
+namespace
+{
+    void logToFile(void *pvParameters)
+    {
+        imuData_ptr measure;
+        imuDataSendable_t sendable;
+
+        while(1) {
+            if(xQueueReceive(_logQueue, &measure, 1000 / portTICK_RATE_MS) == pdTRUE) {
+                sendable.data = *measure;
+                _logFile.write('d');
+                _logFile.write(sendable.bytes, sizeof(imuData_t));
+                delete measure;
+            }
+
+            else {
+                Serial.println("Not data in queue");
+            }
+        }
+    }
 }

@@ -12,7 +12,7 @@ namespace
     QueueHandle_t _loggingQueue = NULL;
 
     void printIMUData();
-    IMUDataPoint* createIMUDataPoint();
+    imuData_ptr createIMUDataPoint();
 
     void logSerial(void *pvParameters);
     void logQueue(void *pvParameters);
@@ -98,30 +98,30 @@ namespace
       // Use the calcAccel, calcGyro, and calcMag functions to
       // convert the raw sensor readings (signed 16-bit values)
       // to their respective units.
-      IMUDataPoint* measure = createIMUDataPoint();
+      imuData_ptr measure = createIMUDataPoint();
 
-      Serial.println("Accel: " + String(measure->data.accelX) + ", " + String(measure->data.accelY) + ", " + String(measure->data.accelZ) + " g");
-      Serial.println("Gyro: " + String(measure->data.gyroX) + ", " + String(measure->data.gyroY) + ", " + String(measure->data.gyroZ) + " dps");
-      Serial.println("Mag: " + String(measure->data.magX) + ", " + String(measure->data.magY) + ", " + String(measure->data.magZ) + " uT");
+      Serial.println("Accel: " + String(measure->accelX) + ", " + String(measure->accelY) + ", " + String(measure->accelZ) + " g");
+      Serial.println("Gyro: " + String(measure->gyroX) + ", " + String(measure->gyroY) + ", " + String(measure->gyroZ) + " dps");
+      Serial.println("Mag: " + String(measure->magX) + ", " + String(measure->magY) + ", " + String(measure->magZ) + " uT");
       Serial.println("Time: " + String(_imu.time) + " ms");
       Serial.println();
 
       delete(measure);
     }
 
-    IMUDataPoint* createIMUDataPoint()
+    imuData_ptr createIMUDataPoint()
     {
-        IMUDataPoint* measure = (IMUDataPoint*)malloc(sizeof(IMUDataPoint));
+        imuData_ptr measure = (imuData_ptr)malloc(sizeof(imuData_t));
 
-        measure->data.accelX = _imu.calcAccel(_imu.ax);
-        measure->data.accelY = _imu.calcAccel(_imu.ay);
-        measure->data.accelZ = _imu.calcAccel(_imu.az);
-        measure->data.gyroX = _imu.calcGyro(_imu.gx);
-        measure->data.gyroY = _imu.calcGyro(_imu.gy);
-        measure->data.gyroZ = _imu.calcGyro(_imu.gz);
-        measure->data.magX = _imu.calcMag(_imu.mx);
-        measure->data.magY = _imu.calcMag(_imu.my);
-        measure->data.magZ = _imu.calcMag(_imu.mz);
+        measure->accelX = _imu.calcAccel(_imu.ax);
+        measure->accelY = _imu.calcAccel(_imu.ay);
+        measure->accelZ = _imu.calcAccel(_imu.az);
+        measure->gyroX = _imu.calcGyro(_imu.gx);
+        measure->gyroY = _imu.calcGyro(_imu.gy);
+        measure->gyroZ = _imu.calcGyro(_imu.gz);
+        measure->magX = _imu.calcMag(_imu.mx);
+        measure->magY = _imu.calcMag(_imu.my);
+        measure->magZ = _imu.calcMag(_imu.mz);
 
         return measure;
     }
@@ -160,8 +160,8 @@ namespace
                     _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
                     xSemaphoreGive(Locks::i2cMutex);
 
-                    IMUDataPoint* measure = createIMUDataPoint();
-                    if(xQueueSend(_loggingQueue, measure, 0) != pdTRUE) {
+                    imuData_ptr measure = createIMUDataPoint();
+                    if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
                         Serial.println("Queue is full! Dropping measure");
                         delete(measure);
                     }

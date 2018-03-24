@@ -90,13 +90,15 @@ namespace Actions
 
     void IMUStartSD()
     {
-        imuLoggingQueue = xQueueCreate(20, sizeof(IMUDataPoint*));
+        imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
+        sdCard.startLog(imuLoggingQueue);
         imu.startQueueLogging(imuLoggingQueue);
     }
 
     void IMUStopSD()
     {
         imu.stopQueueLogging();
+        sdCard.stopLog();
         vQueueDelete(imuLoggingQueue);
     }
 }
