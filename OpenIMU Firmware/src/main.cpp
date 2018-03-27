@@ -7,7 +7,6 @@
 #include "sdcard.h"
 #include "buttons.h"
 #include "imu.h"
-#include "locks.h"
 
 Display display;
 Menu menu;
@@ -18,9 +17,6 @@ QueueHandle_t imuLoggingQueue = NULL;
 
 
 void setup() {
-
-    // Init Locks
-    Locks::create();
 
     // Start serial
     Serial.begin(115200);
@@ -47,6 +43,7 @@ void setup() {
 }
 
 void loop() {
+    static unsigned long counter = 0;
 
     while(buttons.getActionCtn() > 0) {
         menu.action();
@@ -64,6 +61,8 @@ void loop() {
     }
 
     display.updateMenu(&menu);
+    Serial.print("Refreshed display ");
+    Serial.println(counter++);
 }
 
 namespace Actions

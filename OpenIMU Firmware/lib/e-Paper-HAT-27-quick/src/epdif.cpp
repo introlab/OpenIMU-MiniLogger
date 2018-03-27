@@ -28,18 +28,43 @@
 #include "epdif.h"
 #include <SPI.h>
 
+IOExpander EpdIf::_expander;
+
 EpdIf::EpdIf() {
-};
+}
 
 EpdIf::~EpdIf() {
-};
+}
+
+bool EpdIf::isExternal(int pin) {
+    return (pin == RST_PIN) || (pin == DC_PIN);
+}
 
 void EpdIf::DigitalWrite(int pin, int value) {
-    digitalWrite(pin, value);
+    if(isExternal(pin)) {
+        _expander.digitalWrite(pin, value);
+    }
+    else {
+        digitalWrite(pin, value);
+    }
 }
 
 int EpdIf::DigitalRead(int pin) {
-    return digitalRead(pin);
+    if(isExternal(pin)) {
+        return _expander.digitalRead(pin);
+    }
+    else {
+        return digitalRead(pin);
+    }
+}
+
+void EpdIf::epdPinMode(int pin, int mode) {
+    if(isExternal(pin)) {
+        _expander.pinMode(pin, mode);
+    }
+    else {
+        pinMode(pin, mode);
+    }
 }
 
 void EpdIf::DelayMs(unsigned int delaytime) {
@@ -53,10 +78,11 @@ void EpdIf::SpiTransfer(unsigned char data) {
 }
 
 int EpdIf::IfInit(void) {
-    pinMode(CS_PIN, OUTPUT);
-    pinMode(RST_PIN, OUTPUT);
-    pinMode(DC_PIN, OUTPUT);
-    pinMode(BUSY_PIN, INPUT);
+    _expander.begin();
+    epdPinMode(CS_PIN, OUTPUT);
+    epdPinMode(RST_PIN, OUTPUT);
+    epdPinMode(DC_PIN, OUTPUT);
+    epdPinMode(BUSY_PIN, INPUT);
     SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
     SPI.begin();
     return 0;

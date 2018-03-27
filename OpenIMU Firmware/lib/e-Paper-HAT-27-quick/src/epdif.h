@@ -29,10 +29,11 @@
 #define EPDIF_H
 
 #include <Arduino.h>
+#include "ioexpander.h"
 
 // Pin definition
-#define RST_PIN         16
-#define DC_PIN          17
+#define RST_PIN         5
+#define DC_PIN          3
 #define CS_PIN          27
 #define BUSY_PIN        19
 
@@ -46,6 +47,11 @@ public:
     static int  DigitalRead(int pin);
     static void DelayMs(unsigned int delaytime);
     static void SpiTransfer(unsigned char data);
+
+private:
+    static IOExpander _expander;
+    static bool isExternal(int pin);
+    static void epdPinMode(int pin, int mode);
 };
 
 #endif

@@ -1,6 +1,5 @@
 #include "buttons.h"
-
-#include "locks.h"
+#include  <sstream>
 
 namespace
 {
@@ -15,7 +14,7 @@ namespace
     bool _lastPrevious = false;
     bool _lastNext = false;
 
-    Adafruit_MCP23008 _mcp;
+    IOExpander _expander;
     void readButton(void *pvParameters);
 }
 
@@ -32,16 +31,16 @@ Buttons::~Buttons()
 void Buttons::begin()
 {
     // Enable IO expander
-    _mcp.begin();
+    _expander.begin();
 
-    _mcp.pinMode(2, INPUT);
-    _mcp.pullUp(2, HIGH);
+    _expander.pinMode(2, INPUT);
+    _expander.pullUp(2, HIGH);
 
-    _mcp.pinMode(6, INPUT);
-    _mcp.pullUp(6, HIGH);
+    _expander.pinMode(6, INPUT);
+    _expander.pullUp(6, HIGH);
 
-    _mcp.pinMode(7, INPUT);
-    _mcp.pullUp(7, HIGH);
+    _expander.pinMode(7, INPUT);
+    _expander.pullUp(7, HIGH);
 
     delay(200);
 
@@ -58,18 +57,9 @@ namespace {
         while(1) {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
 
-            if(xSemaphoreTake(Locks::i2cMutex, 100 / portTICK_RATE_MS) == pdTRUE) {
-
-                action = _mcp.digitalRead(2) != 0;
-                previous = _mcp.digitalRead(6) != 0;
-                next = _mcp.digitalRead(7) != 0;
-
-                xSemaphoreGive(Locks::i2cMutex);
-            }
-
-            else {
-                continue;
-            }
+            action = _expander.digitalRead(2) != 0;
+            previous = _expander.digitalRead(6) != 0;
+            next = _expander.digitalRead(7) != 0;
 
             if(action && action != _lastAction) {
                 _actionCtn++;

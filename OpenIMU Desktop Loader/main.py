@@ -8,7 +8,6 @@ def processChunk(chunk):
     data = struct.unpack("<9f", chunk)
     for value in data:
         print(value)
-        pass
     print("")
 
 def readDataFile(file):

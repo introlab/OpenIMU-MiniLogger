@@ -2,7 +2,7 @@
 #define BUTTONS_H
 
 #include <Arduino.h>
-#include <Adafruit_MCP23008.h>
+#include "ioexpander.h"
 
 class Buttons
 {

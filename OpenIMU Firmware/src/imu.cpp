@@ -1,10 +1,11 @@
 #include "imu.h"
 
-#include "locks.h"
+#include "i2cmutex.h"
 
 namespace
 {
     MPU9250_DMP _imu;
+    I2CMutex _i2c;
 
     TaskHandle_t _serialLogHangle = NULL;
     TaskHandle_t _queueLogHandle = NULL;
@@ -130,16 +131,16 @@ namespace
     {
         while(1) {
 
-            if(xSemaphoreTake(Locks::i2cMutex, 100 / portTICK_RATE_MS) == pdTRUE)
+            if(_i2c.acquire(100))
             {
                 if ( _imu.dataReady() ) {
                     _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
-                    xSemaphoreGive(Locks::i2cMutex);
+                    _i2c.release();
                     printIMUData();
                 }
 
                 else {
-                    xSemaphoreGive(Locks::i2cMutex);
+                    _i2c.release();
                 }
 
                 delay(10);
@@ -154,11 +155,11 @@ namespace
     void logQueue(void *pvParameters)
     {
         while(1) {
-            if(xSemaphoreTake(Locks::i2cMutex, 100 / portTICK_RATE_MS) == pdTRUE)
+            if(_i2c.acquire(100))
             {
                 if ( _imu.dataReady() ) {
                     _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
-                    xSemaphoreGive(Locks::i2cMutex);
+                    _i2c.release();
 
                     imuData_ptr measure = createIMUDataPoint();
                     if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
@@ -168,7 +169,7 @@ namespace
                 }
 
                 else {
-                    xSemaphoreGive(Locks::i2cMutex);
+                    _i2c.release();
                 }
 
                 delay(10);

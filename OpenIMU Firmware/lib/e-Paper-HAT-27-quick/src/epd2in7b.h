@@ -86,6 +86,14 @@ extern const unsigned char lut_wb_quick[];
 
 class Epd : EpdIf {
 public:
+
+    // SPI modes
+    enum SPI_MODE {
+        control,
+        data,
+        undefined
+    };
+
     unsigned int width;
     unsigned int height;
 
@@ -114,6 +122,7 @@ private:
     unsigned int dc_pin;
     unsigned int cs_pin;
     unsigned int busy_pin;
+    SPI_MODE spi_mode;
 };
 
 #endif /* EPD2IN7B_H */

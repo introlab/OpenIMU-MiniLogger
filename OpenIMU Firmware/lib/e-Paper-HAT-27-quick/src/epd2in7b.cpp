@@ -112,7 +112,10 @@ int Epd::Init(void) {
  *  @brief: basic function for sending commands
  */
 void Epd::SendCommand(unsigned char command) {
-    DigitalWrite(dc_pin, LOW);
+    if(spi_mode != SPI_MODE::control) {
+        DigitalWrite(dc_pin, LOW);
+        spi_mode = SPI_MODE::control;
+    }
     SpiTransfer(command);
 }
 
@@ -120,7 +123,10 @@ void Epd::SendCommand(unsigned char command) {
  *  @brief: basic function for sending data
  */
 void Epd::SendData(unsigned char data) {
-    DigitalWrite(dc_pin, HIGH);
+    if(spi_mode != SPI_MODE::data) {
+        DigitalWrite(dc_pin, HIGH);
+        spi_mode = SPI_MODE::data;
+    }
     SpiTransfer(data);
 }
 
@@ -139,6 +145,8 @@ void Epd::WaitUntilIdle(void) {
  *          see Epd::Sleep();
  */
 void Epd::Reset(void) {
+    spi_mode = SPI_MODE::undefined;
+
     DigitalWrite(reset_pin, LOW);
     DelayMs(200);
     DigitalWrite(reset_pin, HIGH);
