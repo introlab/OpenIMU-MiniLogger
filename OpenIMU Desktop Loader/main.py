@@ -8,9 +8,8 @@ import datetime
 def processChunk(chunk):
     data = struct.unpack("<9f", chunk)
     for value in data:
-        #print(value)
-        pass
-    #print("")
+        print(value)
+    print("")
 
 def readDataFile(file):
     n = 0

@@ -2,6 +2,8 @@
 
 #include "i2cmutex.h"
 
+#define INTERRUPT_PIN 34
+
 namespace
 {
     MPU9250_DMP _imu;
@@ -31,6 +33,8 @@ IMU::~IMU()
 
 void IMU::begin()
 {
+    pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+
     while (_imu.begin() != INV_SUCCESS) {
         Serial.println("Unable to communicate with MPU-9250");
         Serial.println("Check connections, and try again.");
@@ -47,6 +51,10 @@ void IMU::begin()
 
     _imu.setSampleRate(10); // Set sample rate to 10Hz
     _imu.setCompassSampleRate(10); // Set mag rate to 10Hz
+
+    _imu.enableInterrupt();
+    _imu.setIntLevel(INT_ACTIVE_LOW);
+    _imu.setIntLatched(INT_LATCHED);
 }
 
 void IMU::startSerialLogging()
@@ -130,34 +138,22 @@ namespace
     void logSerial(void *pvParameters)
     {
         while(1) {
-
-            if(_i2c.acquire(100))
-            {
-                if ( _imu.dataReady() ) {
+            if(digitalRead(INTERRUPT_PIN) == LOW) {
+                if(_i2c.acquire()) {
                     _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
                     _i2c.release();
                     printIMUData();
                 }
-
-                else {
-                    _i2c.release();
-                }
-
-                delay(10);
             }
-
-            else {
-                Serial.println("Couln'd read from IMU. i2c was locked.");
-            }
+            delay(10);
         }
     }
 
     void logQueue(void *pvParameters)
     {
         while(1) {
-            if(_i2c.acquire(100))
-            {
-                if ( _imu.dataReady() ) {
+            if(digitalRead(INTERRUPT_PIN) == LOW) {
+                if(_i2c.acquire()) {
                     _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
                     _i2c.release();
 
@@ -167,17 +163,8 @@ namespace
                         delete(measure);
                     }
                 }
-
-                else {
-                    _i2c.release();
-                }
-
-                delay(10);
             }
-
-            else {
-                Serial.println("Couln'd read from IMU. i2c was locked.");
-            }
+            delay(10);
         }
     }
 }

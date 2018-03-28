@@ -9,7 +9,7 @@ public:
     I2CMutex();
     virtual ~I2CMutex();
 
-    bool acquire(int timeoutMs);
+    bool acquire(int timeoutMs = 100);
     bool release();
 
 private:
