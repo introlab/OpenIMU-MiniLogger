@@ -7,12 +7,15 @@
 #include "sdcard.h"
 #include "buttons.h"
 #include "imu.h"
+#include "gps.h"
 
 Display display;
 Menu menu;
 SDCard sdCard;
 Buttons buttons;
 IMU imu;
+GPS gps;
+
 QueueHandle_t imuLoggingQueue = NULL;
 
 
@@ -39,6 +42,9 @@ void setup() {
     // Start IMU
     imu.begin();
 
+    // Start GPS
+    gps.begin();
+
     Serial.println("System ready");
 }
 
@@ -61,8 +67,8 @@ void loop() {
     }
 
     display.updateMenu(&menu);
-    Serial.print("Refreshed display ");
-    Serial.println(counter++);
+    //Serial.print("Refreshed display ");
+    //Serial.println(counter++);
 }
 
 namespace Actions
