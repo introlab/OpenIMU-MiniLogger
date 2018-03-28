@@ -21,9 +21,15 @@ extern "C" {
 namespace
 {
     File _logFile;
-    QueueHandle_t _logQueue;
+    QueueHandle_t _imuQueue = NULL;
+    QueueHandle_t _gpsQueue = NULL;
+    QueueHandle_t _timestampQueue = NULL;
+
     TaskHandle_t _logTask = NULL;
+    TaskHandle_t _timestampTask = NULL;
+
     void logToFile(void *pvParameters);
+    void generateTimestamp(void *pvParameters);
 }
 
 SDCard::SDCard()
@@ -146,14 +152,14 @@ void SDCard::toExternal()
     digitalWrite(25, LOW);
 }
 
-void SDCard::startLog(QueueHandle_t queue)
+void SDCard::startLog()
 {
     if(_logTask == NULL) {
-        _logQueue = queue;
         toESP32();
         _logFile = SD_MMC.open("/log.oimu", FILE_APPEND);
         if(_logFile) {
             _logFile.write('h');
+            startTimestamp();
             xTaskCreate(&logToFile, "SD card log", 2048, NULL, 5, &_logTask);
         }
 
@@ -167,29 +173,70 @@ void SDCard::stopLog()
 {
     if(_logTask != NULL) {
         vTaskDelete(_logTask);
+        stopTimestamp();
         _logTask = NULL;
         _logFile.close();
     }
+}
+
+void SDCard::setIMUQueue(QueueHandle_t queue)
+{
+    _imuQueue = queue;
+}
+
+void SDCard::setGPSQueue(QueueHandle_t queue)
+{
+    _gpsQueue = queue;
+}
+
+void SDCard::startTimestamp()
+{
+    _timestampQueue = xQueueCreate(20, sizeof(time_t));
+    xTaskCreate(&generateTimestamp, "SD card log", 2048, NULL, 5, &_timestampTask);
+}
+
+void SDCard::stopTimestamp()
+{
+    vTaskDelete(_timestampTask);
+    vQueueDelete(_timestampQueue);
 }
 
 namespace
 {
     void logToFile(void *pvParameters)
     {
-        imuData_ptr measure;
-        imuDataSendable_t sendable;
+        imuData_ptr imuMeasure;
+        imuDataSendable_t imuSendable;
+        timestampSendable_t timestamp;
 
         while(1) {
-            if(xQueueReceive(_logQueue, &measure, 1000 / portTICK_RATE_MS) == pdTRUE) {
-                sendable.data = *measure;
-                _logFile.write('d');
-                _logFile.write(sendable.bytes, sizeof(imuData_t));
-                delete measure;
+            // Log timestamp
+            if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
+                _logFile.write('t');
+                _logFile.write(timestamp.bytes, sizeof(time_t));
             }
+            // Log imu
+            if(_imuQueue != NULL) {
+                if(xQueueReceive(_imuQueue, &imuMeasure, 0) == pdTRUE) {   // Log imu
+                    imuSendable.data = *imuMeasure;
+                    _logFile.write('d');
+                    _logFile.write(imuSendable.bytes, sizeof(imuData_t));
+                    delete imuMeasure;
+                }
+            }
+            vTaskDelay(10/portTICK_RATE_MS);
+        }
+    }
 
-            else {
-                Serial.println("Not data in queue");
-            }
+    void generateTimestamp(void *pvParameters)
+    {
+        TickType_t lastGeneration = xTaskGetTickCount();
+        time_t now;
+
+        while(1) {
+            vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
+            time(&now);
+            xQueueSend(_timestampQueue, &now, 0);
         }
     }
 }

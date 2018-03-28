@@ -5,10 +5,21 @@
 #include <Arduino.h>
 
 #include "imu.h"
+#include "gps.h"
+
+union timestampSendable_t {
+    time_t data;
+    uint8_t bytes[sizeof(time_t)];
+};
 
 union imuDataSendable_t {
     imuData_t data;
     uint8_t bytes[sizeof(imuData_t)];
+};
+
+union gpsDataSendable_t {
+    gpsData_t data;
+    uint8_t bytes[sizeof(gpsData_t)];
 };
 
 class SDCard
@@ -24,8 +35,15 @@ public:
     void toESP32();
     void toExternal();
 
-    void startLog(QueueHandle_t queue);
+    void setIMUQueue(QueueHandle_t queue);
+    void setGPSQueue(QueueHandle_t queue);
+
+    void startLog();
     void stopLog();
+
+private:
+    void startTimestamp();
+    void stopTimestamp();
 };
 
 #endif

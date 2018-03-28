@@ -3,14 +3,17 @@
 import struct
 import sys
 import binascii
+import datetime
 
 def processChunk(chunk):
     data = struct.unpack("<9f", chunk)
     for value in data:
-        print(value)
-    print("")
+        #print(value)
+        pass
+    #print("")
 
 def readDataFile(file):
+    n = 0
     while(1):
         chunk = file.read(1)
         if(len(chunk) < 1):
@@ -20,8 +23,19 @@ def readDataFile(file):
         if(headChar[0] == 'h'):
             print("\nNew log stream\n")
         elif(headChar[0] == 'd'):
+                n = n + 1
                 chunk = file.read(36)
                 processChunk(chunk)
+        elif(headChar[0] == 't'):
+                print(n)
+                n = 0
+                chunk = file.read(4)
+                timestamps = struct.unpack("i", chunk)
+                for timestamp in timestamps:
+                    print(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+)
+
+
         else:
             print("\nUnrecognised chunk\n")
 

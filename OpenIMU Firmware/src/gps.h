@@ -4,8 +4,16 @@
 #include <Arduino.h>
 #include <Adafruit_GPS.h>
 #include <HardwareSerial.h>
+#include <ctime>
+#include <sys/time.h>
 
 #include "gpsmutex.h"
+
+typedef struct {
+    float latitude;
+    float longitude;
+    float altitude;
+} gpsData_t;
 
 class GPS
 {

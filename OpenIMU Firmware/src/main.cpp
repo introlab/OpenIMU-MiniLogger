@@ -69,6 +69,17 @@ void loop() {
     display.updateMenu(&menu);
     //Serial.print("Refreshed display ");
     //Serial.println(counter++);
+
+    time_t now;
+    struct tm *timeinfo;
+    time(&now);
+    timeinfo = gmtime(&now);
+
+    char strftime_buf[64];
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", timeinfo);
+
+    Serial.print("Current time ");
+    Serial.println(strftime_buf);
 }
 
 namespace Actions
@@ -96,7 +107,8 @@ namespace Actions
     void IMUStartSD()
     {
         imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
-        sdCard.startLog(imuLoggingQueue);
+        sdCard.setIMUQueue(imuLoggingQueue);
+        sdCard.startLog();
         imu.startQueueLogging(imuLoggingQueue);
     }
 
@@ -104,6 +116,7 @@ namespace Actions
     {
         imu.stopQueueLogging();
         sdCard.stopLog();
+        sdCard.setIMUQueue(NULL);
         vQueueDelete(imuLoggingQueue);
     }
 }
