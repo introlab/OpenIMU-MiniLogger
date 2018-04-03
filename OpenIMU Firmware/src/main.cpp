@@ -17,6 +17,7 @@ IMU imu;
 GPS gps;
 
 QueueHandle_t imuLoggingQueue = NULL;
+QueueHandle_t gpsLoggingQueue = NULL;
 
 
 void setup() {
@@ -97,26 +98,38 @@ namespace Actions
     void IMUStartSerial()
     {
         imu.startSerialLogging();
+        gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
         imu.stopSerialLogging();
+        gps.stopSerialLogging();
     }
 
     void IMUStartSD()
     {
         imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
+        gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
+
         sdCard.setIMUQueue(imuLoggingQueue);
+        sdCard.setGPSQueue(gpsLoggingQueue);
         sdCard.startLog();
+
+        gps.startQueueLogging(gpsLoggingQueue);
         imu.startQueueLogging(imuLoggingQueue);
     }
 
     void IMUStopSD()
     {
         imu.stopQueueLogging();
+        gps.stopQueueLogging();
+
         sdCard.stopLog();
         sdCard.setIMUQueue(NULL);
+        sdCard.setGPSQueue(NULL);
+
         vQueueDelete(imuLoggingQueue);
+        vQueueDelete(gpsLoggingQueue);
     }
 }

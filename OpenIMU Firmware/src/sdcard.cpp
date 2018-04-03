@@ -154,9 +154,35 @@ void SDCard::toExternal()
 
 void SDCard::startLog()
 {
+    File latest;
+    int logNo;
+    char c;
+    String str;
+
     if(_logTask == NULL) {
         toESP32();
-        _logFile = SD_MMC.open("/log.oimu", FILE_APPEND);
+
+        if(!SD_MMC.exists("/latest.txt"))
+        {
+            latest = SD_MMC.open("/latest.txt", FILE_WRITE);
+            latest.print(0, DEC);
+            latest.close();
+        }
+
+        latest = SD_MMC.open("/latest.txt", FILE_READ);
+        c = latest.read();
+        while(c != -1) {
+            str += c;
+            c = latest.read();
+        }
+        logNo = str.toInt();
+        latest.close();
+
+        latest = SD_MMC.open("/latest.txt", FILE_WRITE);
+        latest.print(logNo);
+        latest.close();
+
+        _logFile = SD_MMC.open("/" + String(logNo) + ".oimu", FILE_WRITE);
         if(_logFile) {
             _logFile.write('h');
             startTimestamp();
@@ -206,6 +232,7 @@ namespace
     void logToFile(void *pvParameters)
     {
         imuData_ptr imuMeasure;
+        gpsDataSendable_t gpsSendable;
         imuDataSendable_t imuSendable;
         timestampSendable_t timestamp;
 
@@ -215,13 +242,22 @@ namespace
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
             }
+
             // Log imu
             if(_imuQueue != NULL) {
-                if(xQueueReceive(_imuQueue, &imuMeasure, 0) == pdTRUE) {   // Log imu
+                if(xQueueReceive(_imuQueue, &imuMeasure, 0) == pdTRUE) {
                     imuSendable.data = *imuMeasure;
-                    _logFile.write('d');
+                    _logFile.write('i');
                     _logFile.write(imuSendable.bytes, sizeof(imuData_t));
                     delete imuMeasure;
+                }
+            }
+
+            // Log GPS
+            if(_gpsQueue != NULL) {
+                if(xQueueReceive(_gpsQueue, &imuSendable.data, 0) == pdTRUE) {
+                    _logFile.write('g');
+                    _logFile.write(gpsSendable.bytes, sizeof(gpsData_t));
                 }
             }
             vTaskDelay(10/portTICK_RATE_MS);

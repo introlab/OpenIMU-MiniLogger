@@ -4,12 +4,26 @@ import struct
 import sys
 import binascii
 import datetime
+import string
 
-def processChunk(chunk):
-    data = struct.unpack("<9f", chunk)
+def processImuChunk(chunk):
+    data = struct.unpack("9f", chunk)
     for value in data:
         print(value)
     print("")
+
+def processTimestampChunk(chunk):
+    timestamps = struct.unpack("i", chunk)
+    for timestamp in timestamps:
+        print(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'))
+
+def processGPSChunk(chunk):
+    data = struct.unpack("?3f", chunk)
+    fix = data[0]
+    if fix:
+        print(string.format("GPS FIX\t%2.6f\t%2.6f\t%3.1f"), data[1], data[2], data[3])
+    else:
+        print("No gps fix")
 
 def readDataFile(file):
     n = 0
@@ -21,19 +35,18 @@ def readDataFile(file):
         headChar = struct.unpack("c", chunk)
         if(headChar[0] == 'h'):
             print("\nNew log stream\n")
-        elif(headChar[0] == 'd'):
+        elif(headChar[0] == 'i'):
                 n = n + 1
-                chunk = file.read(36)
-                processChunk(chunk)
+                chunk = file.read(struct.calcsize("9f"))
+                processImuChunk(chunk)
         elif(headChar[0] == 't'):
                 print(n)
                 n = 0
-                chunk = file.read(4)
-                timestamps = struct.unpack("i", chunk)
-                for timestamp in timestamps:
-                    print(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-)
-
+                chunk = file.read(struct.calcsize("i"))
+                processTimestampChunk(chunk)
+        elif(headChar[0] == 'g'):
+            chunk = file.read(struct.calcsize("?3f"))
+            processGPSChunk(chunk)
 
         else:
             print("\nUnrecognised chunk\n")

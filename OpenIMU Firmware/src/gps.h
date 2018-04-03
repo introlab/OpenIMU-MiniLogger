@@ -7,9 +7,8 @@
 #include <ctime>
 #include <sys/time.h>
 
-#include "gpsmutex.h"
-
 typedef struct {
+    bool fix;
     float latitude;
     float longitude;
     float altitude;
@@ -23,11 +22,11 @@ public:
 
     static void begin();
 
-    //static void startSerialLogging();
-    //static void stopSerialLogging();
+    static void startSerialLogging();
+    static void stopSerialLogging();
 
-    //static void startQueueLogging();
-    //static void stopQueueLogging();
+    static void startQueueLogging(QueueHandle_t queue);
+    static void stopQueueLogging();
 
 private:
     static bool _hasBegun;
