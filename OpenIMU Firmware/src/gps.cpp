@@ -80,6 +80,8 @@ namespace
     void gpsRead(void *pvParameters)
     {
         bool serialEnabled, queueEnabled;
+        TickType_t lastTick = xTaskGetTickCount();
+
         while(1) {
             while(_gpsSerial.available()) {
                 _gps.read();
@@ -98,19 +100,24 @@ namespace
                         setTime();
                         timeIsSet = true;
                     }
+                }
+            }
 
-                    // Log to serial
-                    if(serialEnabled) {
-                        gpsToSerial();
-                    }
+            if(xTaskGetTickCount() - lastTick > 1000 / portTICK_RATE_MS) {
+                lastTick = xTaskGetTickCount();
+                // Log to serial
+                if(serialEnabled) {
+                    gpsToSerial();
+                }
 
-                    // Log to queue
-                    if(queueEnabled) {
-                        gpsData_t currentPos = createDataPoint();
-                        xSemaphoreTake(flagMutex, portMAX_DELAY);
+                // Log to queue
+                if(queueEnabled) {
+                    gpsData_t currentPos = createDataPoint();
+                    xSemaphoreTake(flagMutex, portMAX_DELAY);
+                    if(logQueue != NULL) {
                         xQueueSend(logQueue, &currentPos, 0);
-                        xSemaphoreGive(flagMutex);
                     }
+                    xSemaphoreGive(flagMutex);
                 }
             }
             vTaskDelay(10/portTICK_RATE_MS);

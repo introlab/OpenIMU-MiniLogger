@@ -157,7 +157,7 @@ void SDCard::startLog()
     File latest;
     int logNo;
     char c;
-    String str;
+    String str = "";
 
     if(_logTask == NULL) {
         toESP32();
@@ -170,16 +170,18 @@ void SDCard::startLog()
         }
 
         latest = SD_MMC.open("/latest.txt", FILE_READ);
-        c = latest.read();
-        while(c != -1) {
-            str += c;
+        Serial.println("Reading latest log file number");
+        while(latest.available()) {
             c = latest.read();
+            str += c;
+            Serial.print(c);
         }
+        Serial.println("");
         logNo = str.toInt();
         latest.close();
 
         latest = SD_MMC.open("/latest.txt", FILE_WRITE);
-        latest.print(logNo);
+        latest.print(++logNo);
         latest.close();
 
         _logFile = SD_MMC.open("/" + String(logNo) + ".oimu", FILE_WRITE);

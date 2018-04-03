@@ -122,14 +122,19 @@ namespace Actions
 
     void IMUStopSD()
     {
-        imu.stopQueueLogging();
-        gps.stopQueueLogging();
+        if(imuLoggingQueue != NULL && gpsLoggingQueue != NULL) {
+            imu.stopQueueLogging();
+            gps.stopQueueLogging();
 
-        sdCard.stopLog();
-        sdCard.setIMUQueue(NULL);
-        sdCard.setGPSQueue(NULL);
+            sdCard.stopLog();
+            sdCard.setIMUQueue(NULL);
+            sdCard.setGPSQueue(NULL);
 
-        vQueueDelete(imuLoggingQueue);
-        vQueueDelete(gpsLoggingQueue);
+            vQueueDelete(imuLoggingQueue);
+            vQueueDelete(gpsLoggingQueue);
+            imuLoggingQueue = NULL;
+            gpsLoggingQueue = NULL;
+
+        }
     }
 }
