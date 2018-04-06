@@ -9,8 +9,9 @@ import string
 def processImuChunk(chunk):
     data = struct.unpack("9f", chunk)
     for value in data:
-        print(value)
-    print("")
+        #print(value)
+        pass
+    print("imu")
 
 def processTimestampChunk(chunk):
     timestamps = struct.unpack("i", chunk)

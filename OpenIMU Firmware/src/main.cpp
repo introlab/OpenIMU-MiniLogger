@@ -19,6 +19,7 @@ GPS gps;
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
 
+void printCurrentTime();
 
 void setup() {
 
@@ -71,6 +72,10 @@ void loop() {
     //Serial.print("Refreshed display ");
     //Serial.println(counter++);
 
+}
+
+void printCurrentTime()
+{
     time_t now;
     struct tm *timeinfo;
     time(&now);

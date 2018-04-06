@@ -31,6 +31,7 @@ public:
     void begin();
 
     void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
+    bool mount();
 
     void toESP32();
     void toExternal();

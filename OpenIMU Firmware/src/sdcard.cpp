@@ -56,16 +56,6 @@ void SDCard::begin()
     pinMode(12,INPUT_PULLUP);
     pinMode(13,INPUT_PULLUP);
 
-    //Select ESP32 for SD
-    digitalWrite(25,HIGH);
-    digitalWrite(5, HIGH);
-
-    //Output enable
-    digitalWrite(26,LOW);
-    delay(500);
-    digitalWrite(26,HIGH);
-    delay(500);
-
     toESP32();
 }
 
@@ -102,26 +92,18 @@ void SDCard::listDir(fs::FS &fs, const char * dirname, uint8_t levels)
     }
 }
 
-void SDCard::toESP32()
+bool SDCard::mount()
 {
-    Serial.println("SD to ESP32");
-
-    //Select ESP32 for SD
-    digitalWrite(25,HIGH);
-    digitalWrite(5, HIGH);
-
-    // Mount SD Card
-
     if(!SD_MMC.begin("/sdcard", false)) {
        Serial.println("Card Mount Failed");
-       return;
+       return false;
    }
 
    uint8_t cardType = SD_MMC.cardType();
 
    if(cardType == CARD_NONE){
        Serial.println("No SD_MMC card attached");
-       return;
+       return false;
    }
 
    Serial.print("SD_MMC Card Type: ");
@@ -138,8 +120,27 @@ void SDCard::toESP32()
    uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
    Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);
 
+   return true;
+}
 
-   listDir(SD_MMC, "/", 0);
+void SDCard::toESP32()
+{
+    Serial.println("SD to ESP32");
+
+    //Select ESP32 for SD
+    digitalWrite(25,HIGH);
+    digitalWrite(5, HIGH);
+
+    //Output enable
+    digitalWrite(26,LOW);
+    delay(500);
+    digitalWrite(26,HIGH);
+    delay(500);
+
+    // Mount SD Card
+    if(mount()) {
+        listDir(SD_MMC, "/", 0);
+    }
 }
 
 void SDCard::toExternal()
@@ -150,6 +151,12 @@ void SDCard::toExternal()
 
     digitalWrite(5, LOW);
     digitalWrite(25, LOW);
+
+    //Output enable
+    digitalWrite(26,LOW);
+    delay(500);
+    digitalWrite(26,HIGH);
+    delay(500);
 }
 
 void SDCard::startLog()
