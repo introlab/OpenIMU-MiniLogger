@@ -74,8 +74,9 @@ void loop() {
     }
 
     if(changed) {
+        Serial.print("Registered press. ");
         display.updateMenu(&menu);
-        Serial.println("Refreshed display ");
+        Serial.println("Refreshed display.");
     }
 }
 

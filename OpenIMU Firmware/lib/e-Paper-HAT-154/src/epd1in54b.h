@@ -75,6 +75,13 @@ extern const unsigned char lut_red1[];
 
 class Epd : EpdIf {
 public:
+    // SPI modes
+    enum SPI_MODE {
+        control,
+        data,
+        undefined
+    };
+
     unsigned long width;
     unsigned long height;
 
@@ -94,6 +101,7 @@ private:
     unsigned int dc_pin;
     unsigned int cs_pin;
     unsigned int busy_pin;
+    SPI_MODE spi_mode;
 };
 
 #endif /* EPD1IN54B_H */
