@@ -4,3 +4,4 @@
 .gcc-flags.json
 .pioenvs
 .piolibdeps
+.vscode

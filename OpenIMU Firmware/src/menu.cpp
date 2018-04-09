@@ -14,9 +14,9 @@ MenuItem::~MenuItem()
 
 void MenuItem::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0, bool isSelected)
 {
-    blackPaint.DrawStringAt(x0 + 3, y0, _text.c_str(), &Font16, 1);
+    blackPaint.DrawStringAt(x0 + 3, y0, _text.c_str(), &Font16, 0);
     if(isSelected) {
-        redPaint.DrawRectangle(x0, y0 -4, x0 + 164, y0 + 18, 1);
+        redPaint.DrawRectangle(x0, y0 -4, x0 + 164, y0 + 18, 0);
     }
 }
 
@@ -64,7 +64,7 @@ void SubMenu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
     MenuItem* item = _firstItem;
     int yOffset = 30;
 
-    redPaint.DrawStringAt(x0, y0, _text.c_str(), &Font24, 1);
+    redPaint.DrawStringAt(x0, y0, _text.c_str(), &Font24, 0);
 
     while(item != nullptr) {
         item->paint(blackPaint, redPaint, x0, y0 + yOffset, item == _currentItem);

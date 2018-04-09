@@ -1,7 +1,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "epd2in7b.h"
+#include "epd1in54b.h"
 #include "epdpaint.h"
 
 #include "menu.h"

@@ -25,7 +25,9 @@ void setup() {
 
     // Start serial
     Serial.begin(115200);
-    delay(3000);
+    while(!Serial) {
+        delay(100);
+    }
 
     // Start display
     Serial.println("Initializing display...");
@@ -51,27 +53,30 @@ void setup() {
 }
 
 void loop() {
-    static unsigned long counter = 0;
+    bool changed = false;
 
     while(buttons.getActionCtn() > 0) {
         menu.action();
         buttons.decrementActionCtn();
+        changed = true;
     }
 
     while(buttons.getPreviousCtn() > 0) {
         menu.previous();
         buttons.decrementPreviousCtn();
+        changed = true;
     }
 
     while(buttons.getNextCtn() > 0) {
         menu.next();
         buttons.decrementNextCtn();
+        changed = true;
     }
 
-    display.updateMenu(&menu);
-    //Serial.print("Refreshed display ");
-    //Serial.println(counter++);
-
+    if(changed) {
+        display.updateMenu(&menu);
+        Serial.println("Refreshed display ");
+    }
 }
 
 void printCurrentTime()
