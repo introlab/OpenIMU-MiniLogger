@@ -36,6 +36,7 @@ public:
     void toESP32();
     void toExternal();
 
+    void setDataReadySemaphore(SemaphoreHandle_t semaphore);
     void setIMUQueue(QueueHandle_t queue);
     void setGPSQueue(QueueHandle_t queue);
 

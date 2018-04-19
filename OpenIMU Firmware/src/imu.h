@@ -29,7 +29,7 @@ public:
     void startSerialLogging();
     void stopSerialLogging();
 
-    void startQueueLogging(QueueHandle_t queue);
+    void startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore);
     void stopQueueLogging();
 };
 

@@ -24,6 +24,7 @@ namespace
     QueueHandle_t _imuQueue = NULL;
     QueueHandle_t _gpsQueue = NULL;
     QueueHandle_t _timestampQueue = NULL;
+    SemaphoreHandle_t _dataReadySemaphore = NULL;
 
     TaskHandle_t _logTask = NULL;
     TaskHandle_t _timestampTask = NULL;
@@ -224,6 +225,11 @@ void SDCard::setGPSQueue(QueueHandle_t queue)
     _gpsQueue = queue;
 }
 
+void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
+{
+    _dataReadySemaphore = semaphore;
+}
+
 void SDCard::startTimestamp()
 {
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
@@ -246,6 +252,8 @@ namespace
         timestampSendable_t timestamp;
 
         while(1) {
+            xSemaphoreTake(_dataReadySemaphore, portMAX_DELAY);
+
             // Log timestamp
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
@@ -269,7 +277,6 @@ namespace
                     _logFile.write(gpsSendable.bytes, sizeof(gpsData_t));
                 }
             }
-            vTaskDelay(10/portTICK_RATE_MS);
         }
     }
 
@@ -281,7 +288,9 @@ namespace
         while(1) {
             vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
             time(&now);
-            xQueueSend(_timestampQueue, &now, 0);
+            if(xQueueSend(_timestampQueue, &now, 0) == pdTRUE) {
+                xSemaphoreGive(_dataReadySemaphore);
+            }
         }
     }
 }

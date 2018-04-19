@@ -8,7 +8,9 @@ namespace
     SemaphoreHandle_t flagMutex = NULL;
     bool timeIsSet = false;
     bool logToSerial = false;
+
     QueueHandle_t logQueue = NULL;
+    SemaphoreHandle_t sdDataReadySemaphore = NULL;
 
     void gpsRead(void *pvParameters);
     void gpsToSerial();
@@ -61,10 +63,11 @@ void GPS::stopSerialLogging()
     xSemaphoreGive(flagMutex);
 }
 
-void GPS::startQueueLogging(QueueHandle_t queue)
+void GPS::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
     xSemaphoreTake(flagMutex, portMAX_DELAY);
     logQueue = queue;
+    sdDataReadySemaphore = semaphore;
     xSemaphoreGive(flagMutex);
 }
 
@@ -72,6 +75,7 @@ void GPS::stopQueueLogging()
 {
     xSemaphoreTake(flagMutex, portMAX_DELAY);
     logQueue = NULL;
+    sdDataReadySemaphore = NULL;
     xSemaphoreGive(flagMutex);
 }
 
@@ -115,7 +119,9 @@ namespace
                     gpsData_t currentPos = createDataPoint();
                     xSemaphoreTake(flagMutex, portMAX_DELAY);
                     if(logQueue != NULL) {
-                        xQueueSend(logQueue, &currentPos, 0);
+                        if(xQueueSend(logQueue, &currentPos, 0) == pdTRUE) {
+                            xSemaphoreGive(sdDataReadySemaphore);
+                        }
                     }
                     xSemaphoreGive(flagMutex);
                 }

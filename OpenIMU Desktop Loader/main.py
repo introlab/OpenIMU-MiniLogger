@@ -6,6 +6,7 @@ import binascii
 import datetime
 import string
 
+
 def processImuChunk(chunk):
     data = struct.unpack("9f", chunk)
     for value in data:
@@ -13,10 +14,12 @@ def processImuChunk(chunk):
         pass
     print("imu")
 
+
 def processTimestampChunk(chunk):
     timestamps = struct.unpack("i", chunk)
     for timestamp in timestamps:
         print(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'))
+
 
 def processGPSChunk(chunk):
     data = struct.unpack("?3f", chunk)
@@ -25,6 +28,7 @@ def processGPSChunk(chunk):
         print(string.format("GPS FIX\t%2.6f\t%2.6f\t%3.1f"), data[1], data[2], data[3])
     else:
         print("No gps fix")
+
 
 def readDataFile(file):
     n = 0
@@ -51,6 +55,8 @@ def readDataFile(file):
 
         else:
             print("\nUnrecognised chunk\n")
+            print(headChar[0])
+            break
 
 
 def main():

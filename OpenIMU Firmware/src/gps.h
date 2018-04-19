@@ -25,7 +25,7 @@ public:
     static void startSerialLogging();
     static void stopSerialLogging();
 
-    static void startQueueLogging(QueueHandle_t queue);
+    static void startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore);
     static void stopQueueLogging();
 
 private:

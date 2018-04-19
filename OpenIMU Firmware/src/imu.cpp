@@ -13,12 +13,18 @@ namespace
     TaskHandle_t _queueLogHandle = NULL;
 
     QueueHandle_t _loggingQueue = NULL;
+    SemaphoreHandle_t _sdDataSemaphore = NULL;
 
     void printIMUData();
     imuData_ptr createIMUDataPoint();
 
     void logSerial(void *pvParameters);
     void logQueue(void *pvParameters);
+
+    SemaphoreHandle_t _imuReadySemaphore;
+    void IRAM_ATTR imuInterrupt() {
+        xSemaphoreGiveFromISR(_imuReadySemaphore, NULL);
+    }
 }
 
 IMU::IMU()
@@ -52,6 +58,10 @@ void IMU::begin()
     _imu.setSampleRate(10); // Set sample rate to 10Hz
     _imu.setCompassSampleRate(10); // Set mag rate to 10Hz
 
+    // Configure interrupt
+    _imuReadySemaphore = xSemaphoreCreateBinary();
+    attachInterrupt(INTERRUPT_PIN, imuInterrupt, FALLING);
+
     _imu.enableInterrupt();
     _imu.setIntLevel(INT_ACTIVE_LOW);
     _imu.setIntLatched(INT_LATCHED);
@@ -76,12 +86,13 @@ void IMU::stopSerialLogging()
     }
 }
 
-void IMU::startQueueLogging(QueueHandle_t queue)
+void IMU::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
     Serial.println("IMU log begin");
     if(_queueLogHandle == NULL) {
         Serial.println("IMU task create");
         _loggingQueue = queue;
+        _sdDataSemaphore = semaphore;
         xTaskCreate(&logQueue, "IMU queue log", 2048, NULL, 5, &_queueLogHandle);
     }
 }
@@ -93,6 +104,7 @@ void IMU::stopQueueLogging()
         Serial.println("IMU task delete");
         vTaskDelete(_queueLogHandle);
         _queueLogHandle = NULL;
+        _sdDataSemaphore = NULL;
     }
 }
 
@@ -138,33 +150,32 @@ namespace
     void logSerial(void *pvParameters)
     {
         while(1) {
-            if(digitalRead(INTERRUPT_PIN) == LOW) {
-                if(_i2c.acquire()) {
-                    _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
-                    _i2c.release();
-                    printIMUData();
-                }
+            xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
+            if(_i2c.acquire()) {
+                _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
+                _i2c.release();
+                printIMUData();
             }
-            delay(10);
         }
     }
 
     void logQueue(void *pvParameters)
     {
         while(1) {
-            if(digitalRead(INTERRUPT_PIN) == LOW) {
-                if(_i2c.acquire()) {
-                    _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
-                    _i2c.release();
+            xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
+            if(_i2c.acquire()) {
+                _imu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS);
+                _i2c.release();
 
-                    imuData_ptr measure = createIMUDataPoint();
-                    if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
-                        Serial.println("Queue is full! Dropping measure");
-                        delete(measure);
-                    }
+                imuData_ptr measure = createIMUDataPoint();
+                if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
+                    Serial.println("Queue is full! Dropping measure");
+                    delete(measure);
+                }
+                else {
+                    xSemaphoreGive(_sdDataSemaphore);
                 }
             }
-            delay(10);
         }
     }
 }

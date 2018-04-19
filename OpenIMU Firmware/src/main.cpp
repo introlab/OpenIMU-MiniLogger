@@ -18,6 +18,7 @@ GPS gps;
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
+SemaphoreHandle_t sdDataReadySemaphore = NULL;
 
 void printCurrentTime();
 
@@ -122,13 +123,15 @@ namespace Actions
     {
         imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
         gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
+        sdDataReadySemaphore = xSemaphoreCreateCounting(128, 0);
 
         sdCard.setIMUQueue(imuLoggingQueue);
         sdCard.setGPSQueue(gpsLoggingQueue);
+        sdCard.setDataReadySemaphore(sdDataReadySemaphore);
         sdCard.startLog();
 
-        gps.startQueueLogging(gpsLoggingQueue);
-        imu.startQueueLogging(imuLoggingQueue);
+        gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
+        imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
     }
 
     void IMUStopSD()
@@ -140,12 +143,15 @@ namespace Actions
             sdCard.stopLog();
             sdCard.setIMUQueue(NULL);
             sdCard.setGPSQueue(NULL);
+            sdCard.setDataReadySemaphore(NULL);
 
+            vSemaphoreDelete(sdDataReadySemaphore);
             vQueueDelete(imuLoggingQueue);
             vQueueDelete(gpsLoggingQueue);
+            
+            sdDataReadySemaphore = NULL;
             imuLoggingQueue = NULL;
             gpsLoggingQueue = NULL;
-
         }
     }
 }
