@@ -1,7 +1,7 @@
 #ifndef IMU_H
 #define IMU_H
 
-#include <SparkFunMPU9250-DMP.h>
+#include <MPU9250.h>
 #include <Arduino.h>
 
 typedef struct {
