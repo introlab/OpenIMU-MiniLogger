@@ -2,5 +2,8 @@
     "terminal.integrated.env.osx": {
         "PATH": "/Users/Cedric/.platformio/penv/bin:/Users/Cedric/.platformio/penv:/Users/Cedric/Library/Python/2.7/bin:/usr/local/opt/python/libexec/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/share/dotnet:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands",
         "PLATFORMIO_CALLER": "vscode"
+    },
+    "files.associations": {
+        "string": "cpp"
     }
 }
