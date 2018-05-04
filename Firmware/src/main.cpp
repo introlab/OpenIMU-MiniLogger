@@ -28,6 +28,7 @@ void setup() {
         delay(100);
     }
 
+#if 0
     // Start display
     Serial.println("Initializing display...");
     delay(1000);
@@ -47,11 +48,14 @@ void setup() {
 
     // Start GPS
     gps.begin();
-
+#endif
     Serial.println("System ready");
 }
 
 void loop() {
+
+#if 0
+
     bool changed = false;
 
     while(buttons.getActionCtn() > 0) {
@@ -77,6 +81,8 @@ void loop() {
         display.updateMenu(&menu);
         Serial.println("Refreshed display.");
     }
+
+#endif
 }
 
 void printCurrentTime()
@@ -146,7 +152,7 @@ namespace Actions
             vSemaphoreDelete(sdDataReadySemaphore);
             vQueueDelete(imuLoggingQueue);
             vQueueDelete(gpsLoggingQueue);
-            
+
             sdDataReadySemaphore = NULL;
             imuLoggingQueue = NULL;
             gpsLoggingQueue = NULL;
