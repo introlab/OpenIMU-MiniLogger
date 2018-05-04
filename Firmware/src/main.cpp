@@ -1,18 +1,28 @@
 #include <Arduino.h>
 
+#if 0
 #include "display.h"
 #include "menu.h"
 #include "sdcard.h"
 #include "buttons.h"
 #include "imu.h"
 #include "gps.h"
-
 Display display;
 Menu menu;
 SDCard sdCard;
 Buttons buttons;
 IMU imu;
 GPS gps;
+#endif
+
+#include "MCP23S17.h"
+#include <SPI.h>
+
+
+
+
+//Address = 0, CS=5
+MCP mcp23s17(0,5);
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
@@ -20,14 +30,45 @@ SemaphoreHandle_t sdDataReadySemaphore = NULL;
 
 void printCurrentTime();
 
+void setup_gpio()
+{
+
+
+  //EXP Chip Select
+  pinMode(5, OUTPUT);
+  digitalWrite(5, HIGH);
+
+  //SCLK
+  pinMode(19,OUTPUT);
+  //MOSI
+  pinMode(18,OUTPUT);
+  //MISO
+  pinMode(39, INPUT);
+  //nINT
+  pinMode(36, INPUT_PULLUP);
+
+
+  //SCK, MISO, MOSI no SS pin
+  SPI.begin(19, 39, 18);
+  mcp23s17.begin();
+
+  //ALIVE -->HIGH, power will stay on
+  mcp23s17.pinMode(12 + 1, OUTPUT);
+  mcp23s17.digitalWrite(12 + 1, HIGH);
+
+  mcp23s17.pinMode(2, OUTPUT);
+  mcp23s17.digitalWrite(2, HIGH);
+
+}
+
 void setup() {
+
+    setup_gpio();
 
     // Start serial
     Serial.begin(115200);
-    while(!Serial) {
-        delay(100);
-    }
 
+    Serial.println("Setting GPIO for SPI");
 #if 0
     // Start display
     Serial.println("Initializing display...");
@@ -54,6 +95,15 @@ void setup() {
 
 void loop() {
 
+  while(1)
+  {
+    Serial.println("Loop");
+    mcp23s17.digitalWrite(2, LOW);
+    delay(500);
+
+    mcp23s17.digitalWrite(2, HIGH);
+    delay(500);
+ }
 #if 0
 
     bool changed = false;
@@ -85,6 +135,7 @@ void loop() {
 #endif
 }
 
+#if 0
 void printCurrentTime()
 {
     time_t now;
@@ -159,3 +210,4 @@ namespace Actions
         }
     }
 }
+#endif

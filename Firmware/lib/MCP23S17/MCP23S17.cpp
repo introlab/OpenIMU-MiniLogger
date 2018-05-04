@@ -85,7 +85,7 @@ MCP::MCP(uint8_t address, uint8_t ss) {
 void MCP::begin() {
   ::pinMode(_ss, OUTPUT);               // Set SlaveSelect pin as an output
   ::digitalWrite(_ss, HIGH);            // Set SlaveSelect HIGH (chip de-selected)
-  SPI.begin();                          // Start up the SPI bus
+  //SPI.begin();                          // Start up the SPI bus
   //SPI.setClockDivider(CLOCK_DIVIDER); // Sets the SPI bus speed
   //SPI.setBitOrder(MSBFIRST);          // Sets SPI bus bit order (this is the default, setting it for good form!)
   //SPI.setDataMode(SPI_MODE0);         // Sets the SPI bus timing mode (this is the default, setting it for good form!)
@@ -102,12 +102,12 @@ void MCP::byteWrite(uint8_t reg, uint8_t value) {      // Accept the register an
   ::digitalWrite(_ss, HIGH);                           // Take slave-select high
 }
 
-// GENERIC WORD WRITE - will write a word to a register pair, LSB to first register, MSB to next higher value register 
+// GENERIC WORD WRITE - will write a word to a register pair, LSB to first register, MSB to next higher value register
 
-void MCP::wordWrite(uint8_t reg, unsigned int word) {  // Accept the start register and word 
+void MCP::wordWrite(uint8_t reg, unsigned int word) {  // Accept the start register and word
   ::digitalWrite(_ss, LOW);                            // Take slave-select low
   SPI.transfer(OPCODEW | (_address << 1));             // Send the MCP23S17 opcode, chip address, and write bit
-  SPI.transfer(reg);                                   // Send the register we want to write 
+  SPI.transfer(reg);                                   // Send the register we want to write
   SPI.transfer((uint8_t) (word));                      // Send the low byte (register address pointer will auto-increment after write)
   SPI.transfer((uint8_t) (word >> 8));                 // Shift the high byte down to the low byte location and send
   ::digitalWrite(_ss, HIGH);                           // Take slave-select high
@@ -145,7 +145,7 @@ void MCP::pullupMode(uint8_t pin, uint8_t mode) {
 }
 
 
-void MCP::pullupMode(unsigned int mode) { 
+void MCP::pullupMode(unsigned int mode) {
   wordWrite(GPPUA, mode);
   _pullupCache = mode;
 }
@@ -163,7 +163,7 @@ void MCP::inputInvert(uint8_t pin, uint8_t mode) {
   wordWrite(IPOLA, _invertCache);
 }
 
-void MCP::inputInvert(unsigned int mode) { 
+void MCP::inputInvert(unsigned int mode) {
   wordWrite(IPOLA, mode);
   _invertCache = mode;
 }
@@ -182,7 +182,7 @@ void MCP::digitalWrite(uint8_t pin, uint8_t value) {
   wordWrite(GPIOA, _outputCache);
 }
 
-void MCP::digitalWrite(unsigned int value) { 
+void MCP::digitalWrite(unsigned int value) {
   wordWrite(GPIOA, value);
   _outputCache = value;
 }
