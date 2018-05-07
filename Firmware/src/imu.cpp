@@ -181,8 +181,8 @@ namespace
                 Serial.print("Printing ");
                 Serial.print(fifoSize);
                 Serial.println(" samples from fifo...");
-                //for(size_t i = 0; i < fifoSize; i++)
-                //    printIMUData(i);
+                for(size_t i = 0; i < fifoSize; i++)
+                    printIMUData(i);
             }
         }
     }

@@ -17,12 +17,14 @@ GPS gps;
 
 #include "MCP23S17.h"
 #include <SPI.h>
-
-
+#include "imu.h"
+#include "Wire.h"
 
 
 //Address = 0, CS=5
 MCP mcp23s17(0,5);
+IMU imu;
+
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
@@ -32,6 +34,8 @@ void printCurrentTime();
 
 void setup_gpio()
 {
+  // Setup I2C PINS, SDA, SCL, Clock speed
+  //Wire.begin(23, 25, 400000);
 
 
   //EXP Chip Select
@@ -69,6 +73,14 @@ void setup() {
     Serial.begin(115200);
 
     Serial.println("Setting GPIO for SPI");
+
+#if 1
+    // Start IMU
+    imu.begin();
+    imu.startSerialLogging();
+#endif
+
+
 #if 0
     // Start display
     Serial.println("Initializing display...");
