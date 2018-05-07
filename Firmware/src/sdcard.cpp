@@ -1,5 +1,5 @@
 #include "sdcard.h"
-
+#include "defines.h"
 #include <FS.h>
 #include <SD_MMC.h>
 
@@ -45,11 +45,14 @@ SDCard::~SDCard()
 
 void SDCard::begin()
 {
-    //PIN 25 (select 1=ESP32, 0 = USB2640) et 26 (output enable 0=PAS DE CARTE SD) 1
 
-    pinMode(5, OUTPUT);
-    pinMode(25,OUTPUT);
-    pinMode(26,OUTPUT);
+    //TODO, unused for now
+    mcp23s17.pinMode(EXT_PIN04_SD_N_CD, INPUT);
+
+    //PIN EXT_PIN05_SD_SEL (select 1=ESP32, 0 = USB2640)
+    //EXT_PIN03_SD_N_ENABLED (output enable 0=NO SD Card)
+    mcp23s17.pinMode(EXT_PIN03_SD_N_ENABLED, OUTPUT);
+    mcp23s17.pinMode(EXT_PIN05_SD_SEL, OUTPUT);
 
     pinMode(0,INPUT_PULLUP);
     pinMode(2,INPUT_PULLUP);
@@ -128,14 +131,15 @@ void SDCard::toESP32()
 {
     Serial.println("SD to ESP32");
 
-    //Select ESP32 for SD
-    digitalWrite(25,HIGH);
-    digitalWrite(5, HIGH);
+    //TODO - DL FIX PINS
 
-    //Output enable
-    digitalWrite(26,LOW);
+    //Select ESP32 for SD
+    mcp23s17.digitalWrite(EXT_PIN05_SD_SEL,HIGH);
+
+    //Output enable (inverted)
+    mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED,HIGH);
     delay(500);
-    digitalWrite(26,HIGH);
+    mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED,LOW);
     delay(500);
 
     // Mount SD Card
@@ -150,13 +154,13 @@ void SDCard::toExternal()
 
     SD_MMC.end();
 
-    digitalWrite(5, LOW);
-    digitalWrite(25, LOW);
+    //Select ESP32 for SD
+    mcp23s17.digitalWrite(EXT_PIN05_SD_SEL,LOW);
 
-    //Output enable
-    digitalWrite(26,LOW);
+    //Output enable (inverted)
+    mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED,HIGH);
     delay(500);
-    digitalWrite(26,HIGH);
+    mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED,LOW);
     delay(500);
 }
 

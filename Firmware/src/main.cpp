@@ -9,7 +9,7 @@
 #include "gps.h"
 Display display;
 Menu menu;
-SDCard sdCard;
+
 Buttons buttons;
 IMU imu;
 GPS gps;
@@ -19,12 +19,13 @@ GPS gps;
 #include <SPI.h>
 #include "imu.h"
 #include "Wire.h"
-
+#include "sdcard.h"
+#include "defines.h"
 
 //Address = 0, CS=5
 MCP mcp23s17(0,5);
 IMU imu;
-
+SDCard sdCard;
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
@@ -57,12 +58,26 @@ void setup_gpio()
   mcp23s17.begin();
 
   //ALIVE -->HIGH, power will stay on
-  mcp23s17.pinMode(12 + 1, OUTPUT);
-  mcp23s17.digitalWrite(12 + 1, HIGH);
+  mcp23s17.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
+  mcp23s17.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
 
-  mcp23s17.pinMode(2, OUTPUT);
-  mcp23s17.digitalWrite(2, HIGH);
+  //LED
+  mcp23s17.pinMode(EXT_PIN01_LED, OUTPUT);
+  mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
 
+/*
+  //EXT SDEN, SEL
+  mcp23s17.pinMode(EXT_PIN03_SD_N_ENABLED, OUTPUT);
+  mcp23s17.pinMode(EXT_PIN05_SD_SEL, OUTPUT);
+
+  //Selector to ESP32
+  mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED, HIGH);
+  mcp23s17.digitalWrite(EXT_PIN05_SD_SEL, HIGH);
+  delay(100);
+  mcp23s17.digitalWrite(EXT_PIN05_SD_SEL, LOW);
+  delay(500);
+  mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED, LOW);
+*/
 }
 
 void setup() {
@@ -77,7 +92,12 @@ void setup() {
 #if 1
     // Start IMU
     imu.begin();
-    imu.startSerialLogging();
+    //imu.startSerialLogging();
+
+
+    // Initialize SD-card
+    sdCard.begin();
+
 #endif
 
 
@@ -107,15 +127,16 @@ void setup() {
 
 void loop() {
 
-  while(1)
-  {
+
     Serial.println("Loop");
-    mcp23s17.digitalWrite(2, LOW);
+    mcp23s17.digitalWrite(EXT_PIN01_LED, LOW);
+
     delay(500);
 
-    mcp23s17.digitalWrite(2, HIGH);
+    mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
+
     delay(500);
- }
+
 #if 0
 
     bool changed = false;
