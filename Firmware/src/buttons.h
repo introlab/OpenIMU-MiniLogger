@@ -2,7 +2,8 @@
 #define BUTTONS_H
 
 #include <Arduino.h>
-#include "ioexpander.h"
+//#include "ioexpander.h"
+#include "defines.h"
 
 class Buttons
 {

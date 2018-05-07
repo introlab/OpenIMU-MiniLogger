@@ -2,16 +2,8 @@
 
 #if 0
 #include "display.h"
-#include "menu.h"
-#include "sdcard.h"
-#include "buttons.h"
-#include "imu.h"
 #include "gps.h"
 Display display;
-Menu menu;
-
-Buttons buttons;
-IMU imu;
 GPS gps;
 #endif
 
@@ -20,12 +12,16 @@ GPS gps;
 #include "imu.h"
 #include "Wire.h"
 #include "sdcard.h"
+#include "buttons.h"
 #include "defines.h"
+#include "menu.h"
 
 //Address = 0, CS=5
 MCP mcp23s17(0,5);
 IMU imu;
 SDCard sdCard;
+Buttons buttons;
+Menu menu;
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
@@ -65,50 +61,23 @@ void setup_gpio()
   mcp23s17.pinMode(EXT_PIN01_LED, OUTPUT);
   mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
 
-/*
-  //EXT SDEN, SEL
-  mcp23s17.pinMode(EXT_PIN03_SD_N_ENABLED, OUTPUT);
-  mcp23s17.pinMode(EXT_PIN05_SD_SEL, OUTPUT);
-
-  //Selector to ESP32
-  mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED, HIGH);
-  mcp23s17.digitalWrite(EXT_PIN05_SD_SEL, HIGH);
-  delay(100);
-  mcp23s17.digitalWrite(EXT_PIN05_SD_SEL, LOW);
-  delay(500);
-  mcp23s17.digitalWrite(EXT_PIN03_SD_N_ENABLED, LOW);
-*/
 }
 
 void setup() {
 
+    // This must be the first thing we do.
     setup_gpio();
 
     // Start serial
     Serial.begin(115200);
 
-    Serial.println("Setting GPIO for SPI");
-
-#if 1
-    // Start IMU
-    imu.begin();
-    //imu.startSerialLogging();
-
-
-    // Initialize SD-card
-    sdCard.begin();
-
-#endif
-
-
-#if 0
     // Start display
-    Serial.println("Initializing display...");
-    delay(1000);
+    //Serial.println("Initializing display...");
+    //delay(1000);
 
     // Show menu and start reading buttons
-    display.begin();
-    display.showMenu(&menu);
+    //display.begin();
+    //display.showMenu(&menu);
     buttons.begin();
 
     Serial.println("Display Ready");
@@ -120,8 +89,8 @@ void setup() {
     imu.begin();
 
     // Start GPS
-    gps.begin();
-#endif
+    //gps.begin();
+
     Serial.println("System ready");
 }
 
@@ -137,7 +106,7 @@ void loop() {
 
     delay(500);
 
-#if 0
+
 
     bool changed = false;
 
@@ -159,16 +128,16 @@ void loop() {
         changed = true;
     }
 
+
     if(changed) {
         Serial.print("Registered press. ");
-        display.updateMenu(&menu);
-        Serial.println("Refreshed display.");
+        //display.updateMenu(&menu);
+        //Serial.println("Refreshed display.");
     }
 
-#endif
 }
 
-#if 0
+
 void printCurrentTime()
 {
     time_t now;
@@ -198,13 +167,15 @@ namespace Actions
     void IMUStartSerial()
     {
         imu.startSerialLogging();
-        gps.startSerialLogging();
+        //TODO ADD GPS
+        //gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
         imu.stopSerialLogging();
-        gps.stopSerialLogging();
+        //TODO ADD GPS
+        //gps.stopSerialLogging();
     }
 
     void IMUStartSD()
@@ -218,7 +189,8 @@ namespace Actions
         sdCard.setDataReadySemaphore(sdDataReadySemaphore);
         sdCard.startLog();
 
-        gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
+        //TODO ADD GPS
+        //gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
         imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
     }
 
@@ -226,7 +198,8 @@ namespace Actions
     {
         if(imuLoggingQueue != NULL && gpsLoggingQueue != NULL) {
             imu.stopQueueLogging();
-            gps.stopQueueLogging();
+            //TODO Add GPS
+            //gps.stopQueueLogging();
 
             sdCard.stopLog();
             sdCard.setIMUQueue(NULL);
@@ -243,4 +216,3 @@ namespace Actions
         }
     }
 }
-#endif

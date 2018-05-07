@@ -13,8 +13,6 @@ namespace
     bool _lastAction = false;
     bool _lastPrevious = false;
     bool _lastNext = false;
-
-    IOExpander _expander;
     void readButton(void *pvParameters);
 }
 
@@ -31,16 +29,14 @@ Buttons::~Buttons()
 void Buttons::begin()
 {
     // Enable IO expander
-    _expander.begin();
-
-    _expander.pinMode(2, INPUT);
-    _expander.pullUp(2, HIGH);
-
-    _expander.pinMode(6, INPUT);
-    _expander.pullUp(6, HIGH);
-
-    _expander.pinMode(7, INPUT);
-    _expander.pullUp(7, HIGH);
+    mcp23s17.pinMode(EXT_PIN11_BUTTON0, INPUT);
+    mcp23s17.pullupMode(EXT_PIN11_BUTTON0, HIGH);
+    mcp23s17.pinMode(EXT_PIN06_BUTTON1, INPUT);
+    mcp23s17.pullupMode(EXT_PIN06_BUTTON1, HIGH);
+    mcp23s17.pinMode(EXT_PIN08_BUTTON2, INPUT);
+    mcp23s17.pullupMode(EXT_PIN08_BUTTON2, HIGH);
+    mcp23s17.pinMode(EXT_PIN09_BUTTON3, INPUT);
+    mcp23s17.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
     delay(200);
 
@@ -54,12 +50,15 @@ namespace {
 
         _lastButtonRead = xTaskGetTickCount();
 
+        Serial.println("readButton task starting...");
+
         while(1) {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
 
-            action = _expander.digitalRead(2) != 0;
-            previous = _expander.digitalRead(6) != 0;
-            next = _expander.digitalRead(7) != 0;
+            previous = mcp23s17.digitalRead(EXT_PIN11_BUTTON0) != 0;
+            action = mcp23s17.digitalRead(EXT_PIN08_BUTTON2) != 0;
+            next = mcp23s17.digitalRead(EXT_PIN06_BUTTON1) != 0;
+            //Serial.printf("state: %i %i %i \n",previous,action,next);
 
             if(action && action != _lastAction) {
                 _actionCtn++;
