@@ -108,7 +108,7 @@ void Epd::SendData(unsigned char data) {
 void Epd::WaitUntilIdle(void) {
     while(DigitalRead(busy_pin) == 0) {      //0: busy, 1: idle
         DelayMs(100);
-    }      
+    }
 }
 
 /**
@@ -118,53 +118,53 @@ void Epd::WaitUntilIdle(void) {
  */
 void Epd::Reset(void) {
     spi_mode = SPI_MODE::undefined;
-    DigitalWrite(reset_pin, LOW);                //module reset    
+    DigitalWrite(reset_pin, LOW);                //module reset
     DelayMs(200);
     DigitalWrite(reset_pin, HIGH);
-    DelayMs(200);    
+    DelayMs(200);
 }
 
 /**
  *  @brief: set the look-up tables
  */
 void Epd::SetLutBw(void) {
-    unsigned int count;     
+    unsigned int count;
     SendCommand(0x20);         //g vcom
     for(count = 0; count < 15; count++) {
         SendData(lut_vcom0[count]);
-    } 
+    }
     SendCommand(0x21);        //g ww --
     for(count = 0; count < 15; count++) {
         SendData(lut_w[count]);
-    } 
+    }
     SendCommand(0x22);         //g bw r
     for(count = 0; count < 15; count++) {
         SendData(lut_b[count]);
-    } 
+    }
     SendCommand(0x23);         //g wb w
     for(count = 0; count < 15; count++) {
         SendData(lut_g1[count]);
-    } 
+    }
     SendCommand(0x24);         //g bb b
     for(count = 0; count < 15; count++) {
         SendData(lut_g2[count]);
-    } 
+    }
 }
 
 void Epd::SetLutRed(void) {
-    unsigned int count;     
+    unsigned int count;
     SendCommand(0x25);
     for(count = 0; count < 15; count++) {
         SendData(lut_vcom1[count]);
-    } 
+    }
     SendCommand(0x26);
     for(count = 0; count < 15; count++) {
         SendData(lut_red0[count]);
-    } 
+    }
     SendCommand(0x27);
     for(count = 0; count < 15; count++) {
         SendData(lut_red1[count]);
-    } 
+    }
 }
 
 void Epd::DisplayFrame(const unsigned char* frame_buffer_black, const unsigned char* frame_buffer_red) {
@@ -211,11 +211,11 @@ void Epd::DisplayFrame(const unsigned char* frame_buffer_black, const unsigned c
 }
 
 /**
- *  @brief: After this command is transmitted, the chip would enter the 
- *          deep-sleep mode to save power. 
- *          The deep sleep mode would return to standby by hardware reset. 
+ *  @brief: After this command is transmitted, the chip would enter the
+ *          deep-sleep mode to save power.
+ *          The deep sleep mode would return to standby by hardware reset.
  *          The only one parameter is a check code, the command would be
- *          executed if check code = 0xA5. 
+ *          executed if check code = 0xA5.
  *          You can use Epd::Init() to awaken
  */
 void Epd::Sleep() {
@@ -246,42 +246,42 @@ const unsigned char lut_w[] =
     0x43, 0x01, 0x86, 0x0A, 0x04
 };
 //bw
-const unsigned char lut_b[] = 
+const unsigned char lut_b[] =
 {
     0x01, 0x00, 0x01, 0x0A, 0x00,
     0x01, 0x0A, 0x00, 0x01, 0x00,
     0x43, 0x01, 0x06, 0x4A, 0x04
 };
 //wb
-const unsigned char lut_g1[] = 
+const unsigned char lut_g1[] =
 {
     0x01, 0x00, 0x01, 0x0A, 0x00,
     0x01, 0x0A, 0x00, 0x01, 0x00,
     0x43, 0x01, 0x06, 0x0A, 0x04
 };
 //bb
-const unsigned char lut_g2[] = 
+const unsigned char lut_g2[] =
 {
     0x01, 0x00, 0x01, 0x0A, 0x00,
     0x01, 0x0A, 0x00, 0x01, 0x00,
     0x43, 0x01, 0x06, 0x0A, 0x04
 };
 
-const unsigned char lut_vcom1[] = 
+const unsigned char lut_vcom1[] =
 {
     0x03,
     0x1D, 0x01, 0x01, 0x08, 0x23, 0x37, 0x37,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-const unsigned char lut_red0[] = 
+const unsigned char lut_red0[] =
 {
     0x83,
     0x5D, 0x01, 0x81, 0x48, 0x23, 0x77, 0x77,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-const unsigned char lut_red1[] = 
+const unsigned char lut_red1[] =
 {
     0x03,
     0x1D, 0x01, 0x01, 0x08, 0x23, 0x37, 0x37,
@@ -289,5 +289,3 @@ const unsigned char lut_red1[] =
 };
 
 /* END OF FILE */
-
-

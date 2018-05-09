@@ -1,11 +1,12 @@
 #ifndef _DEFINES_H_
 #define _DEFINES_H_
 
-#include "MCP23S17.h"
+//#include "MCP23S17.h"
+#include "ioexpander.h"
 
 /**
  * GLOBAL DEFINITIONS
- * 
+ *
 */
 
 //I/O Expander pins (id is +1 of index)
@@ -27,7 +28,7 @@
 #define EXT_PIN15_MOTOR_VIBRATE 16
 
 //external GPIO driver
-extern MCP mcp23s17;
+extern IOExpander ioExpander;
 
 
 #endif

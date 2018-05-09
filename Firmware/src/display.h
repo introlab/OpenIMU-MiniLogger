@@ -3,7 +3,6 @@
 
 #include "epd1in54b.h"
 #include "epdpaint.h"
-
 #include "menu.h"
 
 class Display

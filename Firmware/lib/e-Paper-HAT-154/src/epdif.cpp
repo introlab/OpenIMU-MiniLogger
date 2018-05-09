@@ -37,7 +37,7 @@ EpdIf::~EpdIf() {
 }
 
 bool EpdIf::isExternal(int pin) {
-    return (pin == RST_PIN) || (pin == DC_PIN);
+    return (pin == RST_PIN);
 }
 
 void EpdIf::DigitalWrite(int pin, int value) {

@@ -1,7 +1,7 @@
 #include "ioexpander.h"
 
 I2CMutex IOExpander::_i2c;
-Adafruit_MCP23008 IOExpander::_mcp;
+MCP IOExpander::_mcp(0,5); //ADDR 0, CS=PIN5
 bool IOExpander::hasBegun = false;
 
 IOExpander::IOExpander()
@@ -34,9 +34,15 @@ void IOExpander::pinMode(uint8_t pinNo, uint8_t mode)
 void IOExpander::pullUp(uint8_t pinNo, uint8_t mode)
 {
     _i2c.acquire(100);
-    _mcp.pullUp(pinNo, mode);
+    _mcp.pullupMode(pinNo, mode);
     _i2c.release();
 }
+
+void IOExpander::pullupMode(uint8_t pinNo, uint8_t mode)
+{
+    pullUp(pinNo, mode);
+}
+
 
 void IOExpander::digitalWrite(uint8_t pinNo, uint8_t value)
 {

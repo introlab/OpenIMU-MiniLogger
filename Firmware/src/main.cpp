@@ -15,13 +15,21 @@ GPS gps;
 #include "buttons.h"
 #include "defines.h"
 #include "menu.h"
+#include "display.h"
+#include "Adafruit_MPL115A2.h"
+#include <ioexpander.h>
 
 //Address = 0, CS=5
-MCP mcp23s17(0,5);
+//MCP mcp23s17(0,5);
+IOExpander ioExpander;
 IMU imu;
 SDCard sdCard;
 Buttons buttons;
 Menu menu;
+Display display;
+//For Testing
+Adafruit_MPL115A2 baro;
+
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
@@ -51,6 +59,19 @@ void setup_gpio()
 
   //SCK, MISO, MOSI no SS pin
   SPI.begin(19, 39, 18);
+
+  ioExpander.begin();
+
+
+  //ALIVE -->HIGH, power will stay on
+  ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
+  ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
+
+  //LED
+  ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
+  ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
+
+  /*
   mcp23s17.begin();
 
   //ALIVE -->HIGH, power will stay on
@@ -60,6 +81,7 @@ void setup_gpio()
   //LED
   mcp23s17.pinMode(EXT_PIN01_LED, OUTPUT);
   mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
+  */
 
 }
 
@@ -75,9 +97,7 @@ void setup() {
     //Serial.println("Initializing display...");
     //delay(1000);
 
-    // Show menu and start reading buttons
-    //display.begin();
-    //display.showMenu(&menu);
+
     buttons.begin();
 
     Serial.println("Display Ready");
@@ -87,6 +107,15 @@ void setup() {
 
     // Start IMU
     imu.begin();
+
+    //TODO for testing only
+    baro.begin();
+
+    // Show menu and start reading buttons
+    display.begin();
+    display.showMenu(&menu);
+
+
 
     // Start GPS
     //gps.begin();
@@ -98,14 +127,18 @@ void loop() {
 
 
     Serial.println("Loop");
-    mcp23s17.digitalWrite(EXT_PIN01_LED, LOW);
+    ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
 
     delay(500);
 
-    mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
+    ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
 
     delay(500);
 
+    //Testing only
+    float temp = baro.getTemperature();
+    float pressure = baro.getPressure();
+    printf("temp: %f, pressure: %f\n", temp, pressure);
 
 
     bool changed = false;
@@ -131,8 +164,8 @@ void loop() {
 
     if(changed) {
         Serial.print("Registered press. ");
-        //display.updateMenu(&menu);
-        //Serial.println("Refreshed display.");
+        display.updateMenu(&menu);
+        Serial.println("Refreshed display.");
     }
 
 }
@@ -166,14 +199,14 @@ namespace Actions
 
     void IMUStartSerial()
     {
-        imu.startSerialLogging();
+        //imu.startSerialLogging();
         //TODO ADD GPS
         //gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
-        imu.stopSerialLogging();
+        //imu.stopSerialLogging();
         //TODO ADD GPS
         //gps.stopSerialLogging();
     }

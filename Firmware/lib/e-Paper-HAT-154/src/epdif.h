@@ -32,10 +32,10 @@
 #include "ioexpander.h"
 
 // Pin definition
-#define RST_PIN         5
-#define DC_PIN          3
-#define CS_PIN          27
-#define BUSY_PIN        19
+#define RST_PIN         1 //IO Expander
+#define DC_PIN          22
+#define CS_PIN          21
+#define BUSY_PIN        27
 
 class EpdIf {
 public:
