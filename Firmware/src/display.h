@@ -4,6 +4,7 @@
 #include "epd1in54b.h"
 #include "epdpaint.h"
 #include "menu.h"
+#include "spimutex.h"
 
 class Display
 {

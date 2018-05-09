@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <MCP23S17.h>
-#include "i2cmutex.h"
+#include "spimutex.h"
 
 class IOExpander
 {
@@ -22,7 +22,7 @@ public:
 
 private:
     static MCP _mcp;
-    static I2CMutex _i2c;
+    static SPIMutex _mutex;
     static bool hasBegun;
 };
 

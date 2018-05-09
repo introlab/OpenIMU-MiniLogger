@@ -94,11 +94,11 @@ void setup() {
     sdCard.begin();
 
     // Start IMU
-    //imu.begin();
+    imu.begin();
 
     //TODO for testing only
     baro.begin();
-    baro.startSerialLogging();
+    //baro.startSerialLogging();
 
     // Show menu and start reading buttons
     display.begin();
@@ -108,7 +108,7 @@ void setup() {
 
     // Start GPS
     gps.begin();
-    gps.startSerialLogging();
+    //gps.startSerialLogging();
 
     Serial.println("System ready");
 #endif
@@ -127,9 +127,6 @@ void loop() {
     delay(500);
 
 #ifndef FIRSTBOOT
-    Serial.println("Loop");
-
-
 
     bool changed = false;
 
@@ -153,7 +150,7 @@ void loop() {
 
 
     if(changed) {
-        Serial.print("Registered press. ");
+        //Serial.print("Registered press. ");
         display.updateMenu(&menu);
         Serial.println("Refreshed display.");
     }

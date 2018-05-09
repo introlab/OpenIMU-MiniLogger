@@ -1,6 +1,11 @@
 #include "display.h"
-
 #include "fonts.h"
+namespace
+{
+  SPIMutex _mutex;
+
+
+}
 
 Display::Display()
 {
@@ -14,12 +19,26 @@ Display::~Display()
 
 void Display::begin()
 {
+  if(_mutex.acquire(100))
+  {
     _epd.Init();
+    _mutex.release();
+  }
+  else
+    Serial.println("Unable to acquire SPI mutex.");
+
 }
 
 void Display::end()
 {
+  if(_mutex.acquire(100))
+  {
     _epd.Sleep();
+    _mutex.release();
+  }
+  else
+    Serial.println("Unable to acquire SPI mutex.");
+
 }
 
 void Display::showSplashScreen()
@@ -32,7 +51,13 @@ void Display::showSplashScreen()
 
     _blackPaint.DrawStringAt(10, 245, "SW2 to start...", &Font16, 0);
 
-    _epd.DisplayFrame(_blackImage, _redImage);
+    if(_mutex.acquire(100))
+    {
+      _epd.DisplayFrame(_blackImage, _redImage);
+      _mutex.release();
+    }
+    else
+      Serial.println("Unable to acquire SPI mutex.");
 }
 
 void Display::showMenu(Menu* menu)
@@ -41,7 +66,14 @@ void Display::showMenu(Menu* menu)
     _redPaint.Clear(1);
 
     menu->paint(_blackPaint, _redPaint, 5, 5);
-    _epd.DisplayFrame(_blackImage, _redImage);
+
+    if(_mutex.acquire(100))
+    {
+      _epd.DisplayFrame(_blackImage, _redImage);
+      _mutex.release();
+    }
+    else
+      Serial.println("Unable to acquire SPI mutex.");
 }
 
 void Display::updateMenu(Menu* menu)
@@ -50,5 +82,11 @@ void Display::updateMenu(Menu* menu)
     _redPaint.Clear(1);
 
     menu->paint(_blackPaint, _redPaint, 5, 5);
-    _epd.DisplayFrame(_blackImage, _redImage);
+    if(_mutex.acquire(100))
+    {
+      _epd.DisplayFrame(_blackImage, _redImage);
+      _mutex.release();
+    }
+    else
+      Serial.println("Unable to acquire SPI mutex.");
 }

@@ -88,7 +88,7 @@ namespace
 
                 _i2c.release();
 
-                // TODO send data to serial
+                // Send data to serial
                 printf("Barometer, temp: %f, pressure: %f\n", temp, pressure);
 
             }
@@ -106,7 +106,7 @@ namespace
                 _i2c.release();
 
 
-                //SEND DATA TO QUEUE FOR LOGGING
+                //TODO SEND DATA TO QUEUE FOR LOGGING
 
 
             }
