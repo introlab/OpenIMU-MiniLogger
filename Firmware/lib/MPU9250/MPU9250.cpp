@@ -40,7 +40,6 @@ MPU9250::MPU9250(SPIClass &bus,uint8_t csPin){
 
 /* starts communication with the MPU-9250 */
 int MPU9250::begin(){
-  Serial.print("Using SPI ");
   Serial.println(_useSPI);
   if( _useSPI ) { // using SPI for communication
     // use low speed SPI for register setting
@@ -55,7 +54,7 @@ int MPU9250::begin(){
     // starting the I2C bus
 
     //DL - Modified
-    _i2c->begin(23, 25);
+    //_i2c->begin(23, 25);
     // setting the I2C clock
     _i2c->setClock(_i2cRate);
   }

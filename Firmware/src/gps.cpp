@@ -88,7 +88,11 @@ namespace
 
         while(1) {
             while(_gpsSerial.available()) {
-                _gps.read();
+
+
+
+                uint8_t c = _gps.read();
+                //Serial.write(c);
 
                 if(_gps.newNMEAreceived()) {
                     _gps.parse(_gps.lastNMEA());

@@ -1,34 +1,35 @@
 #include <Arduino.h>
 
-#if 0
-#include "display.h"
-#include "gps.h"
-Display display;
-GPS gps;
-#endif
+//#define FIRSTBOOT
 
-#include "MCP23S17.h"
+
+#include <ioexpander.h>
 #include <SPI.h>
-#include "imu.h"
+#include "defines.h"
 #include "Wire.h"
+
+IOExpander ioExpander;
+
+#ifndef FIRSTBOOT
+#include "imu.h"
 #include "sdcard.h"
 #include "buttons.h"
-#include "defines.h"
 #include "menu.h"
 #include "display.h"
-#include "Adafruit_MPL115A2.h"
-#include <ioexpander.h>
+#include "barometer.h"
+#include "gps.h"
 
 //Address = 0, CS=5
 //MCP mcp23s17(0,5);
-IOExpander ioExpander;
+
 IMU imu;
 SDCard sdCard;
 Buttons buttons;
 Menu menu;
 Display display;
 //For Testing
-Adafruit_MPL115A2 baro;
+Barometer baro;
+GPS gps;
 
 
 QueueHandle_t imuLoggingQueue = NULL;
@@ -36,13 +37,12 @@ QueueHandle_t gpsLoggingQueue = NULL;
 SemaphoreHandle_t sdDataReadySemaphore = NULL;
 
 void printCurrentTime();
+#endif
 
 void setup_gpio()
 {
   // Setup I2C PINS, SDA, SCL, Clock speed
   //Wire.begin(23, 25, 400000);
-
-
   //EXP Chip Select
   pinMode(5, OUTPUT);
   digitalWrite(5, HIGH);
@@ -56,9 +56,9 @@ void setup_gpio()
   //nINT
   pinMode(36, INPUT_PULLUP);
 
-
   //SCK, MISO, MOSI no SS pin
   SPI.begin(19, 39, 18);
+  Wire.begin(23, 25);
 
   ioExpander.begin();
 
@@ -71,25 +71,13 @@ void setup_gpio()
   ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
   ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
 
-  /*
-  mcp23s17.begin();
-
-  //ALIVE -->HIGH, power will stay on
-  mcp23s17.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
-  mcp23s17.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
-
-  //LED
-  mcp23s17.pinMode(EXT_PIN01_LED, OUTPUT);
-  mcp23s17.digitalWrite(EXT_PIN01_LED, HIGH);
-  */
-
 }
 
 void setup() {
 
     // This must be the first thing we do.
     setup_gpio();
-
+#ifndef FIRSTBOOT
     // Start serial
     Serial.begin(115200);
 
@@ -106,10 +94,11 @@ void setup() {
     sdCard.begin();
 
     // Start IMU
-    imu.begin();
+    //imu.begin();
 
     //TODO for testing only
     baro.begin();
+    baro.startSerialLogging();
 
     // Show menu and start reading buttons
     display.begin();
@@ -118,15 +107,17 @@ void setup() {
 
 
     // Start GPS
-    //gps.begin();
+    gps.begin();
+    gps.startSerialLogging();
 
     Serial.println("System ready");
+#endif
 }
 
 void loop() {
 
 
-    Serial.println("Loop");
+
     ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
 
     delay(500);
@@ -135,10 +126,9 @@ void loop() {
 
     delay(500);
 
-    //Testing only
-    float temp = baro.getTemperature();
-    float pressure = baro.getPressure();
-    printf("temp: %f, pressure: %f\n", temp, pressure);
+#ifndef FIRSTBOOT
+    Serial.println("Loop");
+
 
 
     bool changed = false;
@@ -168,9 +158,10 @@ void loop() {
         Serial.println("Refreshed display.");
     }
 
+  #endif
 }
 
-
+#ifndef FIRSTBOOT
 void printCurrentTime()
 {
     time_t now;
@@ -249,3 +240,4 @@ namespace Actions
         }
     }
 }
+#endif
