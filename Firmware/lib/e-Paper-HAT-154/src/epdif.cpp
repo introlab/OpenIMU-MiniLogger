@@ -72,9 +72,16 @@ void EpdIf::DelayMs(unsigned int delaytime) {
 }
 
 void EpdIf::SpiTransfer(unsigned char data) {
-    digitalWrite(CS_PIN, LOW);
-    SPI.transfer(data);
-    digitalWrite(CS_PIN, HIGH);
+    if(_expander.acquire(100))
+    {
+      digitalWrite(CS_PIN, LOW);
+      SPI.transfer(data);
+      digitalWrite(CS_PIN, HIGH);
+      _expander.release();
+    }
+    else {
+      Serial.println("unable to lock SPI bus in EpdIf::SpiTransfer");
+    }
 }
 
 int EpdIf::IfInit(void) {

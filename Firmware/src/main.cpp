@@ -19,15 +19,11 @@ IOExpander ioExpander;
 #include "barometer.h"
 #include "gps.h"
 
-//Address = 0, CS=5
-//MCP mcp23s17(0,5);
-
 IMU imu;
 SDCard sdCard;
 Buttons buttons;
 Menu menu;
 Display display;
-//For Testing
 Barometer baro;
 GPS gps;
 
@@ -58,6 +54,10 @@ void setup_gpio()
 
   //SCK, MISO, MOSI no SS pin
   SPI.begin(19, 39, 18);
+
+
+  pinMode(23, INPUT_PULLUP);
+  pinMode(25, INPUT_PULLUP);
   Wire.begin(23, 25);
 
   ioExpander.begin();
@@ -87,28 +87,30 @@ void setup() {
 
 
     buttons.begin();
-
-    Serial.println("Display Ready");
+    Serial.println("Buttons Ready");
 
     // Initialize SD-card
     sdCard.begin();
+    Serial.println("SD Card ready");
 
     // Start IMU
     imu.begin();
+    Serial.println("IMU Ready");
 
     //TODO for testing only
     baro.begin();
     //baro.startSerialLogging();
+    Serial.println("Barometer Ready");
 
     // Show menu and start reading buttons
     display.begin();
     display.showMenu(&menu);
-
-
+    Serial.println("Display Ready");
 
     // Start GPS
     gps.begin();
     //gps.startSerialLogging();
+    Serial.println("GPS Ready");
 
     Serial.println("System ready");
 #endif

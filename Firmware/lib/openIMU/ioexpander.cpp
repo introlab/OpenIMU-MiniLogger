@@ -14,6 +14,16 @@ IOExpander::~IOExpander()
 
 }
 
+bool IOExpander::acquire(time_t time)
+{
+    return _mutex.acquire(time);
+}
+
+bool IOExpander::release()
+{
+    return _mutex.release();
+}
+
 void IOExpander::begin()
 {
     if(!hasBegun) {
@@ -70,6 +80,7 @@ void IOExpander::digitalWrite(uint8_t pinNo, uint8_t value)
 uint8_t IOExpander::digitalRead(uint8_t pinNo)
 {
     uint8_t value = 0;
+
     if (_mutex.acquire(100))
     {
       value = _mcp.digitalRead(pinNo);

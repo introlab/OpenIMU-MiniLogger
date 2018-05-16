@@ -20,6 +20,10 @@ public:
     void digitalWrite(uint8_t pinNo, uint8_t value);
     uint8_t digitalRead(uint8_t pinNo);
 
+    bool acquire(time_t time=100);
+    bool release();
+
+
 private:
     static MCP _mcp;
     static SPIMutex _mutex;
