@@ -43,22 +43,30 @@ Epd::Epd() {
 int Epd::Init(void) {
     /* this calls the peripheral hardware interface, see epdif */
     if (IfInit() != 0) {
+        Serial.println("Edp::Init - IF Error");
         return -1;
     }
     /* EPD hardware init start */
+
     Reset();
+
+
     SendCommand(POWER_SETTING);
     SendData(0x07);
     SendData(0x00);
     SendData(0x08);
     SendData(0x00);
+
+
     SendCommand(BOOSTER_SOFT_START);
     SendData(0x07);
     SendData(0x07);
     SendData(0x07);
     SendCommand(POWER_ON);
 
+
     WaitUntilIdle();
+
 
     SendCommand(PANEL_SETTING);
     SendData(0xcf);
@@ -76,7 +84,7 @@ int Epd::Init(void) {
     SetLutBw();
     SetLutRed();
     /* EPD hardware init end */
-
+    Serial.println("Edp::Init - Done()");
     return 0;
 }
 
@@ -109,6 +117,7 @@ void Epd::WaitUntilIdle(void) {
     while(DigitalRead(busy_pin) == 0) {      //0: busy, 1: idle
         DelayMs(100);
     }
+    Serial.println("Edp::Init - Wait IDLE Done!");
 }
 
 /**

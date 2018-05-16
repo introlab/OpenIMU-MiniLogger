@@ -38,9 +38,10 @@ void Buttons::begin()
     ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
     ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
-    delay(200);
+    //Useful?
+    //delay(200);
 
-    xTaskCreate(&readButton, "Buttons", 2048, NULL, 5, NULL);
+    xTaskCreate(&readButton, "Buttons", 2048, NULL, 3, NULL);
 }
 
 namespace {

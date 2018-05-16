@@ -10,6 +10,20 @@
 
 IOExpander ioExpander;
 
+void ledBlink(void *pvParameters)
+{
+  while(1)
+  {
+    ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
+
+    delay(500);
+
+    ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
+
+    delay(500);
+  }
+}
+
 #ifndef FIRSTBOOT
 #include "imu.h"
 #include "sdcard.h"
@@ -35,6 +49,9 @@ SemaphoreHandle_t sdDataReadySemaphore = NULL;
 void printCurrentTime();
 #endif
 
+
+
+
 void setup_gpio()
 {
   // Setup I2C PINS, SDA, SCL, Clock speed
@@ -53,12 +70,14 @@ void setup_gpio()
   pinMode(36, INPUT_PULLUP);
 
   //SCK, MISO, MOSI no SS pin
+  SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
   SPI.begin(19, 39, 18);
 
 
   pinMode(23, INPUT_PULLUP);
   pinMode(25, INPUT_PULLUP);
   Wire.begin(23, 25);
+
 
   ioExpander.begin();
 
@@ -77,13 +96,16 @@ void setup() {
 
     // This must be the first thing we do.
     setup_gpio();
+
+    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, NULL);
 #ifndef FIRSTBOOT
     // Start serial
     Serial.begin(115200);
 
     // Start display
-    //Serial.println("Initializing display...");
-    //delay(1000);
+    display.begin();
+    display.showMenu(&menu);
+    Serial.println("Display Ready");
 
 
     buttons.begin();
@@ -94,18 +116,15 @@ void setup() {
     Serial.println("SD Card ready");
 
     // Start IMU
-    imu.begin();
-    Serial.println("IMU Ready");
+    //imu.begin();
+    //Serial.println("IMU Ready");
 
     //TODO for testing only
     baro.begin();
     //baro.startSerialLogging();
     Serial.println("Barometer Ready");
 
-    // Show menu and start reading buttons
-    display.begin();
-    display.showMenu(&menu);
-    Serial.println("Display Ready");
+
 
     // Start GPS
     gps.begin();
@@ -113,20 +132,26 @@ void setup() {
     Serial.println("GPS Ready");
 
     Serial.println("System ready");
+
+
+
 #endif
+
+/*
+BaseType_t xTaskCreate(    TaskFunction_t pvTaskCode,
+                            const char * const pcName,
+                            unsigned short usStackDepth,
+                            void *pvParameters,
+                            UBaseType_t uxPriority,
+                            TaskHandle_t *pxCreatedTask
+                          );
+
+*/
+
+
 }
 
 void loop() {
-
-
-
-    ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
-
-    delay(500);
-
-    ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
-
-    delay(500);
 
 #ifndef FIRSTBOOT
 
@@ -149,7 +174,6 @@ void loop() {
         buttons.decrementNextCtn();
         changed = true;
     }
-
 
     if(changed) {
         //Serial.print("Registered press. ");

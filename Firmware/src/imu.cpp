@@ -55,7 +55,7 @@ void IMU::begin()
         Serial.println("Unable to communicate with MPU-9250");
         Serial.println("Check connections, and try again.");
         Serial.println();
-        delay(500);
+        delay(50);
     }
 
     _imu.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);

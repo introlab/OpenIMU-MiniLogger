@@ -41,7 +41,9 @@ bool EpdIf::isExternal(int pin) {
 }
 
 void EpdIf::DigitalWrite(int pin, int value) {
+    //Serial.printf("EpdIf::DigitalWrite %i %i\n", pin, value );
     if(isExternal(pin)) {
+        Serial.printf("EpdIf::DigitalWrite (ext) %i %i\n", pin, value );
         _expander.digitalWrite(pin, value);
     }
     else {
@@ -50,6 +52,7 @@ void EpdIf::DigitalWrite(int pin, int value) {
 }
 
 int EpdIf::DigitalRead(int pin) {
+    //Serial.printf("EpdIf::DigitalRead %i\n", pin);
     if(isExternal(pin)) {
         return _expander.digitalRead(pin);
     }
@@ -59,6 +62,7 @@ int EpdIf::DigitalRead(int pin) {
 }
 
 void EpdIf::epdPinMode(int pin, int mode) {
+    //Serial.printf("EpdIf::epdPinMode %i %i\n", pin, mode);
     if(isExternal(pin)) {
         _expander.pinMode(pin, mode);
     }
@@ -72,6 +76,7 @@ void EpdIf::DelayMs(unsigned int delaytime) {
 }
 
 void EpdIf::SpiTransfer(unsigned char data) {
+    //Serial.println("EpdIf::SpiTransfer");
     if(_expander.acquire(100))
     {
       digitalWrite(CS_PIN, LOW);
@@ -89,8 +94,8 @@ int EpdIf::IfInit(void) {
     epdPinMode(CS_PIN, OUTPUT);
     epdPinMode(RST_PIN, OUTPUT);
     epdPinMode(DC_PIN, OUTPUT);
-    epdPinMode(BUSY_PIN, INPUT);
-    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-    SPI.begin();
+    epdPinMode(BUSY_PIN, INPUT_PULLUP);
+    //SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    //SPI.begin(19, 39, 18);
     return 0;
 }

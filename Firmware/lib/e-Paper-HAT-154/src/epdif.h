@@ -30,9 +30,10 @@
 
 #include <Arduino.h>
 #include "ioexpander.h"
+#include "defines.h"
 
 // Pin definition
-#define RST_PIN         1 //IO Expander
+#define RST_PIN         EXT_PIN00_DISPLAY_RESET //IO Expander
 #define DC_PIN          22
 #define CS_PIN          21
 #define BUSY_PIN        27
