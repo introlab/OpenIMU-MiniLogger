@@ -15,10 +15,12 @@ public:
     int getActionCtn();
     int getPreviousCtn();
     int getNextCtn();
+    int getPowerCtn();
 
     void decrementActionCtn();
     void decrementPreviousCtn();
     void decrementNextCtn();
+
 };
 
 #endif

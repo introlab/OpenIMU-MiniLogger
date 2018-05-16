@@ -9,10 +9,12 @@ namespace
     int _actionCtn = 0;
     int _previousCtn = 0;
     int _nextCtn = 0;
+    int _powerCtn = 0;
 
     bool _lastAction = false;
     bool _lastPrevious = false;
     bool _lastNext = false;
+    bool _lastPower = false;
     void readButton(void *pvParameters);
 }
 
@@ -47,7 +49,7 @@ void Buttons::begin()
 namespace {
 
     void readButton(void *pvParameters) {
-        bool action, previous, next;
+        bool action, previous, next, power;
 
         _lastButtonRead = xTaskGetTickCount();
 
@@ -56,9 +58,12 @@ namespace {
         while(1) {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
 
+            //Menu buttons
             previous = ioExpander.digitalRead(EXT_PIN06_BUTTON1) != 0;
             action = ioExpander.digitalRead(EXT_PIN08_BUTTON2) != 0;
             next = ioExpander.digitalRead(EXT_PIN11_BUTTON0) != 0;
+            //Power button
+            power = ioExpander.digitalRead(EXT_PIN09_BUTTON3) == 0;
             //Serial.printf("state: %i %i %i \n",previous,action,next);
 
             if(action && action != _lastAction) {
@@ -73,9 +78,18 @@ namespace {
                 _nextCtn++;
             }
 
+            if(power) {
+                //Serial.println("Power button...");
+                _powerCtn++;
+            }
+            else {
+              _powerCtn = 0;
+            }
+
             _lastAction = action;
             _lastPrevious = previous;
             _lastNext = next;
+            _lastPower = power;
         }
     }
 }
@@ -93,6 +107,11 @@ int Buttons::getPreviousCtn()
 int Buttons::getNextCtn()
 {
     return _nextCtn;
+}
+
+int Buttons::getPowerCtn()
+{
+    return _powerCtn;
 }
 
 void Buttons::decrementActionCtn()

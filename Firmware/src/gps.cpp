@@ -40,7 +40,8 @@ void GPS::begin()
         _gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
         _gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
         _gps.sendCommand(PMTK_API_SET_FIX_CTL_1HZ);
-        _gps.sendCommand(PGCMD_ANTENNA);
+        //_gps.sendCommand(PGCMD_ANTENNA);
+        _gps.sendCommand(PGCMD_NOANTENNA);
 
         _gpsSerial.println(PMTK_Q_RELEASE);
 
@@ -92,10 +93,12 @@ namespace
 
 
                 uint8_t c = _gps.read();
-                Serial.write(c);
+                //Serial.write(c);
 
                 if(_gps.newNMEAreceived()) {
                     _gps.parse(_gps.lastNMEA());
+
+                    //Serial.println("newNEMA");
 
                     // Check which modules are enabled
                     xSemaphoreTake(flagMutex, portMAX_DELAY);

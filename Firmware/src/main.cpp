@@ -7,6 +7,7 @@
 #include <SPI.h>
 #include "defines.h"
 #include "Wire.h"
+#include "actions.h"
 
 IOExpander ioExpander;
 
@@ -174,12 +175,22 @@ void loop() {
         changed = true;
     }
 
+    if(buttons.getPowerCtn() > 15)
+    {
+        Serial.println("Shutting down.");
+        Actions::IMUStopSD();
+        sdCard.toExternal();
+        Serial.println("Bye!");
+        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
+    }
+
     if(changed) {
         //Serial.print("Registered press. ");
         display.updateMenu(&menu);
         Serial.println("Refreshed display.");
     }
 
+    delay(100);
   #endif
 }
 
@@ -242,8 +253,7 @@ namespace Actions
     {
         if(imuLoggingQueue != NULL && gpsLoggingQueue != NULL) {
             imu.stopQueueLogging();
-            //TODO Add GPS
-            //gps.stopQueueLogging();
+            gps.stopQueueLogging();
 
             sdCard.stopLog();
             sdCard.setIMUQueue(NULL);
