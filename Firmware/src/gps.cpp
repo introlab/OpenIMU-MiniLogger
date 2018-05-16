@@ -92,7 +92,7 @@ namespace
 
 
                 uint8_t c = _gps.read();
-                //Serial.write(c);
+                Serial.write(c);
 
                 if(_gps.newNMEAreceived()) {
                     _gps.parse(_gps.lastNMEA());

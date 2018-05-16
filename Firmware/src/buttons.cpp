@@ -38,7 +38,7 @@ void Buttons::begin()
     ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
     ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
-    //Useful?
+    //USe
     //delay(200);
 
     xTaskCreate(&readButton, "Buttons", 2048, NULL, 3, NULL);
@@ -56,9 +56,9 @@ namespace {
         while(1) {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
 
-            previous = ioExpander.digitalRead(EXT_PIN11_BUTTON0) != 0;
+            previous = ioExpander.digitalRead(EXT_PIN06_BUTTON1) != 0;
             action = ioExpander.digitalRead(EXT_PIN08_BUTTON2) != 0;
-            next = ioExpander.digitalRead(EXT_PIN06_BUTTON1) != 0;
+            next = ioExpander.digitalRead(EXT_PIN11_BUTTON0) != 0;
             //Serial.printf("state: %i %i %i \n",previous,action,next);
 
             if(action && action != _lastAction) {

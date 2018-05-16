@@ -76,6 +76,7 @@ void setup_gpio()
 
   pinMode(23, INPUT_PULLUP);
   pinMode(25, INPUT_PULLUP);
+  Wire.setClock(400000);
   Wire.begin(23, 25);
 
 
@@ -101,13 +102,14 @@ void setup() {
 #ifndef FIRSTBOOT
     // Start serial
     Serial.begin(115200);
+    Serial.println("Starting...");
 
     // Start display
     display.begin();
     display.showMenu(&menu);
     Serial.println("Display Ready");
 
-
+    //Start Buttons
     buttons.begin();
     Serial.println("Buttons Ready");
 
@@ -116,21 +118,18 @@ void setup() {
     Serial.println("SD Card ready");
 
     // Start IMU
-    //imu.begin();
-    //Serial.println("IMU Ready");
+    imu.begin();
+    Serial.println("IMU Ready");
 
-    //TODO for testing only
+    // Start Barometer
     baro.begin();
-    //baro.startSerialLogging();
     Serial.println("Barometer Ready");
-
-
 
     // Start GPS
     gps.begin();
-    //gps.startSerialLogging();
     Serial.println("GPS Ready");
 
+    //All ready!
     Serial.println("System ready");
 
 
@@ -214,15 +213,13 @@ namespace Actions
     void IMUStartSerial()
     {
         //imu.startSerialLogging();
-        //TODO ADD GPS
-        //gps.startSerialLogging();
+        gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
         //imu.stopSerialLogging();
-        //TODO ADD GPS
-        //gps.stopSerialLogging();
+        gps.stopSerialLogging();
     }
 
     void IMUStartSD()

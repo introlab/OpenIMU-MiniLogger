@@ -56,18 +56,21 @@ int MPU9250::begin(){
     //DL - Modified
     //_i2c->begin(23, 25);
     // setting the I2C clock
-    _i2c->setClock(_i2cRate);
+    //_i2c->setClock(_i2cRate);
   }
   // select clock source to gyro
   if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){
+    Serial.println("MPU9250::begin PWR_MGMNT problem.");
     return -1;
   }
   // enable I2C master mode
   if(writeRegister(USER_CTRL,I2C_MST_EN) < 0){
+    Serial.println("MPU9250::begin USER_CTRL problem.");
     return -2;
   }
   // set the I2C bus speed to 400 kHz
   if(writeRegister(I2C_MST_CTRL,I2C_MST_CLK) < 0){
+    Serial.println("MPU9250::begin I2C_MST_CTRL problem.");
     return -3;
   }
   // set AK8963 to Power Down
@@ -80,51 +83,62 @@ int MPU9250::begin(){
   writeAK8963Register(AK8963_CNTL2,AK8963_RESET);
   // select clock source to gyro
   if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){
+    Serial.println("MPU9250::begin PWR_MGMNT_1 problem.");
     return -4;
   }
   // check the WHO AM I byte, expected value is 0x71 (decimal 113) or 0x73 (decimal 115)
   if((whoAmI() != 113)&&(whoAmI() != 115)){
+    Serial.println("MPU9250::begin whoAmI problem.");
     return -5;
   }
   // enable accelerometer and gyro
   if(writeRegister(PWR_MGMNT_2,SEN_ENABLE) < 0){
+    Serial.println("MPU9250::begin PWR_MGMNT_2 problem.");
     return -6;
   }
   // setting accel range to 16G as default
   if(writeRegister(ACCEL_CONFIG,ACCEL_FS_SEL_16G) < 0){
+    Serial.println("MPU9250::begin ACCEL_CONFIG problem.");
     return -7;
   }
   _accelScale = G * 16.0f/32767.5f; // setting the accel scale to 16G
   _accelRange = ACCEL_RANGE_16G;
   // setting the gyro range to 2000DPS as default
   if(writeRegister(GYRO_CONFIG,GYRO_FS_SEL_2000DPS) < 0){
+    Serial.println("MPU9250::begin GYRO_CONFIG problem.");
     return -8;
   }
   _gyroScale = 2000.0f/32767.5f * _d2r; // setting the gyro scale to 2000DPS
   _gyroRange = GYRO_RANGE_2000DPS;
   // setting bandwidth to 184Hz as default
   if(writeRegister(ACCEL_CONFIG2,ACCEL_DLPF_184) < 0){
+    Serial.println("MPU9250::begin ACCEL_CONFIG2 problem.");
     return -9;
   }
   if(writeRegister(CONFIG,GYRO_DLPF_184) < 0){ // setting gyro bandwidth to 184Hz
+    Serial.println("MPU9250::begin CONFIG problem.");
     return -10;
   }
   _bandwidth = DLPF_BANDWIDTH_184HZ;
   // setting the sample rate divider to 0 as default
   if(writeRegister(SMPDIV,0x00) < 0){
+    Serial.println("MPU9250::begin SMPDIV problem.");
     return -11;
   }
   _srd = 0;
   // enable I2C master mode
   if(writeRegister(USER_CTRL,I2C_MST_EN) < 0){
+    Serial.println("MPU9250::begin USER_CTRL problem.");
   	return -12;
   }
 	// set the I2C bus speed to 400 kHz
 	if( writeRegister(I2C_MST_CTRL,I2C_MST_CLK) < 0){
+    Serial.println("MPU9250::begin I2C_MST_CTRL problem.");
 		return -13;
 	}
 	// check AK8963 WHO AM I register, expected value is 0x48 (decimal 72)
 	if( whoAmIAK8963() != 72 ){
+    Serial.println("MPU9250::begin whoAmIAK8963 problem.");
     return -14;
 	}
   /* get the magnetometer calibration */
