@@ -19,6 +19,7 @@ public:
     void clear();
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu);
+    void displayVoltage(float volts, float current);
 
 private:
     unsigned char _blackImage[EPD_WIDTH*EPD_HEIGHT];

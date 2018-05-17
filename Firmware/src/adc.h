@@ -7,6 +7,9 @@
 
 class ADC
 {
+
+
+
 public:
     ADC();
     virtual ~ADC();
@@ -18,8 +21,17 @@ public:
 
     void startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore);
     void stopQueueLogging();
+
+    float getVoltage();
+    float getCurrent();
+    void setVoltage(float v);
+    void setCurrent(float c);
+
+
   protected:
 
+    float voltage;
+    float current;
 };
 
 

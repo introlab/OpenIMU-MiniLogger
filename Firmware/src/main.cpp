@@ -171,6 +171,7 @@ void loop() {
     //Display menu
     display.updateMenu(&menu);
 
+    int change_counter = 0;
 
     while(1)
     {
@@ -207,10 +208,28 @@ void loop() {
         if(changed) {
             //Serial.print("Registered press. ");
             display.updateMenu(&menu);
-            Serial.println("Refreshed display.");
+            Serial.println("Display menu.");
+            change_counter = 0;
         }
+        else {
+          change_counter++;
+
+          // Every 5 seconds verify if no activity, then paint state
+          if (change_counter > 50)
+          {
+              Serial.println("Display voltage");
+              display.displayVoltage(adc.getVoltage(), adc.getCurrent());
+              change_counter = 0;
+          }
+
+        }
+
+        delay(100);
+        //printCurrentTime();
+        //Serial.printf("Batt: %f V, %f A\n", adc.getVoltage(), adc.getCurrent());
+
   }//while
-  //delay(100);
+
   #endif
 }
 
@@ -243,14 +262,14 @@ namespace Actions
 
     void IMUStartSerial()
     {
-        //imu.startSerialLogging();
-        gps.startSerialLogging();
+        imu.startSerialLogging();
+        //gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
-        //imu.stopSerialLogging();
-        gps.stopSerialLogging();
+        imu.stopSerialLogging();
+        //gps.stopSerialLogging();
     }
 
     void IMUStartSD()

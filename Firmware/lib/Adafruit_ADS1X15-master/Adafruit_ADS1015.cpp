@@ -28,6 +28,8 @@
 
 #include "Adafruit_ADS1015.h"
 
+#include "defines.h"
+
 /**************************************************************************/
 /*!
     @brief  Abstract away platform differences in Arduino wire library
@@ -186,6 +188,10 @@ uint16_t Adafruit_ADS1015::readADC_SingleEnded(uint8_t channel) {
 
   // Wait for the conversion to complete
   delay(m_conversionDelay);
+  //while(digitalRead(ADC_READY_PIN) == LOW)
+  //{
+  //  Serial.println("waiting for adc");
+  //}
 
   // Read the conversion results
   // Shift 12-bit results right 4 bits for the ADS1015

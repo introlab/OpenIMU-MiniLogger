@@ -1,6 +1,7 @@
 #include "display.h"
 #include "fonts.h"
-
+#include <string>
+#include <sstream>
 
 Display::Display()
 {
@@ -59,4 +60,18 @@ void Display::clear()
     _blackPaint.Clear(1);
     _redPaint.Clear(1);
     _epd.DisplayFrame(_blackImage, _redImage);
+}
+
+void Display::displayVoltage(float volts, float current)
+{
+    _blackPaint.Clear(1);
+    _redPaint.Clear(1);
+
+    std::stringstream batt_text;
+
+    batt_text << "B: " << volts << "V " << current << "A";
+
+    _blackPaint.DrawStringAt(0, 0, batt_text.str().c_str(), &Font16, 0);
+
+    _epd.DisplayFrame(_blackImage, NULL/*_redImage */);
 }
