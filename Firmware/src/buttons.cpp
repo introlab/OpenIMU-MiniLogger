@@ -59,23 +59,26 @@ namespace {
             vTaskDelayUntil(&_lastButtonRead, 100 / portTICK_RATE_MS);
 
             //Menu buttons
-            previous = ioExpander.digitalRead(EXT_PIN06_BUTTON1) != 0;
-            action = ioExpander.digitalRead(EXT_PIN08_BUTTON2) != 0;
-            next = ioExpander.digitalRead(EXT_PIN11_BUTTON0) != 0;
+            previous = ioExpander.digitalRead(EXT_PIN06_BUTTON1) == 0;
+            action = ioExpander.digitalRead(EXT_PIN08_BUTTON2) == 0;
+            next = ioExpander.digitalRead(EXT_PIN11_BUTTON0) == 0;
             //Power button
             power = ioExpander.digitalRead(EXT_PIN09_BUTTON3) == 0;
             //Serial.printf("state: %i %i %i \n",previous,action,next);
 
             if(action && action != _lastAction) {
                 _actionCtn++;
+                Serial.println("Action BTN");
             }
 
             if(previous && previous != _lastPrevious) {
                 _previousCtn++;
+                Serial.println("Previous BTN");
             }
 
             if(next && next != _lastNext) {
                 _nextCtn++;
+                Serial.println("Next BTN");
             }
 
             if(power) {

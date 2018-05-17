@@ -98,7 +98,7 @@ namespace
                 _i2c.release();
 
                 // Send data to serial
-                Serial.printf("ADC: %i %i %i \n", val0,val1,val2);
+                //Serial.printf("ADC: %i %i %i \n", val0,val1,val2);
 
                 //VBAT  = VBAT_READ * 5 (2mV per bit)
                 //CURRENT = (CSA_READ - VCC/2) / 100

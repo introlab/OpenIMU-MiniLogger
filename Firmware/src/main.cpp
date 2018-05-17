@@ -109,7 +109,8 @@ void setup() {
 
     // Start display
     display.begin();
-    display.showMenu(&menu);
+    //display.showMenu(&menu);
+    display.clear();
     Serial.println("Display Ready");
 
     //Start Buttons
@@ -136,10 +137,12 @@ void setup() {
     adc.begin();
     Serial.println("ADC Ready");
     //For testing...
-    adc.startSerialLogging();
+    //adc.startSerialLogging();
 
     //All ready!
-    buttons.reset(); //Make sure button counts are reset
+    //Make sure button counts are reset
+    buttons.reset();
+
     Serial.println("System ready");
 
 
@@ -164,43 +167,50 @@ void loop() {
 
 #ifndef FIRSTBOOT
 
-    bool changed = false;
 
-    while(buttons.getActionCtn() > 0) {
-        menu.action();
-        buttons.decrementActionCtn();
-        changed = true;
-    }
+    //Display menu
+    display.updateMenu(&menu);
 
-    while(buttons.getPreviousCtn() > 0) {
-        menu.previous();
-        buttons.decrementPreviousCtn();
-        changed = true;
-    }
 
-    while(buttons.getNextCtn() > 0) {
-        menu.next();
-        buttons.decrementNextCtn();
-        changed = true;
-    }
-
-    if(buttons.getPowerCtn() > 15)
+    while(1)
     {
-        Serial.println("Shutting down.");
-        Actions::IMUStopSD();
-        sdCard.toExternal();
-        display.showSplashScreen();
-        Serial.println("Bye!");
-        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
-    }
+        bool changed = false;
 
-    if(changed) {
-        //Serial.print("Registered press. ");
-        display.updateMenu(&menu);
-        Serial.println("Refreshed display.");
-    }
+        while(buttons.getActionCtn() > 0) {
+            menu.action();
+            buttons.decrementActionCtn();
+            changed = true;
+        }
 
-    //delay(100);
+        while(buttons.getPreviousCtn() > 0) {
+            menu.previous();
+            buttons.decrementPreviousCtn();
+            changed = true;
+        }
+
+        while(buttons.getNextCtn() > 0) {
+            menu.next();
+            buttons.decrementNextCtn();
+            changed = true;
+        }
+
+        if(buttons.getPowerCtn() > 15)
+        {
+            Serial.println("Shutting down.");
+            Actions::IMUStopSD();
+            sdCard.toExternal();
+            display.showSplashScreen();
+            Serial.println("Bye!");
+            ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
+        }
+
+        if(changed) {
+            //Serial.print("Registered press. ");
+            display.updateMenu(&menu);
+            Serial.println("Refreshed display.");
+        }
+  }//while
+  //delay(100);
   #endif
 }
 

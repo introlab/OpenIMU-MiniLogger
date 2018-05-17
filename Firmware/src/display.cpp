@@ -53,3 +53,10 @@ void Display::updateMenu(Menu* menu)
     menu->paint(_blackPaint, _blackPaint, 5, 5);
     _epd.DisplayFrame(_blackImage, NULL /*_redImage*/);
 }
+
+void Display::clear()
+{
+    _blackPaint.Clear(1);
+    _redPaint.Clear(1);
+    _epd.DisplayFrame(_blackImage, _redImage);
+}

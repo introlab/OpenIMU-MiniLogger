@@ -50,12 +50,15 @@ IMU::~IMU()
 void IMU::begin()
 {
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-
-    while (_imu.begin() < 0) {
+    int count = 0;
+    while(_imu.begin() < 0) {
         Serial.println("Unable to communicate with MPU-9250");
         Serial.println("Check connections, and try again.");
         Serial.println();
-        delay(50);
+        Wire.endTransmission();
+        delay(500);
+        if (++count > 10)
+          break;
     }
 
     _imu.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);

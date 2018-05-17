@@ -16,6 +16,7 @@ public:
     void end();
 
     void showSplashScreen();
+    void clear();
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu);
 
