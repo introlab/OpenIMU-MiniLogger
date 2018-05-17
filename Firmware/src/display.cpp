@@ -39,8 +39,9 @@ void Display::showMenu(Menu* menu)
 {
     _blackPaint.Clear(1);
     _redPaint.Clear(1);
-    menu->paint(_blackPaint, _redPaint, 5, 5);
-    _epd.DisplayFrame(_blackImage, _redImage);
+    //menu->paint(_blackPaint, _redPaint, 5, 5);
+    menu->paint(_blackPaint, _blackPaint, 5, 5);
+    _epd.DisplayFrame(_blackImage, NULL /*_redImage */);
 
 }
 
@@ -48,6 +49,7 @@ void Display::updateMenu(Menu* menu)
 {
     _blackPaint.Clear(1);
     _redPaint.Clear(1);
-    menu->paint(_blackPaint, _redPaint, 5, 5);
-    _epd.DisplayFrame(_blackImage, _redImage);
+    //menu->paint(_blackPaint, _redPaint, 5, 5);
+    menu->paint(_blackPaint, _blackPaint, 5, 5);
+    _epd.DisplayFrame(_blackImage, NULL /*_redImage*/);
 }

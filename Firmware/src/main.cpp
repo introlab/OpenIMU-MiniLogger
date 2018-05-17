@@ -189,6 +189,7 @@ void loop() {
         Serial.println("Shutting down.");
         Actions::IMUStopSD();
         sdCard.toExternal();
+        display.showSplashScreen();
         Serial.println("Bye!");
         ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
     }
@@ -199,7 +200,7 @@ void loop() {
         Serial.println("Refreshed display.");
     }
 
-    delay(100);
+    //delay(100);
   #endif
 }
 
