@@ -128,3 +128,16 @@ void Buttons::decrementNextCtn()
 {
     _nextCtn--;
 }
+
+void Buttons::reset()
+{
+    _actionCtn = 0;
+    _previousCtn = 0;
+    _nextCtn = 0;
+    _powerCtn = 0;
+
+    _lastAction = false;
+    _lastPrevious = false;
+    _lastNext = false;
+    _lastPower = false;
+}

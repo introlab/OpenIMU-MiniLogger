@@ -131,6 +131,7 @@ void setup() {
     Serial.println("GPS Ready");
 
     //All ready!
+    buttons.reset(); //Make sure button counts are reset
     Serial.println("System ready");
 
 

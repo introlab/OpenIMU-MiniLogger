@@ -21,6 +21,7 @@ public:
     void decrementPreviousCtn();
     void decrementNextCtn();
 
+    void reset();
 };
 
 #endif
