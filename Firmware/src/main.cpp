@@ -33,6 +33,7 @@ void ledBlink(void *pvParameters)
 #include "display.h"
 #include "barometer.h"
 #include "gps.h"
+#include "adc.h"
 
 IMU imu;
 SDCard sdCard;
@@ -41,6 +42,7 @@ Menu menu;
 Display display;
 Barometer baro;
 GPS gps;
+ADC adc;
 
 
 QueueHandle_t imuLoggingQueue = NULL;
@@ -129,6 +131,12 @@ void setup() {
     // Start GPS
     gps.begin();
     Serial.println("GPS Ready");
+
+    // Start ADC
+    adc.begin();
+    Serial.println("ADC Ready");
+    //For testing...
+    adc.startSerialLogging();
 
     //All ready!
     buttons.reset(); //Make sure button counts are reset

@@ -9,6 +9,9 @@
  *
 */
 
+#define ADC_READY_PIN 33
+
+
 //I/O Expander pins (id is +1 of index)
 #define EXT_PIN00_DISPLAY_RESET 1
 #define EXT_PIN01_LED 2
