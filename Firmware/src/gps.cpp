@@ -18,8 +18,7 @@ namespace
     void gpsRead(void *pvParameters);
     void gpsToSerial();
 
-    time_t computeTime();
-    void setTime();
+
     gpsData_t createDataPoint();
     void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_);
 }
@@ -181,7 +180,21 @@ namespace
                         break;
 
                         case MINMEA_SENTENCE_ZDA:
-                        //TODO
+                          //Time AND Date
+                          struct minmea_sentence_zda zda;
+                          if (minmea_parse_zda(&zda, ptr))
+                          {
+                            /*
+                            struct minmea_sentence_zda {
+                                struct minmea_time time;
+                                struct minmea_date date;
+                                int hour_offset;
+                                int minute_offset;
+                            };
+                            */
+                            Serial.println("should set time");
+                            setTimeFromGPS(&zda.date, &zda.time);
+                          }
                         break;
 
                         case MINMEA_SENTENCE_GSA:
@@ -207,16 +220,6 @@ namespace
                     serialEnabled = logToSerial;
                     queueEnabled = logQueue != NULL;
                     xSemaphoreGive(flagMutex);
-
-                    if (_gps.fix)
-                      Serial.println("GPS FIX");
-
-                    // Set system time from GPS
-                    if(_gps.fix && !timeIsSet) {
-                        setTime();
-                        timeIsSet = true;
-                    }
-
                 }
 
             }
@@ -246,6 +249,7 @@ namespace
 
     gpsData_t createDataPoint()
     {
+        //TODO FIX THIS PART...
         gpsData_t data;
 
         data.fix = _gps.fix;
@@ -283,34 +287,6 @@ namespace
         }
 
 
-    }
-
-    time_t computeTime()
-    {
-        struct tm currentTime;
-
-        currentTime.tm_sec = _gps.seconds;
-        currentTime.tm_min = _gps.minute;
-        currentTime.tm_hour = _gps.hour;
-        currentTime.tm_mday = _gps.day;
-        currentTime.tm_mon = _gps.month - 1;
-        currentTime.tm_year = _gps.year + 100;
-
-        return mktime(&currentTime);
-    }
-
-    void setTime()
-    {
-        struct timeval timeval;
-        timeval.tv_sec = computeTime();
-        timeval.tv_usec = 0;
-
-        struct timezone timezone;
-        timezone.tz_minuteswest = 0;
-        timezone.tz_dsttime = 0;
-
-        settimeofday(&timeval, &timezone);
-        Serial.println("Got time from GPS");
     }
 
     void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_)
