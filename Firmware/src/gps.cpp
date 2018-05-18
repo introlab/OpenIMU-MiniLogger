@@ -21,7 +21,7 @@ namespace
     time_t computeTime();
     void setTime();
     gpsData_t createDataPoint();
-    void setTimeFromGPS(struct minmea_sentence_rmc *rmc);
+    void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_);
 }
 
 bool GPS::_hasBegun = false;
@@ -128,7 +128,7 @@ namespace
                           struct minmea_sentence_rmc rmc;
                           if (minmea_parse_rmc(&rmc, ptr))
                           {
-                              Serial.println("RMC OK!");
+
                               if (rmc.valid)
                               {
                                 /*
@@ -140,7 +140,7 @@ namespace
                                 */
                                 Serial.printf("Date: %2i/%2i/%4i\n", rmc.date.day, rmc.date.month, rmc.date.year);
                                 Serial.printf("Time: %2i:%2i:%2i\n", rmc.time.hours, rmc.time.minutes, rmc.time.seconds);
-                                setTimeFromGPS(&rmc);
+                                setTimeFromGPS(&rmc.date, &rmc.time);
 
                                 float latitude = minmea_tocoord(&rmc.latitude);
                                 float longitude = minmea_tocoord(&rmc.longitude);
@@ -174,6 +174,30 @@ namespace
                           Serial.printf("Sats: %i, Latitude %f, Longitude %f \n", sat, latitude , longitude );
 
                         }
+                        break;
+
+                        case MINMEA_SENTENCE_VTG:
+                        //TODO
+                        break;
+
+                        case MINMEA_SENTENCE_ZDA:
+                        //TODO
+                        break;
+
+                        case MINMEA_SENTENCE_GSA:
+                        //TODO
+                        break;
+
+                        case MINMEA_SENTENCE_GLL:
+                        //TODO
+                        break;
+
+                        case MINMEA_SENTENCE_GSV:
+                        //TODO
+                        break;
+
+                        default:
+                            Serial.printf("Unhandled id: %i\n", id);
                         break;
 
                     }
@@ -289,20 +313,10 @@ namespace
         Serial.println("Got time from GPS");
     }
 
-    void setTimeFromGPS(struct minmea_sentence_rmc *rmc)
+    void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_)
     {
-        struct tm currentTime;
-        currentTime.tm_sec = rmc->time.seconds;
-        currentTime.tm_min = rmc->time.minutes;
-        currentTime.tm_hour = rmc->time.hours;
-        currentTime.tm_mday = rmc->date.day;
-        currentTime.tm_mon = rmc->date.month - 1;
-        currentTime.tm_year = rmc->date.year + 100;
-        time_t timestamp =  mktime(&currentTime);
-
         struct timeval timeval;
-        timeval.tv_sec = timestamp;
-        timeval.tv_usec = 0;
+        minmea_gettime(&timeval, date, time_);
 
         struct timezone timezone;
         timezone.tz_minuteswest = -5 * 60;
