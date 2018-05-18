@@ -14,6 +14,10 @@ typedef struct {
     float altitude;
 } gpsData_t;
 
+//Command DEFINITIONS
+
+
+
 class GPS
 {
 public:

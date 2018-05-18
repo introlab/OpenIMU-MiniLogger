@@ -44,14 +44,17 @@ boolean Adafruit_GPS::parse(char *nmea) {
     }
     if (sum != 0) {
       // bad checksum :(
+      Serial.println("Bad NMEA checksum");
       return false;
     }
   }
   int32_t degree;
   long minutes;
   char degreebuff[10];
+  //Serial.println("Looking for sentences");
   // look for a few common sentences
-  if (strstr(nmea, "$GPGGA")) {
+  if (strstr(nmea, "$GPGGA") || strstr(nmea, "$GNGGA")) {
+    Serial.println("$GPGGA/$GNGGA");
     // found GGA
     char *p = nmea;
     // get time
@@ -155,6 +158,7 @@ boolean Adafruit_GPS::parse(char *nmea) {
     return true;
   }
   if (strstr(nmea, "$GPRMC")) {
+    Serial.println("$GPRMC");
    // found RMC
     char *p = nmea;
 
@@ -257,9 +261,12 @@ boolean Adafruit_GPS::parse(char *nmea) {
       year = (fulldate % 100);
     }
     // we dont parse the remaining, yet!
+
     return true;
   }
 
+  Serial.println("NMEA message not parsed.");
+  Serial.printf("%s\n",nmea);
   return false;
 }
 

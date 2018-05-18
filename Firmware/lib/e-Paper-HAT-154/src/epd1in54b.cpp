@@ -117,7 +117,7 @@ void Epd::WaitUntilIdle(void) {
     while(DigitalRead(busy_pin) == 0) {      //0: busy, 1: idle
         DelayMs(100);
     }
-    Serial.println("Edp::Init - Wait IDLE Done!");
+    //Serial.println("Edp::Init - Wait IDLE Done!");
 }
 
 /**
@@ -177,11 +177,11 @@ void Epd::SetLutRed(void) {
 }
 
 void Epd::DisplayFrame(const unsigned char* frame_buffer_black, const unsigned char* frame_buffer_red) {
-    Serial.println("");
-    Serial.println("Display frame begin");
+    //Serial.println("");
+    //Serial.println("Display frame begin");
     unsigned char temp;
     if (frame_buffer_black != NULL) {
-        Serial.print("Sending black... ");
+        //Serial.print("Sending black... ");
         SendCommand(DATA_START_TRANSMISSION_1);
         DelayMs(2);
         for (int i = 0; i < this->width * this->height / 8; i++) {
@@ -201,22 +201,22 @@ void Epd::DisplayFrame(const unsigned char* frame_buffer_black, const unsigned c
             SendData(temp);
         }
         DelayMs(2);
-        Serial.println("Done.");
+        //Serial.println("Done.");
     }
     if (frame_buffer_red != NULL) {
-        Serial.print("Sending red... ");
+        //Serial.print("Sending red... ");
         SendCommand(DATA_START_TRANSMISSION_2);
         DelayMs(2);
         for (int i = 0; i < this->width * this->height / 8; i++) {
             SendData(pgm_read_byte(&frame_buffer_red[i]));
         }
         DelayMs(2);
-        Serial.println("Done.");
+        //Serial.println("Done.");
     }
-    Serial.print("Refreshing... ");
+    //Serial.print("Refreshing... ");
     SendCommand(DISPLAY_REFRESH);
     WaitUntilIdle();
-    Serial.println("Done.");
+    //Serial.println("Done.");
 }
 
 /**

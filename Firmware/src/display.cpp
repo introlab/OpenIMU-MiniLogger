@@ -73,5 +73,19 @@ void Display::displayVoltage(float volts, float current)
 
     _blackPaint.DrawStringAt(0, 0, batt_text.str().c_str(), &Font16, 0);
 
+
+    time_t now;
+    struct tm *timeinfo;
+    time(&now);
+    timeinfo = gmtime(&now);
+
+    char strftime_buf[64];
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", timeinfo);
+
+    _blackPaint.DrawStringAt(0, 32, strftime_buf, &Font12, 0);
+
+    //Serial.print("Current time ");
+    //Serial.println(strftime_buf);
+
     _epd.DisplayFrame(_blackImage, NULL/*_redImage */);
 }

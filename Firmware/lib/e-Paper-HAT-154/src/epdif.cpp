@@ -43,7 +43,7 @@ bool EpdIf::isExternal(int pin) {
 void EpdIf::DigitalWrite(int pin, int value) {
     //Serial.printf("EpdIf::DigitalWrite %i %i\n", pin, value );
     if(isExternal(pin)) {
-        Serial.printf("EpdIf::DigitalWrite (ext) %i %i\n", pin, value );
+        //Serial.printf("EpdIf::DigitalWrite (ext) %i %i\n", pin, value );
         _expander.digitalWrite(pin, value);
     }
     else {

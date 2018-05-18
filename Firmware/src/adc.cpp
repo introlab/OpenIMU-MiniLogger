@@ -149,7 +149,7 @@ namespace
               //VBAT  = VBATT_READ * 5 (2mV per bit)
               //CURRENT = (CSA_READ - VCC/2) / 100
               float vbat = 5.0 * 0.002 * (float) val1;
-              float current = (0.002 * (float) val2 - 3.3/2.0) / 100.0;
+              float current = ((0.002 * (float) val2) - (3.1/2.0)) / 5.0;
 
               //Store in the instance
               if (adc)
