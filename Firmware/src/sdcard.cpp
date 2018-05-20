@@ -24,6 +24,8 @@ namespace
     File _logFile;
     QueueHandle_t _imuQueue = NULL;
     QueueHandle_t _gpsQueue = NULL;
+    QueueHandle_t _powerQueue = NULL;
+    QueueHandle_t _baroQueue = NULL;
     QueueHandle_t _timestampQueue = NULL;
     SemaphoreHandle_t _dataReadySemaphore = NULL;
 
@@ -133,6 +135,7 @@ void SDCard::toESP32()
     Serial.println("SD to ESP32");
 
     //TODO - DL FIX PINS
+    SD_MMC.end();
 
     //Select ESP32 for SD
     ioExpander.digitalWrite(EXT_PIN05_SD_SEL,HIGH);
@@ -251,18 +254,29 @@ namespace
 {
     void logToFile(void *pvParameters)
     {
+        Serial.println("logToFile Task started.");
+
         imuData_ptr imuMeasure;
         gpsDataSendable_t gpsSendable;
         imuDataSendable_t imuSendable;
         timestampSendable_t timestamp;
 
+        int imu_cnt = 0;
+        int gps_cnt = 0;
+
         while(1) {
+
+            //Should wake at every second
             xSemaphoreTake(_dataReadySemaphore, portMAX_DELAY);
+            //Serial.println("_dataReadySemaphore");
 
             // Log timestamp
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
+                Serial.printf("WR Timestamp i: %i g: %i \n", imu_cnt, gps_cnt);
+                imu_cnt = 0;
+                gps_cnt = 0;
             }
 
             // Log imu
@@ -272,6 +286,8 @@ namespace
                     _logFile.write('i');
                     _logFile.write(imuSendable.bytes, sizeof(imuData_t));
                     delete imuMeasure;
+                    //Serial.println("WR IMU");
+                    imu_cnt++;
                 }
             }
 
@@ -280,9 +296,13 @@ namespace
                 if(xQueueReceive(_gpsQueue, &imuSendable.data, 0) == pdTRUE) {
                     _logFile.write('g');
                     _logFile.write(gpsSendable.bytes, sizeof(gpsData_t));
+                    //Serial.println("WR GPS");
+                    gps_cnt++;
                 }
             }
         }
+
+
     }
 
     void generateTimestamp(void *pvParameters)
@@ -294,6 +314,7 @@ namespace
             vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
             time(&now);
             if(xQueueSend(_timestampQueue, &now, 0) == pdTRUE) {
+                //Serial.println("giving data ready");
                 xSemaphoreGive(_dataReadySemaphore);
             }
         }

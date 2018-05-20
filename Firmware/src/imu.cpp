@@ -16,7 +16,7 @@ namespace
     //TaskHandle_t _serialLogHangle = NULL;
     //TaskHandle_t _queueLogHandle = NULL;
     TaskHandle_t _readIMUHandle = NULL;
-    SemaphoreHandle_t flagMutex = NULL;
+    SemaphoreHandle_t flagMutex = xSemaphoreCreateMutex();
 
     QueueHandle_t _loggingQueue = NULL;
     SemaphoreHandle_t _sdDataSemaphore = NULL;
@@ -40,7 +40,7 @@ namespace
 
 IMU::IMU()
 {
-
+  
 }
 
 IMU::~IMU()
@@ -78,8 +78,7 @@ void IMU::begin()
     // Enable FIFO
     //_imu.enableFifo(true, true, true, true);
 
-    //Configure Mutex
-    flagMutex = xSemaphoreCreateMutex();
+
 
     // Configure interrupt
     _imuReadySemaphore = xSemaphoreCreateBinary();

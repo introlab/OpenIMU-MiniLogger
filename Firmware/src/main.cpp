@@ -195,6 +195,8 @@ void loop() {
 
     int change_counter = 0;
 
+    //Actions::IMUStartSD();
+
     while(1)
     {
         bool changed = false;
@@ -284,14 +286,14 @@ namespace Actions
 
     void IMUStartSerial()
     {
-        imu.startSerialLogging();
+        //imu.startSerialLogging();
         //gps.startSerialLogging();
     }
 
     void IMUStopSerial()
     {
         //imu.stopSerialLogging();
-        gps.stopSerialLogging();
+        //gps.stopSerialLogging();
     }
 
     void IMUStartSD()
@@ -305,7 +307,7 @@ namespace Actions
         sdCard.setDataReadySemaphore(sdDataReadySemaphore);
         sdCard.startLog();
 
-        //TODO ADD GPS
+        //TODO Add other sensors...
         gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
         imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
     }
@@ -313,6 +315,7 @@ namespace Actions
     void IMUStopSD()
     {
         if(imuLoggingQueue != NULL && gpsLoggingQueue != NULL) {
+
             imu.stopQueueLogging();
             gps.stopQueueLogging();
 

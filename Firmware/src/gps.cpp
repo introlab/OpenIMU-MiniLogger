@@ -8,7 +8,7 @@ namespace
     Adafruit_GPS _gps(&_gpsSerial);
 
 
-    SemaphoreHandle_t flagMutex = NULL;
+    SemaphoreHandle_t flagMutex = xSemaphoreCreateMutex();
     bool timeIsSet = false;
     bool logToSerial = false;
 
@@ -54,7 +54,7 @@ void GPS::begin()
         //_gpsSerial.println(PMTK_Q_RELEASE);
 
 
-        flagMutex = xSemaphoreCreateMutex();
+        //flagMutex = xSemaphoreCreateMutex();
         xTaskCreate(&gpsRead, "GPS Read", 2048, NULL, 5, NULL);
     }
 }
