@@ -556,6 +556,9 @@ int MPU9250FIFO::readFifo() {
     if (readRegisters(FIFO_READ,_fifoFrameSize,_buffer) < 0) {
       return -1;
     }
+
+
+
     if (_enFifoAccel) {
       // combine into 16 bit values
       _axcounts = (((int16_t)_buffer[0]) << 8) | _buffer[1];
@@ -596,6 +599,7 @@ int MPU9250FIFO::readFifo() {
       _hzFifo[i] = (((float)(_hzcounts) * _magScaleZ) - _hzb)*_hzs;
       _hSize = _fifoSize/_fifoFrameSize;
     }
+    
   }
   return 1;
 }

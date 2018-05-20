@@ -137,13 +137,13 @@ namespace
                                 struct minmea_float course;
                                 struct minmea_float variation;
                                 */
-                                Serial.printf("Date: %2i/%2i/%4i\n", rmc.date.day, rmc.date.month, rmc.date.year);
-                                Serial.printf("Time: %2i:%2i:%2i\n", rmc.time.hours, rmc.time.minutes, rmc.time.seconds);
+                                //Serial.printf("Date: %2i/%2i/%4i\n", rmc.date.day, rmc.date.month, rmc.date.year);
+                                //Serial.printf("Time: %2i:%2i:%2i\n", rmc.time.hours, rmc.time.minutes, rmc.time.seconds);
                                 setTimeFromGPS(&rmc.date, &rmc.time);
 
                                 float latitude = minmea_tocoord(&rmc.latitude);
                                 float longitude = minmea_tocoord(&rmc.longitude);
-                                Serial.printf("Latitude %f, Longitude %f \n", latitude, longitude);
+                                //Serial.printf("Latitude %f, Longitude %f \n", latitude, longitude);
 
                               }
 
@@ -299,7 +299,7 @@ namespace
         timezone.tz_dsttime = 0; //DST_CAN;
 
         settimeofday(&timeval, &timezone);
-        Serial.println("Got time from GPS");
+        //Serial.println("Got time from GPS");
 
     }
 }

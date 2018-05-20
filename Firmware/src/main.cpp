@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "Wire.h"
 #include "actions.h"
+#include "soc/rtc.h"
 
 IOExpander ioExpander;
 
@@ -77,9 +78,10 @@ void setup_gpio()
   SPI.begin(19, 39, 18);
 
 
-  pinMode(23, INPUT_PULLUP);
-  pinMode(25, INPUT_PULLUP);
+  pinMode(23, INPUT);
+  pinMode(25, INPUT);
   Wire.setClock(400000);
+  //Wire.setTimeOut(200);
   Wire.begin(23, 25);
 
 
@@ -102,10 +104,16 @@ void setup() {
     setup_gpio();
 
     xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, NULL);
+
+
+
+
 #ifndef FIRSTBOOT
     // Start serial
     Serial.begin(115200);
     Serial.println("Starting...");
+    Serial.println(String(rtc_clk_cpu_freq_get()));
+    Serial.println("----");
 
     // Start display
     display.begin();
@@ -130,8 +138,8 @@ void setup() {
     Serial.println("Barometer Ready");
 
     // Start GPS
-    gps.begin();
-    Serial.println("GPS Ready");
+    //gps.begin();
+    //Serial.println("GPS Ready");
 
     // Start ADC
     adc.begin();
@@ -172,6 +180,9 @@ void loop() {
     display.updateMenu(&menu);
 
     int change_counter = 0;
+
+    //For tests.
+    imu.startSerialLogging();
 
     while(1)
     {
@@ -262,8 +273,8 @@ namespace Actions
 
     void IMUStartSerial()
     {
-        //imu.startSerialLogging();
-        gps.startSerialLogging();
+        imu.startSerialLogging();
+        //gps.startSerialLogging();
     }
 
     void IMUStopSerial()

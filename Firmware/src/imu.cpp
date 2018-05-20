@@ -4,12 +4,13 @@
 
 #define INTERRUPT_PIN 34
 #define MPU9250_I2C_ADDRESS 0x68
-#define FIFO_PACKET_SIZE 19
-#define FIFO_LENGTH_TARGET 10
+#define FIFO_PACKET_SIZE 21 //_fifoFrameSize = accel*6 + gyro*6 + mag*7 + temp*2;
+#define FIFO_LENGTH_TARGET 1 // This will change the length of a single read on I2C
 
 namespace
 {
-    MPU9250FIFO _imu(Wire, MPU9250_I2C_ADDRESS);
+    MPU9250 _imu(Wire, MPU9250_I2C_ADDRESS);
+    //MPU9250FIFO _imu(Wire, MPU9250_I2C_ADDRESS);
     I2CMutex _i2c;
 
     TaskHandle_t _serialLogHangle = NULL;
@@ -33,8 +34,8 @@ namespace
     float ax[100], ay[100], az[100];
     float gx[100], gy[100], gz[100];
     float mx[100], my[100], mz[100];
-    size_t fifoSize;
-    uint16_t fifoCount;
+    size_t fifoSize = 0;
+    uint16_t fifoCount = 0;
 }
 
 IMU::IMU()
@@ -64,14 +65,20 @@ void IMU::begin()
     _imu.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
     // setting SRD to 9 for a 100 Hz update rate
     // FS is 1 kHz / (SRD + 1)
-    _imu.setSrd(19);
+    _imu.setSrd(19); //50Hz
+
+    //Setting Range
+    _imu.setAccelRange(MPU9250::ACCEL_RANGE_8G);
+    _imu.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
 
     // Enable FIFO
-    _imu.enableFifo(true, true, true, false);
+    //_imu.enableFifo(true, true, true, true);
 
     // Configure interrupt
     _imuReadySemaphore = xSemaphoreCreateBinary();
     attachInterrupt(INTERRUPT_PIN, imuInterrupt, FALLING);
+
+    //Important
     _imu.enableDataReadyInterrupt();
 }
 
@@ -80,7 +87,7 @@ void IMU::startSerialLogging()
     Serial.println("IMU log begin");
     if(_serialLogHangle == NULL) {
         Serial.println("IMU task create");
-        _imu.readFifo();
+        //_imu.readFifo();
         xTaskCreate(&logSerial, "IMU serial log", 2048, NULL, 5, &_serialLogHangle);
     }
 }
@@ -102,7 +109,7 @@ void IMU::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
         Serial.println("IMU task create");
         _loggingQueue = queue;
         _sdDataSemaphore = semaphore;
-        _imu.readFifo();
+        //_imu.readFifo();
         xTaskCreate(&logQueue, "IMU queue log", 2048, NULL, 5, &_queueLogHandle);
     }
 }
@@ -160,8 +167,38 @@ namespace
     {
         while(1) {
             xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
+    #if 1
+            if(_i2c.acquire()) {
+              _imu.readSensor();
+              _i2c.release();
+            }
+
+            //Fill data
+            fifoSize = 1;
+
+            ax[0] = _imu.getAccelX_mss();
+            ay[0] = _imu.getAccelY_mss();
+            az[0] = _imu.getAccelZ_mss();
+            gx[0] = _imu.getGyroX_rads();
+            gy[0] = _imu.getGyroY_rads();
+            gz[0] = _imu.getGyroZ_rads();
+            mx[0] = _imu.getMagX_uT();
+            my[0] = _imu.getMagY_uT();
+            mz[0] = _imu.getMagZ_uT();
+
+
+            Serial.print("Printing ");
+            Serial.print(fifoSize);
+            Serial.println(" samples from fifo...");
+            for(size_t i = 0; i < fifoSize; i++)
+                printIMUData(i);
+
+    #endif
+
+#if 0
             if(_i2c.acquire()) {
                 _imu.readFifoCount(fifoCount);
+                Serial.printf("Fifo count: %i\n",fifoCount);
                 if(fifoCount < FIFO_LENGTH_TARGET * FIFO_PACKET_SIZE) {
                     _i2c.release();
                     continue;
@@ -169,14 +206,13 @@ namespace
                 _imu.readFifo();
                 _i2c.release();
 
+
                 _imu.getFifoAccelX_mss(&fifoSize,ax);
                 _imu.getFifoAccelY_mss(&fifoSize,ay);
                 _imu.getFifoAccelZ_mss(&fifoSize,az);
-
                 _imu.getFifoMagX_uT(&fifoSize, mx);
                 _imu.getFifoMagY_uT(&fifoSize, my);
                 _imu.getFifoMagZ_uT(&fifoSize, mz);
-
                 _imu.getFifoGyroX_rads(&fifoSize, gx);
                 _imu.getFifoGyroY_rads(&fifoSize, gy);
                 _imu.getFifoGyroZ_rads(&fifoSize, gz);
@@ -186,14 +222,23 @@ namespace
                 Serial.println(" samples from fifo...");
                 for(size_t i = 0; i < fifoSize; i++)
                     printIMUData(i);
+
+
             }
-        }
+#endif
+        } //while(1)
+
+
     }
 
     void logQueue(void *pvParameters)
     {
         while(1) {
             xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
+            Serial.println("IMU ISR");
+            continue;
+#if 0
+
             if(_i2c.acquire()) {
                 _imu.readFifoCount(fifoCount);
                 if(fifoCount < FIFO_LENGTH_TARGET * FIFO_PACKET_SIZE) {
@@ -228,7 +273,12 @@ namespace
                         xSemaphoreGive(_sdDataSemaphore);
                     }
                 }
+
+
             }
+#endif
         }
+
+
     }
 }
