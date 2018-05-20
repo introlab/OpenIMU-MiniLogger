@@ -112,6 +112,20 @@ void setup() {
     // Start serial
     Serial.begin(115200);
     Serial.println("Starting...");
+    //Serial.println(String(rtc_clk_cpu_freq_get()));
+    Serial.println("----");
+    //Serial.println("Setting clock to 80MHz");
+    /*
+    typedef enum {
+        RTC_CPU_FREQ_XTAL = 0,      //!< Main XTAL frequency
+        RTC_CPU_FREQ_80M = 1,       //!< 80 MHz
+        RTC_CPU_FREQ_160M = 2,      //!< 160 MHz
+        RTC_CPU_FREQ_240M = 3,      //!< 240 MHz
+        RTC_CPU_FREQ_2M = 4,        //!< 2 MHz
+    } rtc_cpu_freq_t;
+    */
+    //Not supported, the CPU runs at 240MHz right now...
+    //rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
     Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
 
@@ -180,9 +194,6 @@ void loop() {
     display.updateMenu(&menu);
 
     int change_counter = 0;
-
-    //For tests.
-    imu.startSerialLogging();
 
     while(1)
     {
@@ -295,7 +306,7 @@ namespace Actions
         sdCard.startLog();
 
         //TODO ADD GPS
-        //gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
+        gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
         imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
     }
 

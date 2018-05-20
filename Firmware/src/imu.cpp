@@ -13,17 +13,17 @@ namespace
     //MPU9250FIFO _imu(Wire, MPU9250_I2C_ADDRESS);
     I2CMutex _i2c;
 
-    TaskHandle_t _serialLogHangle = NULL;
-    TaskHandle_t _queueLogHandle = NULL;
+    //TaskHandle_t _serialLogHangle = NULL;
+    //TaskHandle_t _queueLogHandle = NULL;
+    TaskHandle_t _readIMUHandle = NULL;
+    SemaphoreHandle_t flagMutex = NULL;
 
     QueueHandle_t _loggingQueue = NULL;
     SemaphoreHandle_t _sdDataSemaphore = NULL;
 
     void printIMUData(size_t i);
     imuData_ptr createIMUDataPoint(size_t index);
-
-    void logSerial(void *pvParameters);
-    void logQueue(void *pvParameters);
+    void readIMU(void *pvParameters);
 
     SemaphoreHandle_t _imuReadySemaphore;
     void IRAM_ATTR imuInterrupt() {
@@ -71,8 +71,15 @@ void IMU::begin()
     _imu.setAccelRange(MPU9250::ACCEL_RANGE_8G);
     _imu.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
 
+    //_imu.calibrateAccel();
+    //_imu.calibrateGyro();
+    //_imu.calibrateMag();
+
     // Enable FIFO
     //_imu.enableFifo(true, true, true, true);
+
+    //Configure Mutex
+    flagMutex = xSemaphoreCreateMutex();
 
     // Configure interrupt
     _imuReadySemaphore = xSemaphoreCreateBinary();
@@ -80,49 +87,37 @@ void IMU::begin()
 
     //Important
     _imu.enableDataReadyInterrupt();
+    xTaskCreate(&readIMU, "IMU read task", 2048, this, 1, &_readIMUHandle);
 }
 
 void IMU::startSerialLogging()
 {
     Serial.println("IMU log begin");
-    if(_serialLogHangle == NULL) {
-        Serial.println("IMU task create");
-        //_imu.readFifo();
-        xTaskCreate(&logSerial, "IMU serial log", 2048, NULL, 5, &_serialLogHangle);
-    }
+
 }
 
 void IMU::stopSerialLogging()
 {
     Serial.println("IMU log stop");
-    if(_serialLogHangle != NULL) {
-        Serial.println("IMU task delete");
-        vTaskDelete(_serialLogHangle);
-        _serialLogHangle = NULL;
-    }
+
 }
 
 void IMU::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
-    Serial.println("IMU log begin");
-    if(_queueLogHandle == NULL) {
-        Serial.println("IMU task create");
-        _loggingQueue = queue;
-        _sdDataSemaphore = semaphore;
-        //_imu.readFifo();
-        xTaskCreate(&logQueue, "IMU queue log", 2048, NULL, 5, &_queueLogHandle);
-    }
+    Serial.println("IMU SD log begin");
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = queue;
+    _sdDataSemaphore = semaphore;
+    xSemaphoreGive(flagMutex);
 }
 
 void IMU::stopQueueLogging()
 {
-    Serial.println("IMU log stop");
-    if(_queueLogHandle != NULL) {
-        Serial.println("IMU task delete");
-        vTaskDelete(_queueLogHandle);
-        _queueLogHandle = NULL;
-        _sdDataSemaphore = NULL;
-    }
+    Serial.println("IMU SD log stop");
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = NULL;
+    _sdDataSemaphore = NULL;
+    xSemaphoreGive(flagMutex);
 }
 
 namespace
@@ -150,9 +145,9 @@ namespace
     {
         imuData_ptr measure = (imuData_ptr)malloc(sizeof(imuData_t));
 
-        measure->accelX = ax[index] / 9.8;
-        measure->accelY = ay[index] / 9.8;
-        measure->accelZ = az[index] / 9.8;
+        measure->accelX = ax[index] / 9.80665;
+        measure->accelY = ay[index] / 9.80665;
+        measure->accelZ = az[index] / 9.80665;
         measure->gyroX = gx[index];
         measure->gyroY = gy[index];
         measure->gyroZ = gz[index];
@@ -163,122 +158,56 @@ namespace
         return measure;
     }
 
-    void logSerial(void *pvParameters)
+    void readIMU(void *pvParameters)
     {
-        while(1) {
-            xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
-    #if 1
-            if(_i2c.acquire()) {
-              _imu.readSensor();
-              _i2c.release();
-            }
+          Serial.println("readIMU Task starting.");
 
-            //Fill data
-            fifoSize = 1;
-
-            ax[0] = _imu.getAccelX_mss();
-            ay[0] = _imu.getAccelY_mss();
-            az[0] = _imu.getAccelZ_mss();
-            gx[0] = _imu.getGyroX_rads();
-            gy[0] = _imu.getGyroY_rads();
-            gz[0] = _imu.getGyroZ_rads();
-            mx[0] = _imu.getMagX_uT();
-            my[0] = _imu.getMagY_uT();
-            mz[0] = _imu.getMagZ_uT();
-
-
-            Serial.print("Printing ");
-            Serial.print(fifoSize);
-            Serial.println(" samples from fifo...");
-            for(size_t i = 0; i < fifoSize; i++)
-                printIMUData(i);
-
-    #endif
-
-#if 0
-            if(_i2c.acquire()) {
-                _imu.readFifoCount(fifoCount);
-                Serial.printf("Fifo count: %i\n",fifoCount);
-                if(fifoCount < FIFO_LENGTH_TARGET * FIFO_PACKET_SIZE) {
-                    _i2c.release();
-                    continue;
-                }
-                _imu.readFifo();
+          while(1) {
+              xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
+              if(_i2c.acquire()) {
+                _imu.readSensor();
                 _i2c.release();
+              }
 
+              //Fill data
+              //Right now, not using fifo, will be always size=1
+              fifoSize = 1;
 
-                _imu.getFifoAccelX_mss(&fifoSize,ax);
-                _imu.getFifoAccelY_mss(&fifoSize,ay);
-                _imu.getFifoAccelZ_mss(&fifoSize,az);
-                _imu.getFifoMagX_uT(&fifoSize, mx);
-                _imu.getFifoMagY_uT(&fifoSize, my);
-                _imu.getFifoMagZ_uT(&fifoSize, mz);
-                _imu.getFifoGyroX_rads(&fifoSize, gx);
-                _imu.getFifoGyroY_rads(&fifoSize, gy);
-                _imu.getFifoGyroZ_rads(&fifoSize, gz);
+              ax[0] = _imu.getAccelX_mss();
+              ay[0] = _imu.getAccelY_mss();
+              az[0] = _imu.getAccelZ_mss();
+              gx[0] = _imu.getGyroX_rads();
+              gy[0] = _imu.getGyroY_rads();
+              gz[0] = _imu.getGyroZ_rads();
+              mx[0] = _imu.getMagX_uT();
+              my[0] = _imu.getMagY_uT();
+              mz[0] = _imu.getMagZ_uT();
 
-                Serial.print("Printing ");
-                Serial.print(fifoSize);
-                Serial.println(" samples from fifo...");
-                for(size_t i = 0; i < fifoSize; i++)
-                    printIMUData(i);
+              //Print debug
+              // printIMUData(0);
 
+              //Log to SD is enabled ?
+              xSemaphoreTake(flagMutex, portMAX_DELAY);
+              if (_loggingQueue && _sdDataSemaphore)
+              {
+                  //Write data from fifo
+                  for(size_t i = 0; i < fifoSize; i++)
+                  {
+                      //Allocate new data point
+                      //Will be released in SD card.
+                      imuData_ptr measure = createIMUDataPoint(i);
 
-            }
-#endif
-        } //while(1)
-
-
+                      if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
+                          Serial.println("Queue is full! Dropping IMU measure");
+                          delete(measure);
+                      }
+                      else {
+                          //Will wake up writing task
+                          xSemaphoreGive(_sdDataSemaphore);
+                      }
+                  }
+              }
+              xSemaphoreGive(flagMutex);
+          }
     }
-
-    void logQueue(void *pvParameters)
-    {
-        while(1) {
-            xSemaphoreTake(_imuReadySemaphore, portMAX_DELAY);
-            Serial.println("IMU ISR");
-            continue;
-#if 0
-
-            if(_i2c.acquire()) {
-                _imu.readFifoCount(fifoCount);
-                if(fifoCount < FIFO_LENGTH_TARGET * FIFO_PACKET_SIZE) {
-                    _i2c.release();
-                    continue;
-                }
-                _imu.readFifo();
-                _i2c.release();
-
-                _imu.getFifoAccelX_mss(&fifoSize,ax);
-                _imu.getFifoAccelY_mss(&fifoSize,ay);
-                _imu.getFifoAccelZ_mss(&fifoSize,az);
-
-                _imu.getFifoMagX_uT(&fifoSize, mx);
-                _imu.getFifoMagY_uT(&fifoSize, my);
-                _imu.getFifoMagZ_uT(&fifoSize, mz);
-
-                _imu.getFifoGyroX_rads(&fifoSize, gx);
-                _imu.getFifoGyroY_rads(&fifoSize, gy);
-                _imu.getFifoGyroZ_rads(&fifoSize, gz);
-
-                Serial.print("Saving ");
-                Serial.print(fifoSize);
-                Serial.println(" samples from fifo...");
-                for(size_t i = 0; i < fifoSize; i++) {
-                    imuData_ptr measure = createIMUDataPoint(i);
-                    if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
-                        Serial.println("Queue is full! Dropping measure");
-                        delete(measure);
-                    }
-                    else {
-                        xSemaphoreGive(_sdDataSemaphore);
-                    }
-                }
-
-
-            }
-#endif
-        }
-
-
-    }
-}
+} // namespace
