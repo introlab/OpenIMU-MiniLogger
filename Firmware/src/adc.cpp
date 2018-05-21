@@ -7,20 +7,11 @@ namespace
 {
     Adafruit_ADS1015 _adc;
     I2CMutex _i2c;
-
-    TaskHandle_t _serialLogHangle = NULL;
-    TaskHandle_t _queueLogHandle = NULL;
+    SemaphoreHandle_t flagMutex = xSemaphoreCreateMutex();
     TaskHandle_t _readSensorHandle = NULL;
-
     QueueHandle_t _loggingQueue = NULL;
     SemaphoreHandle_t _sdDataSemaphore = NULL;
-
-    void logSerial(void *pvParameters);
-    void logQueue(void *pvParameters);
     void readSensor(void *pvParameters);
-
-    portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
-
 }
 
 ADC::ADC()
@@ -31,9 +22,6 @@ ADC::ADC()
 
 ADC::~ADC()
 {
-    stopSerialLogging();
-    stopQueueLogging();
-
     if (_readSensorHandle != NULL)
     {
         vTaskDelete(_readSensorHandle);
@@ -52,6 +40,7 @@ void ADC::begin()
 
     _adc.begin();
 
+    //This is important to pin the task to core 0, otherwise I2C will be unstable
     xTaskCreatePinnedToCore(&readSensor, "ADC read sensor", 2048, this, 10 , &_readSensorHandle,0);
 }
 
@@ -75,46 +64,23 @@ void ADC::setCurrent(float c)
     current = c;
 }
 
-
-void ADC::startSerialLogging()
-{
-    Serial.println("ADC log begin");
-    if(_serialLogHangle == NULL) {
-        Serial.println("ADC task create");
-        xTaskCreate(&logSerial, "ADC serial log", 2048, this, 5, &_serialLogHangle);
-    }
-}
-
-void ADC::stopSerialLogging()
-{
-    Serial.println("ADC log stop");
-    if(_serialLogHangle != NULL) {
-        Serial.println("ADC task delete");
-        vTaskDelete(_serialLogHangle);
-        _serialLogHangle = NULL;
-    }
-}
-
 void ADC::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
     Serial.println("ADC log begin");
-    if(_queueLogHandle == NULL) {
-        Serial.println("ADC task create");
-        _loggingQueue = queue;
-        _sdDataSemaphore = semaphore;
-        xTaskCreate(&logQueue, "ADC queue log", 2048, this, 5, &_queueLogHandle);
-    }
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = queue;
+    _sdDataSemaphore = semaphore;
+    xSemaphoreGive(flagMutex);
+
 }
 
 void ADC::stopQueueLogging()
 {
     Serial.println("ADC log stop");
-    if(_queueLogHandle != NULL) {
-        Serial.println("ADC task delete");
-        vTaskDelete(_queueLogHandle);
-        _queueLogHandle = NULL;
-        _sdDataSemaphore = NULL;
-    }
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = NULL;
+    _sdDataSemaphore = NULL;
+    xSemaphoreGive(flagMutex);
 }
 
 namespace
@@ -158,44 +124,34 @@ namespace
                   adc->setCurrent(current);
               }
 
+              //Log to SD is enabled ?
+              xSemaphoreTake(flagMutex, portMAX_DELAY);
+              if (_loggingQueue && _sdDataSemaphore)
+              {
+                  //Write data from fifo
+
+                  //Allocate new data point
+                  //Will be released in SD card.
+                  powerData_ptr measure = (powerData_ptr) malloc(sizeof(powerData_t));
+                  measure->voltage = vbat;
+                  measure->current = current;
+                  
+                  if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
+                      Serial.println("Queue is full! Dropping ADC/Power measure");
+                      free(measure);
+                  }
+                  else {
+                      //Will wake up writing task
+                      xSemaphoreGive(_sdDataSemaphore);
+                  }
+
+              }
+              xSemaphoreGive(flagMutex);
+
           }
           //Wait 1 second
           delay(1000);
       }
 
-    }
-
-    void logSerial(void *pvParameters)
-    {
-        //The pointer is given to ADC instance
-        ADC *adc  = (ADC*)(pvParameters);
-
-        while(1)
-        {
-            if (adc)
-            {
-                Serial.printf("ADC VBAT: %f CURRENT: %f\n", adc->getVoltage(), adc->getCurrent());
-            }
-
-            //Wait 1 second
-            delay(1000);
-        }
-    }
-
-    void logQueue(void *pvParameters)
-    {
-        //The pointer is given to ADC instance
-        ADC *adc  = (ADC*)(pvParameters);
-
-        while(1)
-        {
-            if (adc)
-            {
-                //TODO SEND DATA TO QUEUE
-            }
-
-            //Wait 1 second
-            delay(1000);
-        }
     }
 }

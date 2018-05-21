@@ -48,6 +48,7 @@ ADC adc;
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
+QueueHandle_t powerLoggingQueue = NULL;
 SemaphoreHandle_t sdDataReadySemaphore = NULL;
 
 void printCurrentTime();
@@ -300,16 +301,19 @@ namespace Actions
     {
         imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
         gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
+        powerLoggingQueue = xQueueCreate(10, sizeof(powerData_t*));
         sdDataReadySemaphore = xSemaphoreCreateCounting(128, 0);
 
         sdCard.setIMUQueue(imuLoggingQueue);
         sdCard.setGPSQueue(gpsLoggingQueue);
+        sdCard.setPowerQueue(powerLoggingQueue);
         sdCard.setDataReadySemaphore(sdDataReadySemaphore);
         sdCard.startLog();
 
         //TODO Add other sensors...
         gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
         imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
+        adc.startQueueLogging(powerLoggingQueue, sdDataReadySemaphore);
     }
 
     void IMUStopSD()
@@ -318,19 +322,23 @@ namespace Actions
 
             imu.stopQueueLogging();
             gps.stopQueueLogging();
+            adc.stopQueueLogging();
 
             sdCard.stopLog();
             sdCard.setIMUQueue(NULL);
             sdCard.setGPSQueue(NULL);
+            sdCard.setPowerQueue(NULL);
             sdCard.setDataReadySemaphore(NULL);
 
             vSemaphoreDelete(sdDataReadySemaphore);
             vQueueDelete(imuLoggingQueue);
             vQueueDelete(gpsLoggingQueue);
+            vQueueDelete(powerLoggingQueue);
 
             sdDataReadySemaphore = NULL;
             imuLoggingQueue = NULL;
             gpsLoggingQueue = NULL;
+            powerLoggingQueue = NULL;
         }
     }
 }

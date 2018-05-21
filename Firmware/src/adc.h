@@ -4,11 +4,16 @@
 #include <Arduino.h>
 #include <Adafruit_ADS1015.h>
 
+typedef struct {
+    float voltage;
+    float current;
+} powerData_t;
+
+typedef powerData_t* powerData_ptr;
+
 
 class ADC
 {
-
-
 
 public:
     ADC();

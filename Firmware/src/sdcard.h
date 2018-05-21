@@ -39,6 +39,7 @@ public:
     void setDataReadySemaphore(SemaphoreHandle_t semaphore);
     void setIMUQueue(QueueHandle_t queue);
     void setGPSQueue(QueueHandle_t queue);
+    void setPowerQueue(QueueHandle_t queue);
 
     void startLog();
     void stopLog();

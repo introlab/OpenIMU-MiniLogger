@@ -3,7 +3,7 @@
 #include <ioexpander.h>
 #include <FS.h>
 #include <SD_MMC.h>
-
+#include "adc.h"
 #include <vfs_api.h>
 
 extern "C" {
@@ -233,6 +233,11 @@ void SDCard::setGPSQueue(QueueHandle_t queue)
     _gpsQueue = queue;
 }
 
+void SDCard::setPowerQueue(QueueHandle_t queue)
+{
+    _powerQueue = queue;
+}
+
 void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
 {
     _dataReadySemaphore = semaphore;
@@ -263,6 +268,7 @@ namespace
 
         int imu_cnt = 0;
         int gps_cnt = 0;
+        int power_cnt = 0;
 
         while(1) {
 
@@ -274,9 +280,10 @@ namespace
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
-                Serial.printf("WR Timestamp i: %i g: %i \n", imu_cnt, gps_cnt);
+                Serial.printf("WR Timestamp i: %i g: %i p: %i\n", imu_cnt, gps_cnt, power_cnt);
                 imu_cnt = 0;
                 gps_cnt = 0;
+                power_cnt = 0;
             }
 
             // Log imu
@@ -286,7 +293,6 @@ namespace
                     _logFile.write('i');
                     _logFile.write(imuSendable.bytes, sizeof(imuData_t));
                     delete imuMeasure;
-                    //Serial.println("WR IMU");
                     imu_cnt++;
                 }
             }
@@ -296,10 +302,22 @@ namespace
                 if(xQueueReceive(_gpsQueue, &imuSendable.data, 0) == pdTRUE) {
                     _logFile.write('g');
                     _logFile.write(gpsSendable.bytes, sizeof(gpsData_t));
-                    //Serial.println("WR GPS");
                     gps_cnt++;
                 }
             }
+
+            // Log POWER
+            if(_powerQueue != NULL) {
+                powerData_ptr powerDataPtr;
+                if(xQueueReceive(_powerQueue, &powerDataPtr, 0) == pdTRUE) {
+                    _logFile.write('p');
+                    _logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
+                    free(powerDataPtr);
+                    power_cnt++;
+                }
+            }
+
+
         }
 
 
