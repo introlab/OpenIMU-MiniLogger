@@ -4,6 +4,7 @@
 #include <FS.h>
 #include <SD_MMC.h>
 #include "adc.h"
+#include "barometer.h"
 #include <vfs_api.h>
 
 extern "C" {
@@ -238,6 +239,11 @@ void SDCard::setPowerQueue(QueueHandle_t queue)
     _powerQueue = queue;
 }
 
+void SDCard::setBarometerQueue(QueueHandle_t queue)
+{
+    _baroQueue = queue;
+}
+
 void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
 {
     _dataReadySemaphore = semaphore;
@@ -269,6 +275,7 @@ namespace
         int imu_cnt = 0;
         int gps_cnt = 0;
         int power_cnt = 0;
+        int baro_cnt = 0;
 
         while(1) {
 
@@ -280,10 +287,12 @@ namespace
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
-                Serial.printf("WR Timestamp i: %i g: %i p: %i\n", imu_cnt, gps_cnt, power_cnt);
+                Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
+                        , gps_cnt, power_cnt, baro_cnt);
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;
+                baro_cnt = 0;
             }
 
             // Log imu
@@ -314,6 +323,17 @@ namespace
                     _logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
                     free(powerDataPtr);
                     power_cnt++;
+                }
+            }
+
+            // Log Barometer
+            if(_baroQueue != NULL) {
+                baroData_ptr baroDataPtr;
+                if(xQueueReceive(_baroQueue, &baroDataPtr, 0) == pdTRUE) {
+                    _logFile.write('b');
+                    _logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
+                    free(baroDataPtr);
+                    baro_cnt++;
                 }
             }
 

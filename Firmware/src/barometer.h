@@ -4,6 +4,14 @@
 #include <Arduino.h>
 #include "Adafruit_MPL115A2.h"
 
+typedef struct {
+    float temperature;
+    float pressure;
+} baroData_t;
+
+typedef baroData_t* baroData_ptr;
+
+
 class Barometer
 {
 public:
@@ -11,9 +19,6 @@ public:
     virtual ~Barometer();
 
     void begin();
-
-    void startSerialLogging();
-    void stopSerialLogging();
 
     void startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore);
     void stopQueueLogging();

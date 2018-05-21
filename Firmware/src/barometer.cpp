@@ -7,14 +7,14 @@ namespace
     Adafruit_MPL115A2 _baro;
     I2CMutex _i2c;
 
-    TaskHandle_t _serialLogHangle = NULL;
-    TaskHandle_t _queueLogHandle = NULL;
+    SemaphoreHandle_t flagMutex = xSemaphoreCreateMutex();
+    TaskHandle_t _readSensorHandle = NULL;
 
     QueueHandle_t _loggingQueue = NULL;
     SemaphoreHandle_t _sdDataSemaphore = NULL;
 
-    void logSerial(void *pvParameters);
-    void logQueue(void *pvParameters);
+
+    void readSensor(void* pvParameters);
 
 }
 
@@ -31,93 +31,76 @@ Barometer::~Barometer()
 void Barometer::begin()
 {
     _baro.begin();
-}
 
-void Barometer::startSerialLogging()
-{
-    Serial.println("Barometer log begin");
-    if(_serialLogHangle == NULL) {
-        Serial.println("Barometer task create");
-        xTaskCreate(&logSerial, "Barometer serial log", 2048, NULL, 5, &_serialLogHangle);
-    }
-}
-
-void Barometer::stopSerialLogging()
-{
-    Serial.println("Barometer log stop");
-    if(_serialLogHangle != NULL) {
-        Serial.println("Barometer task delete");
-        vTaskDelete(_serialLogHangle);
-        _serialLogHangle = NULL;
-    }
+    xTaskCreatePinnedToCore(&readSensor, "Barometer read task", 2048, this, 8, &_readSensorHandle, 0);
 }
 
 void Barometer::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
     Serial.println("Barometer log begin");
-    if(_queueLogHandle == NULL) {
-        Serial.println("Barometer task create");
-        _loggingQueue = queue;
-        _sdDataSemaphore = semaphore;
-        xTaskCreate(&logQueue, "Barometer queue log", 2048, NULL, 5, &_queueLogHandle);
-    }
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = queue;
+    _sdDataSemaphore = semaphore;
+    xSemaphoreGive(flagMutex);
+
 }
 
 void Barometer::stopQueueLogging()
 {
     Serial.println("Barometer log stop");
-    if(_queueLogHandle != NULL) {
-        Serial.println("Barometer task delete");
-        vTaskDelete(_queueLogHandle);
-        _queueLogHandle = NULL;
-        _sdDataSemaphore = NULL;
-    }
+    xSemaphoreTake(flagMutex, portMAX_DELAY);
+    _loggingQueue = NULL;
+    _sdDataSemaphore = NULL;
+    xSemaphoreGive(flagMutex);
+
 }
 
 namespace
 {
-    void logSerial(void *pvParameters)
-    {
-        while(1) {
 
+    void readSensor(void* pvParameters)
+    {
+        Serial.println("Barometer readSensor task starting...");
+        while(1) {
             if(_i2c.acquire()) {
-                // Prevent the RTOS kernel swapping out the task.
-                vTaskSuspendAll();
-                
                 //Read sensor
                 float temp = _baro.getTemperature();
                 float pressure = _baro.getPressure();
-
-                // The operation is complete.  Restart the RTOS kernel.
-                xTaskResumeAll ();
-
                 _i2c.release();
 
                 // Send data to serial
-                printf("Barometer, temp: %f, pressure: %f\n", temp, pressure);
+                //printf("Barometer, temp: %f, pressure: %f\n", temp, pressure);
+
+                //Log to SD is enabled ?
+                xSemaphoreTake(flagMutex, portMAX_DELAY);
+                if (_loggingQueue && _sdDataSemaphore)
+                {
+                    //Write data from fifo
+
+                    //Allocate new data point
+                    //Will be released in SD card.
+                    baroData_ptr measure = (baroData_ptr) malloc(sizeof(baroData_t));
+                    measure->temperature = temp;
+                    measure->pressure = pressure;
+
+                    if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
+                        Serial.println("Queue is full! Dropping Baro measure");
+                        free(measure);
+                    }
+                    else {
+                        //Will wake up writing task
+                        xSemaphoreGive(_sdDataSemaphore);
+                    }
+
+                }
+                xSemaphoreGive(flagMutex);
+
 
             }
-            //Wait 1 second
-            delay(1000);
-        }
-    }
-
-    void logQueue(void *pvParameters)
-    {
-        while(1) {
-
-            if(_i2c.acquire()) {
-                //Read Barometer
-                _i2c.release();
-
-
-                //TODO SEND DATA TO QUEUE FOR LOGGING
-
-
-            }
 
             //Wait 1 second
             delay(1000);
-        }
+        } // while(1)
     }
-}
+
+} //namespace
