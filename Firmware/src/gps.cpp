@@ -55,7 +55,7 @@ void GPS::begin()
 
 
         //flagMutex = xSemaphoreCreateMutex();
-        xTaskCreate(&gpsRead, "GPS Read", 2048, NULL, 5, NULL);
+        xTaskCreatePinnedToCore(&gpsRead, "GPS Read", 2048, NULL, 5, NULL, 1);
     }
 }
 
@@ -170,7 +170,25 @@ namespace
                           int sat = gga.satellites_tracked;
                           float latitude = minmea_tocoord(&gga.latitude);
                           float longitude = minmea_tocoord(&gga.longitude);
-                          Serial.printf("Sats: %i, Latitude %f, Longitude %f \n", sat, latitude , longitude );
+                          float altitude = minmea_tofloat(&gga.altitude);
+                          //Serial.printf("Sats: %i, Latitude %f, Longitude %f \n", sat, latitude , longitude );
+                          _gps.latitude = latitude;
+                          _gps.fix = true;
+                          _gps.longitude = longitude;
+                          _gps.altitude = altitude;
+
+                          // Log to queue
+
+
+                          xSemaphoreTake(flagMutex, portMAX_DELAY);
+                          if(logQueue != NULL) {
+                              gpsData_t currentPos = createDataPoint();
+                              if(xQueueSend(logQueue, &currentPos, 0) == pdTRUE) {
+                                  xSemaphoreGive(sdDataReadySemaphore);
+                              }
+                          }
+                          xSemaphoreGive(flagMutex);
+
 
                         }
                         break;
@@ -224,25 +242,7 @@ namespace
 
             }
 
-            if(xTaskGetTickCount() - lastTick > 1000 / portTICK_RATE_MS) {
-                lastTick = xTaskGetTickCount();
-                // Log to serial
-                if(serialEnabled) {
-                    gpsToSerial();
-                }
 
-                // Log to queue
-                if(queueEnabled) {
-                    gpsData_t currentPos = createDataPoint();
-                    xSemaphoreTake(flagMutex, portMAX_DELAY);
-                    if(logQueue != NULL) {
-                        if(xQueueSend(logQueue, &currentPos, 0) == pdTRUE) {
-                            xSemaphoreGive(sdDataReadySemaphore);
-                        }
-                    }
-                    xSemaphoreGive(flagMutex);
-                }
-            }
             vTaskDelay(10/portTICK_RATE_MS);
         }
     }

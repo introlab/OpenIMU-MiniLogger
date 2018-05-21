@@ -80,7 +80,7 @@ void setup_gpio()
 
   pinMode(23, INPUT);
   pinMode(25, INPUT);
-  Wire.setClock(400000);
+  Wire.setClock(100000);
   //Wire.setTimeOut(200);
   Wire.begin(23, 25);
 
@@ -148,12 +148,12 @@ void setup() {
     Serial.println("IMU Ready");
 
     // Start Barometer
-    baro.begin();
-    Serial.println("Barometer Ready");
+    //baro.begin();
+    //Serial.println("Barometer Ready");
 
     // Start GPS
-    //gps.begin();
-    //Serial.println("GPS Ready");
+    gps.begin();
+    Serial.println("GPS Ready");
 
     // Start ADC
     adc.begin();

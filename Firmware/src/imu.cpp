@@ -36,11 +36,13 @@ namespace
     float mx[100], my[100], mz[100];
     size_t fifoSize = 0;
     uint16_t fifoCount = 0;
+
+    portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 }
 
 IMU::IMU()
 {
-  
+
 }
 
 IMU::~IMU()
@@ -86,7 +88,7 @@ void IMU::begin()
 
     //Important
     _imu.enableDataReadyInterrupt();
-    xTaskCreate(&readIMU, "IMU read task", 2048, this, 1, &_readIMUHandle);
+    xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
 }
 
 void IMU::startSerialLogging()

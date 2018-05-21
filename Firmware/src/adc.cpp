@@ -19,6 +19,8 @@ namespace
     void logQueue(void *pvParameters);
     void readSensor(void *pvParameters);
 
+    portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
+
 }
 
 ADC::ADC()
@@ -50,7 +52,7 @@ void ADC::begin()
 
     _adc.begin();
 
-    xTaskCreate(&readSensor, "ADC read sensor", 2048, this, 5, &_readSensorHandle);
+    xTaskCreatePinnedToCore(&readSensor, "ADC read sensor", 2048, this, 10 , &_readSensorHandle,0);
 }
 
 float ADC::getVoltage()
@@ -135,13 +137,10 @@ namespace
           if(_i2c.acquire()) {
               //Read sensor
               //Therm
-
               int val0 = _adc.readADC_SingleEnded(0);
               //VBATT
-
               int val1 = _adc.readADC_SingleEnded(1);
               //CSA
-
               int val2 = _adc.readADC_SingleEnded(2);
               _i2c.release();
 

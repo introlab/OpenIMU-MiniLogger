@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 #include "MPU9250.h"
 
+
 /* MPU9250 object, input the I2C bus and address */
 MPU9250::MPU9250(TwoWire &bus,uint8_t address){
   _i2c = &bus; // I2C bus
@@ -599,7 +600,7 @@ int MPU9250FIFO::readFifo() {
       _hzFifo[i] = (((float)(_hzcounts) * _magScaleZ) - _hzb)*_hzs;
       _hSize = _fifoSize/_fifoFrameSize;
     }
-    
+
   }
   return 1;
 }
@@ -1052,7 +1053,8 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
   }
   else{
     _i2c->beginTransmission(_address); // open the device
-    _i2c->write(subAddress); // specify the starting register address
+    if (_i2c->write(subAddress) == 0)
+        Serial.println("Error writing i2c");// specify the starting register address
     _i2c->endTransmission(false);
     _numBytes = _i2c->requestFrom(_address, count); // specify the number of bytes to receive
     if (_numBytes == count) {

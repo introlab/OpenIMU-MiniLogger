@@ -81,10 +81,15 @@ namespace
         while(1) {
 
             if(_i2c.acquire()) {
-
+                // Prevent the RTOS kernel swapping out the task.
+                vTaskSuspendAll();
+                
                 //Read sensor
                 float temp = _baro.getTemperature();
                 float pressure = _baro.getPressure();
+
+                // The operation is complete.  Restart the RTOS kernel.
+                xTaskResumeAll ();
 
                 _i2c.release();
 
