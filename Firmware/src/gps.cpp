@@ -12,14 +12,14 @@ namespace
     bool timeIsSet = false;
     bool logToSerial = false;
 
-    QueueHandle_t logQueue = NULL;
-    SemaphoreHandle_t sdDataReadySemaphore = NULL;
+    QueueHandle_t _loggingQueue = NULL;
+    SemaphoreHandle_t _sdDataSemaphore = NULL;
 
     void gpsRead(void *pvParameters);
     void gpsToSerial();
 
 
-    gpsData_t createDataPoint();
+    gpsData_ptr createDataPoint();
     void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_);
 }
 
@@ -76,16 +76,16 @@ void GPS::stopSerialLogging()
 void GPS::startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore)
 {
     xSemaphoreTake(flagMutex, portMAX_DELAY);
-    logQueue = queue;
-    sdDataReadySemaphore = semaphore;
+    _loggingQueue = queue;
+    _sdDataSemaphore = semaphore;
     xSemaphoreGive(flagMutex);
 }
 
 void GPS::stopQueueLogging()
 {
     xSemaphoreTake(flagMutex, portMAX_DELAY);
-    logQueue = NULL;
-    sdDataReadySemaphore = NULL;
+    _loggingQueue = NULL;
+    _sdDataSemaphore = NULL;
     xSemaphoreGive(flagMutex);
 }
 
@@ -181,10 +181,15 @@ namespace
 
 
                           xSemaphoreTake(flagMutex, portMAX_DELAY);
-                          if(logQueue != NULL) {
-                              gpsData_t currentPos = createDataPoint();
-                              if(xQueueSend(logQueue, &currentPos, 0) == pdTRUE) {
-                                  xSemaphoreGive(sdDataReadySemaphore);
+                          if(_loggingQueue != NULL) {
+                              gpsData_ptr measure = createDataPoint();
+                              if(xQueueSend(_loggingQueue, (void *) &measure, 0) != pdTRUE) {
+                                  Serial.println("Queue is full! Dropping GPS measure");
+                                  free(measure);
+                              }
+                              else {
+                                  //Will wake up writing task
+                                  xSemaphoreGive(_sdDataSemaphore);
                               }
                           }
                           xSemaphoreGive(flagMutex);
@@ -232,12 +237,6 @@ namespace
                         break;
 
                     }
-
-                    // Check which modules are enabled
-                    xSemaphoreTake(flagMutex, portMAX_DELAY);
-                    serialEnabled = logToSerial;
-                    queueEnabled = logQueue != NULL;
-                    xSemaphoreGive(flagMutex);
                 }
 
             }
@@ -247,15 +246,17 @@ namespace
         }
     }
 
-    gpsData_t createDataPoint()
+    gpsData_ptr createDataPoint()
     {
         //TODO FIX THIS PART...
-        gpsData_t data;
+        gpsData_ptr data;
 
-        data.fix = _gps.fix;
-        data.longitude = _gps.longitude;
-        data.latitude = _gps.latitude;
-        data.altitude = _gps.altitude;
+        data = (gpsData_ptr) malloc(sizeof(gpsData_t));
+
+        data->fix = _gps.fix;
+        data->longitude = _gps.longitude;
+        data->latitude = _gps.latitude;
+        data->altitude = _gps.altitude;
 
         return data;
     }
