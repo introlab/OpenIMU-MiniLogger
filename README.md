@@ -1,13 +1,22 @@
 # OpenIMU-MiniLogger
 OpenIMU - Open Hardware Mini Logger based on ESP32
 
+# Authors
+* Dominic Létourneau
+* Vincent-Philippe Rhéaume
+* Cédric Godin
+* Philippe-Olivier Provost
+* François Michaud
+* Simon Brière
+* Mathieu Hamel
+
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
   * [ESP 32 Overview](https://www.espressif.com/en/products/hardware/esp32/overview)
   * WiFi
   * Bluetooth
   * High speed uSD Card Interface (for data logging)
-  * High speed USB Mass Storage interface
+  * High speed USB Mass Storage Interface
   * USB Battery Charger
   * High capacity battery using Motorala BF5X 1500mA form factor.
   * Voltage and Current Monitor
