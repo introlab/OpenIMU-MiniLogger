@@ -267,7 +267,7 @@ namespace
     {
         Serial.println("logToFile Task started.");
 
-        imuData_ptr imuMeasure;
+
         gpsDataSendable_t gpsSendable;
         imuDataSendable_t imuSendable;
         timestampSendable_t timestamp;
@@ -297,27 +297,32 @@ namespace
 
             // Log imu
             if(_imuQueue != NULL) {
-                if(xQueueReceive(_imuQueue, &imuMeasure, 0) == pdTRUE) {
-                    imuSendable.data = *imuMeasure;
+                imuData_ptr imuDataPtr = NULL;
+                if(xQueueReceive(_imuQueue, &imuDataPtr, 0) == pdTRUE) {
                     _logFile.write('i');
-                    _logFile.write(imuSendable.bytes, sizeof(imuData_t));
-                    delete imuMeasure;
+                    _logFile.write((uint8_t*) imuDataPtr, sizeof(imuData_t));
+                    delete imuDataPtr;
                     imu_cnt++;
                 }
             }
 
             // Log GPS
             if(_gpsQueue != NULL) {
-                if(xQueueReceive(_gpsQueue, &imuSendable.data, 0) == pdTRUE) {
+                gpsData_ptr gpsDataPtr = NULL;
+
+                if(xQueueReceive(_gpsQueue, &gpsDataPtr, 0) == pdTRUE) {
+                    //Serial.printf("LOG GPS : %i %f %f %f\n", gpsDataPtr->fix,
+                    //        gpsDataPtr->latitude, gpsDataPtr->longitude, gpsDataPtr->altitude);
                     _logFile.write('g');
-                    _logFile.write(gpsSendable.bytes, sizeof(gpsData_t));
+                    _logFile.write((uint8_t*)gpsDataPtr, sizeof(gpsData_t));
+                    free(gpsDataPtr);
                     gps_cnt++;
                 }
             }
 
             // Log POWER
             if(_powerQueue != NULL) {
-                powerData_ptr powerDataPtr;
+                powerData_ptr powerDataPtr = NULL;
                 if(xQueueReceive(_powerQueue, &powerDataPtr, 0) == pdTRUE) {
                     _logFile.write('p');
                     _logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
@@ -328,7 +333,7 @@ namespace
 
             // Log Barometer
             if(_baroQueue != NULL) {
-                baroData_ptr baroDataPtr;
+                baroData_ptr baroDataPtr = NULL;
                 if(xQueueReceive(_baroQueue, &baroDataPtr, 0) == pdTRUE) {
                     _logFile.write('b');
                     _logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
@@ -336,11 +341,7 @@ namespace
                     baro_cnt++;
                 }
             }
-
-
         }
-
-
     }
 
     void generateTimestamp(void *pvParameters)
