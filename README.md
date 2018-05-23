@@ -15,5 +15,8 @@ OpenIMU - Open Hardware Mini Logger based on ESP32
 # Schematics & Fab Files
 * TODO!
 
+# Case & Mechanical Drawings
+* SOON!
+
 # Building The Project
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).
