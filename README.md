@@ -2,9 +2,15 @@
 OpenIMU - Open Hardware Mini Logger based on ESP32
 
 # Features
-* [ESP32WROOM](https://www.espressif.com/en/esp-wroom-32/resources) based with :
-** MPU9250 IMU
-** 
+* [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
+  * MPU9250 IMU
+  * uBlox GPS
+  * Barometer
+  * High speed SD Card
+  * WiFi
+  * Bluetooth
+  * Grove expansion header
+  
 
 # Schematics & Fab Files
 * TODO!
