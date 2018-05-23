@@ -9,12 +9,12 @@ OpenIMU - Open Hardware Mini Logger based on ESP32
   * High speed uSD Card Interface (for data logging)
   * High speed USB Mass Storage interface
   * USB Battery Charger
-  * High capacity battery using [Motorala BF5X]()1500mA form factor.
+  * High capacity battery using Motorala BF5X 1500mA form factor.
   * Voltage and Current Monitor
   * [9 axis MPU9250 IMU](https://www.invensense.com/products/motion-tracking/9-axis/mpu-9250/)
   * [uBlox CAM-M8Q GPS](https://www.u-blox.com/en/product/cam-m8-series)
   * [NXP / FreeScale MPL115A2 Barometer](https://www.nxp.com/docs/en/data-sheet/MPL115A2.pdf)
-  * 1.54" e-Ink Display
+  * [WaveShare 1.54" e-Ink Display](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module)
   * [Grove expansion header](http://wiki.seeedstudio.com/Grove_System/) with configurable CAN, UART, I2C, Digital I/O.
 
 # Firmware
