@@ -1,5 +1,8 @@
 # OpenIMU-MiniLogger
-OpenIMU - Open Hardware Mini Logger based on ESP32
+OpenIMU - Open Hardware Mini Logger based on ESP32. 
+
+Please see also :
+[OpenIMU](https://github.com/introlab/OpenIMU-MiniLogger) Compatible Sofware.
 
 # Authors
 * Dominic Létourneau
