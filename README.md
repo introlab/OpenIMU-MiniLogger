@@ -38,7 +38,7 @@ Please see also :
 * To be completed soon!
 
 # Case & Mechanical Drawings
-* To be completed soon!
+* [Click on this link](./Hardware/Solidworks)
 
 # Building The Project
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).
