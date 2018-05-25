@@ -42,7 +42,7 @@ Please see also :
 * [Top Cover STL x1](./Hardware/Solidworks/Top%20Cover.STL)
 * [Back Cover STL x1](./Hardware/Solidworks/Back%20Cover%20R2.STL)
 * [Button x4](./Hardware/Solidworks/Bouton%20Open%20MU.STL)
-* [Battery Spacer](./Hardware/Solidworks/Standoff%20Batterie.STL)
+* [Battery Spacer x1](./Hardware/Solidworks/Standoff%20Batterie.STL)
 
 
 
