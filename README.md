@@ -41,8 +41,8 @@ Please see also :
 * [Click on this link for all files](./Hardware/Solidworks)
 * [Top Cover STL x1](./Hardware/Solidworks/Top%20Cover.STL)
 * [Back Cover STL x1](./Hardware/Solidworks/Back%20Cover%20R2.STL)
-* [Button x4](./Hardware/Solidworks/Bouton%20Open%20MU.STL)
-* [Battery Spacer x1](./Hardware/Solidworks/Standoff%20Batterie.STL)
+* [Button STL x4](./Hardware/Solidworks/Bouton%20Open%20MU.STL)
+* [Battery Spacer STL x1](./Hardware/Solidworks/Standoff%20Batterie.STL)
 
 
 
