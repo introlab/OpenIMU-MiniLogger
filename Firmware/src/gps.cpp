@@ -25,6 +25,8 @@ namespace
 
 bool GPS::_hasBegun = false;
 
+bool _validData = false;
+
 GPS::GPS()
 {
 
@@ -89,10 +91,19 @@ void GPS::stopQueueLogging()
     xSemaphoreGive(flagMutex);
 }
 
+// void GPS::testaffich()
+// {
+//    //gpsRead();
+//    gpsToSerial();
+// }
+
 namespace
 {
     void gpsRead(void *pvParameters)
     {
+        int i=0;
+        bool init=true;
+
         bool serialEnabled, queueEnabled;
         TickType_t lastTick = xTaskGetTickCount();
 
@@ -100,7 +111,7 @@ namespace
 
 
             while(_gpsSerial.available()) {
-
+                 
 
                 //Read one byte
                 uint8_t c = _gps.read();
@@ -110,26 +121,70 @@ namespace
                 if(_gps.newNMEAreceived()) {
                     //_gps.parse(_gps.lastNMEA());
                     char* ptr = _gps.lastNMEA();
-
+                    char* ptrcopy ;
                     //There is a bug, sentense starts with \n and the $...
                     ptr++;
-                    //Serial.printf("len %i, %s\n", strlen(_gps.lastNMEA()), _gps.lastNMEA());
-                    //Serial.printf("%c%c%c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5]);
+                    
+                    // i++;
+                    // if(i==10){
+                        
+                    // //Serial.printf("len %i, %s\n", strlen(_gps.lastNMEA()), _gps.lastNMEA());
+                    // // Serial.printf("%c%c%c%c%c%c\n", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5]);
+                    // Serial.printf("%s\n", ptr);
+                    // i=0;
+                    // }
 
 
                     int id = minmea_sentence_id(ptr, true);
                     //Serial.printf("Sentense id: %i \n", id);
-
+                    // Serial.print(id);
+                    // Serial.print("\n"); //RMC
                     switch(id)
                     {
-                        //RMC
+                        
                         case MINMEA_SENTENCE_RMC:
                           struct minmea_sentence_rmc rmc;
-                          if (minmea_parse_rmc(&rmc, ptr))
-                          {
+                        //    Serial.printf("%s\n", ptr); 
+                            
+                            if (init)
+                            { // At the start of the device, get time from gts rtc using RMC message
+                            init=false;
 
-                              if (rmc.valid)
-                              {
+                            struct tm tm;
+                            
+                            int k=0;
+                            while(*ptr){ // Structure of the message known 
+                             char type = *ptr++;
+                             if  (type == ',') break;
+                             } // Extract time
+                            tm.tm_hour = ( ptr[0] - 48 ) * 10  +  ( ptr[1] - 48 );
+                            tm.tm_min = ( ptr[2] - 48 ) * 10  +  ( ptr[3] - 48 );
+                            tm.tm_sec = ( ptr[4] - 48 ) * 10  +  ( ptr[5] - 48 );
+
+                            while(*ptr){
+                               char type = *ptr++;
+                               if  (type == ',') k++;
+                               if  (k==8) break;
+                            } // Extract date
+                            tm.tm_mday = ( ptr[0] - 48 ) * 10  +  ( ptr[1] - 48 );
+                            tm.tm_mon = ( ptr[2] - 48 ) * 10  +  ( ptr[3] - 48 ) - 1; // month is an offset to january [0-11]                         
+                            tm.tm_year = ( ptr[4] - 48 ) * 10  +  ( ptr[5] - 48 ) + 100; // years since 1900
+                            
+                            struct timeval tvl;
+                            tvl.tv_sec =  mktime(&tm) - (3600 * 4); // Change value according to your time zone 
+                            tvl.tv_usec = 0;
+                            settimeofday(&tvl, NULL);
+                            
+                            }
+                            else// Normal Use of RMC messages
+                            { 
+                            if (minmea_parse_rmc(&rmc, ptr))
+                            {
+
+                                   if (rmc.valid)
+                                {
+
+                                   _validData = true;
                                 /*
                                 struct minmea_float latitude;
                                 struct minmea_float longitude;
@@ -145,9 +200,19 @@ namespace
                                 float longitude = minmea_tocoord(&rmc.longitude);
                                 //Serial.printf("Latitude %f, Longitude %f \n", latitude, longitude);
 
-                              }
+                                }
+                                else
+                                {
+                                     _validData = false;
+                                }
 
-                          }
+                            }
+
+                            }
+
+            
+                          
+
                         break;
 
                         case MINMEA_SENTENCE_GGA:
@@ -203,6 +268,7 @@ namespace
                         break;
 
                         case MINMEA_SENTENCE_ZDA:
+                        
                           //Time AND Date
                           struct minmea_sentence_zda zda;
                           if (minmea_parse_zda(&zda, ptr))
@@ -291,16 +357,21 @@ namespace
     }
 
     void setTimeFromGPS(const struct minmea_date *date, const struct minmea_time *time_)
-    {
+    { // Automatic Time Update to fix (not the good hours)
         struct timeval timeval;
         minmea_gettime(&timeval, date, time_);
 
         struct timezone timezone;
         timezone.tz_minuteswest = -5 * 60;
         timezone.tz_dsttime = 0; //DST_CAN;
-
+       
         settimeofday(&timeval, &timezone);
         //Serial.println("Got time from GPS");
 
     }
+}
+
+bool GPS::getFlagvalidData()
+{
+    return _validData;
 }

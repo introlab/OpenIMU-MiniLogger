@@ -15,12 +15,14 @@ public:
     int getActionCtn();
     int getPreviousCtn();
     int getNextCtn();
-    int getPowerCtn();
+    int getBackCtn();
+    bool getShutDown();
 
     void decrementActionCtn();
     void decrementPreviousCtn();
     void decrementNextCtn();
-
+    void decrementBackCtn();
+    
     void reset();
 };
 

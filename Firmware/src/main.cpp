@@ -45,12 +45,15 @@ Barometer baro;
 GPS gps;
 ADC adc;
 
+bool log_flag = false;
+bool SD_USB_flag = false;
 
 QueueHandle_t imuLoggingQueue = NULL;
 QueueHandle_t gpsLoggingQueue = NULL;
 QueueHandle_t powerLoggingQueue = NULL;
 QueueHandle_t baroLoggingQueue = NULL;
 SemaphoreHandle_t sdDataReadySemaphore = NULL;
+TaskHandle_t ledBlinkHandle = NULL;
 
 void printCurrentTime();
 #endif
@@ -105,7 +108,7 @@ void setup() {
     // This must be the first thing we do.
     setup_gpio();
 
-    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, NULL);
+    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, &ledBlinkHandle);
 
 
 
@@ -191,7 +194,7 @@ void loop() {
 
 
     //Display menu
-    display.updateMenu(&menu);
+    display.updateMenu(&menu, log_flag);
 
     int change_counter = 0;
 
@@ -200,6 +203,19 @@ void loop() {
     while(1)
     {
         bool changed = false;
+
+        // Button Shutdown, keep pushing button until led stop blinking
+        if(buttons.getShutDown())
+        {
+            Serial.println("Shutting down.");
+            vTaskDelete( ledBlinkHandle );
+            Actions::IMUStopSD();
+            //sdCard.toExternal();
+            display.showSplashScreen();
+            Serial.println("Bye!");
+            ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
+        }
+
 
         while(buttons.getActionCtn() > 0) {
             menu.action();
@@ -219,19 +235,16 @@ void loop() {
             changed = true;
         }
 
-        if(buttons.getPowerCtn() > 15)
-        {
-            Serial.println("Shutting down.");
-            Actions::IMUStopSD();
-            sdCard.toExternal();
-            display.showSplashScreen();
-            Serial.println("Bye!");
-            ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
+        while(buttons.getBackCtn() > 0) {
+            display.displayVoltage(adc.getVoltage(), adc.getCurrent(),gps.getFlagvalidData(), log_flag, SD_USB_flag);
+            buttons.decrementBackCtn();
         }
+
+
 
         if(changed) {
             //Serial.print("Registered press. ");
-            display.updateMenu(&menu);
+            display.updateMenu(&menu,log_flag);
             //Serial.println("Display menu.");
             change_counter = 0;
         }
@@ -242,7 +255,8 @@ void loop() {
           if (change_counter > 50)
           {
               //Serial.println("Display voltage");
-              display.displayVoltage(adc.getVoltage(), adc.getCurrent());
+              display.displayVoltage(adc.getVoltage(), adc.getCurrent(),gps.getFlagvalidData(), log_flag, SD_USB_flag);
+            
               change_counter = 0;
           }
 
@@ -274,51 +288,97 @@ void printCurrentTime()
 
 namespace Actions
 {
+    // Software Shutdown by the menu
+    void Shutdown()
+    {
+        Serial.println("Shutting down.");
+        vTaskDelete( ledBlinkHandle );
+        Actions::IMUStopSD();
+        display.showSplashScreen();
+        Serial.println("Bye!");
+        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
+    }
+
+
     void SDToESP32()
     {
+        if (SD_USB_flag == true)
+        {
         sdCard.toESP32();
+        SD_USB_flag = false; 
+        }
     }
 
     void SDToExternal()
     {
+        if (SD_USB_flag == false)
+        {
         sdCard.toExternal();
+        SD_USB_flag = true;
+        }
+    }
+    
+    //Same function to start and stop logging to avoid double start
+    void IMUStartSD()     {
+         if(imuLoggingQueue != NULL
+            && gpsLoggingQueue != NULL
+            && powerLoggingQueue != NULL
+            && baroLoggingQueue != NULL)    // stop case
+            {
+
+            imu.stopQueueLogging();
+            gps.stopQueueLogging();
+            adc.stopQueueLogging();
+            baro.stopQueueLogging();
+
+            sdCard.stopLog();
+            sdCard.setIMUQueue(NULL);
+            sdCard.setGPSQueue(NULL);
+            sdCard.setPowerQueue(NULL);
+            sdCard.setBarometerQueue(NULL);
+            sdCard.setDataReadySemaphore(NULL);
+
+            vSemaphoreDelete(sdDataReadySemaphore);
+            vQueueDelete(imuLoggingQueue);
+            vQueueDelete(gpsLoggingQueue);
+            vQueueDelete(powerLoggingQueue);
+            vQueueDelete(baroLoggingQueue);
+
+            sdDataReadySemaphore = NULL;
+            imuLoggingQueue = NULL;
+            gpsLoggingQueue = NULL;
+            powerLoggingQueue = NULL;
+            baroLoggingQueue = NULL;
+            log_flag = false;
+            }
+            else        // start case
+
+            {
+            imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
+            gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
+            powerLoggingQueue = xQueueCreate(10, sizeof(powerData_ptr));
+            baroLoggingQueue = xQueueCreate(10, sizeof(baroData_ptr));
+            sdDataReadySemaphore = xSemaphoreCreateCounting(128, 0);
+
+            sdCard.setIMUQueue(imuLoggingQueue);
+            sdCard.setGPSQueue(gpsLoggingQueue);
+            sdCard.setPowerQueue(powerLoggingQueue);
+            sdCard.setBarometerQueue(baroLoggingQueue);
+            sdCard.setDataReadySemaphore(sdDataReadySemaphore);
+            sdCard.startLog();
+
+            //TODO Add other sensors...
+            gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
+            imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
+            adc.startQueueLogging(powerLoggingQueue, sdDataReadySemaphore);
+            baro.startQueueLogging(baroLoggingQueue, sdDataReadySemaphore);
+
+            log_flag = true;
+            }
+
     }
 
-    void IMUStartSerial()
-    {
-        //imu.startSerialLogging();
-        //gps.startSerialLogging();
-    }
-
-    void IMUStopSerial()
-    {
-        //imu.stopSerialLogging();
-        //gps.stopSerialLogging();
-    }
-
-    void IMUStartSD()
-    {
-        imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
-        gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
-        powerLoggingQueue = xQueueCreate(10, sizeof(powerData_ptr));
-        baroLoggingQueue = xQueueCreate(10, sizeof(baroData_ptr));
-        sdDataReadySemaphore = xSemaphoreCreateCounting(128, 0);
-
-        sdCard.setIMUQueue(imuLoggingQueue);
-        sdCard.setGPSQueue(gpsLoggingQueue);
-        sdCard.setPowerQueue(powerLoggingQueue);
-        sdCard.setBarometerQueue(baroLoggingQueue);
-        sdCard.setDataReadySemaphore(sdDataReadySemaphore);
-        sdCard.startLog();
-
-        //TODO Add other sensors...
-        gps.startQueueLogging(gpsLoggingQueue, sdDataReadySemaphore);
-        imu.startQueueLogging(imuLoggingQueue, sdDataReadySemaphore);
-        adc.startQueueLogging(powerLoggingQueue, sdDataReadySemaphore);
-        baro.startQueueLogging(baroLoggingQueue, sdDataReadySemaphore);
-    }
-
-    void IMUStopSD()
+    void IMUStopSD()    // used to be sure to stop log when device shutdown
     {
         if(imuLoggingQueue != NULL
             && gpsLoggingQueue != NULL
@@ -348,6 +408,8 @@ namespace Actions
             gpsLoggingQueue = NULL;
             powerLoggingQueue = NULL;
             baroLoggingQueue = NULL;
+
+            log_flag = false;
         }
     }
 }

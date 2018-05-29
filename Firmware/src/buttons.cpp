@@ -9,12 +9,16 @@ namespace
     int _actionCtn = 0;
     int _previousCtn = 0;
     int _nextCtn = 0;
-    int _powerCtn = 0;
+    int _backCtn = 0;
+
+
+    int count=0;
 
     bool _lastAction = false;
     bool _lastPrevious = false;
     bool _lastNext = false;
-    bool _lastPower = false;
+    bool _lastBack = false;
+    bool _shutdown = false;
     void readButton(void *pvParameters);
 }
 
@@ -49,7 +53,7 @@ void Buttons::begin()
 namespace {
 
     void readButton(void *pvParameters) {
-        bool action, previous, next, power;
+        bool action, previous, next, back;
 
         _lastButtonRead = xTaskGetTickCount();
 
@@ -62,8 +66,7 @@ namespace {
             previous = ioExpander.digitalRead(EXT_PIN06_BUTTON1) == 0;
             action = ioExpander.digitalRead(EXT_PIN08_BUTTON2) == 0;
             next = ioExpander.digitalRead(EXT_PIN11_BUTTON0) == 0;
-            //Power button
-            power = ioExpander.digitalRead(EXT_PIN09_BUTTON3) == 0;
+            back = ioExpander.digitalRead(EXT_PIN09_BUTTON3) == 0;
             //Serial.printf("state: %i %i %i \n",previous,action,next);
 
             if(action && action != _lastAction) {
@@ -78,21 +81,30 @@ namespace {
 
             if(next && next != _lastNext) {
                 _nextCtn++;
+                count=0;
                 Serial.println("Next BTN");
             }
 
-            if(power) {
-                //Serial.println("Power button...");
-                _powerCtn++;
+            // Shutdown on bottom button
+            if(next && next == _lastNext) {
+                count++;
+                //Serial.printf("Power button %d...",count);
+                if (count == 15)
+                {
+                    Serial.println("Shutdown...");
+                    _shutdown=true;
+                }
             }
-            else {
-              _powerCtn = 0;
+
+            if(back && back != _lastBack) {
+                _backCtn++;
+                Serial.println("Back BTN");
             }
 
             _lastAction = action;
             _lastPrevious = previous;
             _lastNext = next;
-            _lastPower = power;
+            _lastBack = back;
         }
     }
 }
@@ -112,9 +124,14 @@ int Buttons::getNextCtn()
     return _nextCtn;
 }
 
-int Buttons::getPowerCtn()
+int Buttons::getBackCtn()
 {
-    return _powerCtn;
+    return _backCtn;
+}
+
+bool Buttons::getShutDown()
+{
+    return _shutdown;
 }
 
 void Buttons::decrementActionCtn()
@@ -132,15 +149,20 @@ void Buttons::decrementNextCtn()
     _nextCtn--;
 }
 
+void Buttons::decrementBackCtn()
+{
+    _backCtn--;
+}
+
 void Buttons::reset()
 {
     _actionCtn = 0;
     _previousCtn = 0;
     _nextCtn = 0;
-    _powerCtn = 0;
+    _backCtn = 0;
 
     _lastAction = false;
     _lastPrevious = false;
     _lastNext = false;
-    _lastPower = false;
+    _lastBack = false;
 }

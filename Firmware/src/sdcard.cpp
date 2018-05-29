@@ -159,7 +159,7 @@ void SDCard::toExternal()
 
     SD_MMC.end();
 
-    //Select ESP32 for SD
+    //Select USB for SD
     ioExpander.digitalWrite(EXT_PIN05_SD_SEL,LOW);
 
     //Output enable (inverted)

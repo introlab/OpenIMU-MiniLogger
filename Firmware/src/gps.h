@@ -33,8 +33,13 @@ public:
     static void startQueueLogging(QueueHandle_t queue, SemaphoreHandle_t semaphore);
     static void stopQueueLogging();
 
+    // static void testaffich();
+    static bool getFlagvalidData();
+
+
 private:
     static bool _hasBegun;
+    // static bool _validData;
 };
 
 #endif
