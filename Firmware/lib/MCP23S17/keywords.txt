@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For MCP
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD1)
+#######################################
+
+begin         KEYWORD1
+pinMode	      KEYWORD1
+digitalRead	  KEYWORD1
+digitalWrite  KEYWORD1
+pinMode	      KEYWORD1
+wordWrite	  KEYWORD1
+byteWrite	  KEYWORD1
+byteRead	  KEYWORD1
+pullupMode	  KEYWORD1
+inputInvert	  KEYWORD1
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+MCP	        KEYWORD2
+MCP23S17	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+IODIRA	LITERAL1
+IODIRB	LITERAL1
+IPOLA	LITERAL1
+IPOLB	LITERAL1
+GPPUA	LITERAL1
+GPPUB	LITERAL1
+GPIOA	LITERAL1
+GPIOB	LITERAL1
+
