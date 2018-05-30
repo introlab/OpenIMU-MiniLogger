@@ -35,7 +35,7 @@ Please see also :
   * Additional use of [FreeRTOS](https://www.freertos.org/) Tasks 
 
 # Schematics & Fab Files
-* To be completed soon!
+* [Click on this link for AltiumPCB files](./Hardware/AltiumPCB)
 
 # Case & Mechanical Drawings
 * [Click on this link for CAD files](./Hardware/Solidworks)
