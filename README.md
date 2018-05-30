@@ -38,7 +38,7 @@ Please see also :
 * [Click on this link for AltiumPCB files](./Hardware/AltiumPCB)
 
 # Case & Mechanical Drawings
-* [Click on this link for CAD files](./Hardware/Solidworks)
+* [Click on this link for Solidworks and STL files](./Hardware/Solidworks)
 
 ## 3D Printing
 * [Top Cover STL x1](./Hardware/Solidworks/Top%20Cover.STL)
