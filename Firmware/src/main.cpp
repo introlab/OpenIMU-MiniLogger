@@ -53,12 +53,12 @@ QueueHandle_t gpsLoggingQueue = NULL;
 QueueHandle_t powerLoggingQueue = NULL;
 QueueHandle_t baroLoggingQueue = NULL;
 SemaphoreHandle_t sdDataReadySemaphore = NULL;
-TaskHandle_t ledBlinkHandle = NULL;
+
 
 void printCurrentTime();
 #endif
 
-
+TaskHandle_t ledBlinkHandle = NULL;
 
 
 void setup_gpio()
@@ -256,7 +256,7 @@ void loop() {
           {
               //Serial.println("Display voltage");
               display.displayVoltage(adc.getVoltage(), adc.getCurrent(),gps.getFlagvalidData(), log_flag, SD_USB_flag);
-            
+
               change_counter = 0;
           }
 
@@ -305,7 +305,7 @@ namespace Actions
         if (SD_USB_flag == true)
         {
         sdCard.toESP32();
-        SD_USB_flag = false; 
+        SD_USB_flag = false;
         }
     }
 
@@ -317,7 +317,7 @@ namespace Actions
         SD_USB_flag = true;
         }
     }
-    
+
     //Same function to start and stop logging to avoid double start
     void IMUStartSD()     {
          if(imuLoggingQueue != NULL
