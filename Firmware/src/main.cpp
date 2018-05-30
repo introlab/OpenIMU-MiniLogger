@@ -83,11 +83,9 @@ void setup_gpio()
   SPI.begin(19, 39, 18);
 
 
-  pinMode(23, INPUT);
-  pinMode(25, INPUT);
-  Wire.setClock(100000);
-  //Wire.setTimeOut(200);
-  Wire.begin(23, 25);
+  //pinMode(23, INPUT);
+  //pinMode(25, INPUT);
+
 
 
   ioExpander.begin();
@@ -147,6 +145,10 @@ void setup() {
     // Initialize SD-card
     sdCard.begin();
     Serial.println("SD Card ready");
+
+    Wire.setClock(400000);
+    //Wire.setTimeOut(200);
+    Wire.begin(23, 25);
 
     // Start IMU
     imu.begin();
