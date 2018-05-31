@@ -13,6 +13,11 @@ Please see also :
 * Simon Brière
 * Mathieu Hamel
 
+# Pictures
+
+![PCB](./docs/images/OpenIMU_PCB.jpg)
+![CASE](./docs/images/OpenIMU_Case.jpg)
+
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
   * [ESP 32 Overview](https://www.espressif.com/en/products/hardware/esp32/overview)
