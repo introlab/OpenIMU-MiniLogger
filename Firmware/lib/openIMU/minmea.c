@@ -652,7 +652,7 @@ int minmea_gettime(struct timeval *tv, const struct minmea_date *date, const str
 
     time_t timestamp = mktime(&tm); /* See README.md if your system lacks timegm(). */
     if (timestamp != (time_t)-1) {
-        tv->tv_sec = timestamp;
+        tv->tv_sec = timestamp - (3600 * 4); // Change value according to your time zone 
         tv->tv_usec = time_->microseconds;
         return 0;
     } else {

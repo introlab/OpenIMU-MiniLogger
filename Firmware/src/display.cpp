@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 
+
 Display::Display()
 {
 
@@ -23,14 +24,25 @@ void Display::end()
   _epd.Sleep();
 }
 
-void Display::showSplashScreen()
+void Display::showSplashScreen(uint64_t mac_adress)
 {
     _blackPaint.Clear(1);
     _redPaint.Clear(1);
 
     _redPaint.DrawStringAt(10, 20, "Open IMU", &Font24, 0);
+    _redPaint.DrawStringAt(147, 26, "v0.1", &Font16, 0);
     _blackPaint.DrawStringAt(10, 50, "System is idle", &Font16, 0);
-    _blackPaint.DrawStringAt(10, 245, "SW2 to start...", &Font16, 0);
+
+    std::stringstream mac_string;
+    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;  // Hex format
+    // mac_string << "MAC:" << mac_adress;  // Decimal format, some devices have bigger adress than can be display at this font
+    _blackPaint.DrawStringAt(10, 180, mac_string.str().c_str(), &Font16, 0);
+
+
+
+
+
+    //_blackPaint.DrawStringAt(10, 245, "SW2 to start...", &Font16, 0);
 
     _epd.DisplayFrame(_blackImage, _redImage);
 

@@ -35,6 +35,7 @@ void ledBlink(void *pvParameters)
 #include "barometer.h"
 #include "gps.h"
 #include "adc.h"
+#include <Esp.h>
 
 IMU imu;
 SDCard sdCard;
@@ -44,7 +45,9 @@ Display display;
 Barometer baro;
 GPS gps;
 ADC adc;
+EspClass esp;
 
+uint64_t mac_adress;
 bool log_flag = false;
 bool SD_USB_flag = false;
 
@@ -117,6 +120,8 @@ void setup() {
     Serial.println("Starting...");
     //Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
+
+
     //Serial.println("Setting clock to 80MHz");
     /*
     typedef enum {
@@ -172,6 +177,8 @@ void setup() {
 
     Serial.println("System ready");
 
+    mac_adress = esp.getEfuseMac();
+    Serial.printf("Mac : %" PRIu64 "\n", mac_adress);
 
 
 #endif
@@ -213,7 +220,7 @@ void loop() {
             vTaskDelete( ledBlinkHandle );
             Actions::IMUStopSD();
             //sdCard.toExternal();
-            display.showSplashScreen();
+            display.showSplashScreen(mac_adress);
             Serial.println("Bye!");
             ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
         }
@@ -296,7 +303,7 @@ namespace Actions
         Serial.println("Shutting down.");
         vTaskDelete( ledBlinkHandle );
         Actions::IMUStopSD();
-        display.showSplashScreen();
+        display.showSplashScreen(mac_adress);
         Serial.println("Bye!");
         ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
     }

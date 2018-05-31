@@ -15,7 +15,7 @@ public:
     void begin();
     void end();
 
-    void showSplashScreen();
+    void showSplashScreen(uint64_t mac_adress);
     void clear();
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu, bool stateLog);
