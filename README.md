@@ -55,4 +55,5 @@ Please see also :
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).
 
 # See Also
-* [OpenIMU Open Source Analysis Software](https://github.com/introlab/OpenIMU)
+* [OpenIMU - Open Source Analysis Software](https://github.com/introlab/OpenIMU)
+* [OpenWIMU - Activity Tracker Hardware and Software Platform](https://github.com/introlab/openwimu)
