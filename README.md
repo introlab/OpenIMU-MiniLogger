@@ -1,5 +1,8 @@
 # OpenIMU-MiniLogger
-OpenIMU - Open Hardware Mini Logger based on ESP32
+OpenIMU - Open Hardware Mini Logger based on ESP32. 
+
+Please see also :
+[OpenIMU](https://github.com/introlab/OpenIMU-MiniLogger) Compatible Sofware.
 
 # Authors
 * Dominic Létourneau
@@ -35,7 +38,13 @@ OpenIMU - Open Hardware Mini Logger based on ESP32
 * To be completed soon!
 
 # Case & Mechanical Drawings
-* To be completed soon!
+* [Click on this link for CAD files](./Hardware/Solidworks)
+
+## 3D Printing
+* [Top Cover STL x1](./Hardware/Solidworks/Top%20Cover.STL)
+* [Back Cover STL x1](./Hardware/Solidworks/Back%20Cover%20R2.STL)
+* [Button STL x4](./Hardware/Solidworks/Bouton%20Open%20MU.STL)
+* [Battery Spacer STL x1](./Hardware/Solidworks/Standoff%20Batterie.STL)
 
 # Building The Project
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).

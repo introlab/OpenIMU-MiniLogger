@@ -32,6 +32,12 @@ void MenuItem::addAction(void (*action)())
     _childSubMenu = nullptr;
 }
 
+void MenuItem::addActandSubM(void (*action)(), SubMenu* subMenu)
+{
+    _action = action;
+    _childSubMenu = subMenu;
+}
+
 void MenuItem::action()
 {
     if(_action != nullptr) {
@@ -76,18 +82,23 @@ void SubMenu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
 void SubMenu::selectNextItem()
 {
     if(_currentItem != nullptr) {
-        if(_currentItem->_nextItem != nullptr) {
+        if(_currentItem->_nextItem != nullptr) 
             _currentItem = _currentItem->_nextItem;
-        }
+        else 
+            while(_currentItem->_previousItem != nullptr)
+                _currentItem = _currentItem->_previousItem;
+
     }
 }
 
 void SubMenu::selectPreviousItem()
 {
     if(_currentItem != nullptr) {
-        if(_currentItem->_previousItem != nullptr) {
+        if(_currentItem->_previousItem != nullptr) 
             _currentItem = _currentItem->_previousItem;
-        }
+        else 
+            while(_currentItem->_nextItem != nullptr)
+                _currentItem = _currentItem->_nextItem;
     }
 }
 
@@ -109,57 +120,39 @@ Menu::Menu()
 
     _currentSubMenu = new SubMenu("Main menu");
 
+    subMenu = new SubMenu("Shutdown", _currentSubMenu);
+
+    item = new MenuItem("Confirm");
+    item->addAction(Actions::Shutdown);
+    subMenu->addItem(item);
+
+    item = new MenuItem("Shutdown");
+    item->addSubmenu(subMenu);
+    _currentSubMenu->addItem(item);
+
+
     subMenu = new SubMenu("SD Card", _currentSubMenu);
 
     item = new MenuItem("ESP 32");
-    item->addAction(Actions::SDToESP32);
+    item->addActandSubM(Actions::SDToESP32, _currentSubMenu);
     subMenu->addItem(item);
 
     item = new MenuItem("PC");
-    item->addAction(Actions::SDToExternal);
+    item->addActandSubM(Actions::SDToExternal, _currentSubMenu);
     subMenu->addItem(item);
 
     item = new MenuItem("SD Card");
     item->addSubmenu(subMenu);
     _currentSubMenu->addItem(item);
 
-    subMenu = new SubMenu("IMU Serial", _currentSubMenu);
+    subMenu = new SubMenu("Start/Stop ", _currentSubMenu);
 
-    item = new MenuItem("Stop log");
-    item->addAction(Actions::IMUStopSerial);
+    item = new MenuItem("Confirm");
+    item->addActandSubM(Actions::IMUStartSD, _currentSubMenu);
     subMenu->addItem(item);
 
-    item = new MenuItem("Start log");
-    item->addAction(Actions::IMUStartSerial);
-    subMenu->addItem(item);
-
-    item = new MenuItem("IMU Serial");
+    item = new MenuItem("Start/Stop Log");
     item->addSubmenu(subMenu);
-    _currentSubMenu->addItem(item);
-
-    subMenu = new SubMenu("IMU SD", _currentSubMenu);
-
-    item = new MenuItem("Stop log");
-    item->addAction(Actions::IMUStopSD);
-    subMenu->addItem(item);
-
-    item = new MenuItem("Start log");
-    item->addAction(Actions::IMUStartSD);
-    subMenu->addItem(item);
-
-    item = new MenuItem("IMU SD");
-    item->addSubmenu(subMenu);
-    _currentSubMenu->addItem(item);
-
-    item = new MenuItem("Action item");
-    _currentSubMenu->addItem(item);
-
-    item = new MenuItem("Option 2");
-    item->addSubmenu(new SubMenu("Option 2", _currentSubMenu));
-    _currentSubMenu->addItem(item);
-
-    item = new MenuItem("Option 1");
-    item->addSubmenu(new SubMenu("Option 1", _currentSubMenu));
     _currentSubMenu->addItem(item);
 
 }
@@ -177,13 +170,13 @@ void Menu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
 void Menu::action()
 {
     if(_currentSubMenu->_currentItem != nullptr) {
-        if(_currentSubMenu->_currentItem->_childSubMenu != nullptr) {
-            _currentSubMenu = _currentSubMenu->_currentItem->_childSubMenu;
-        }
 
-        else {
-            _currentSubMenu->_currentItem->action();
-        }
+        if(_currentSubMenu->_currentItem->_action != nullptr ) 
+             _currentSubMenu->_currentItem->action();       
+
+        if (_currentSubMenu->_currentItem->_childSubMenu != nullptr)
+            _currentSubMenu = _currentSubMenu->_currentItem->_childSubMenu;
+
     }
 }
 

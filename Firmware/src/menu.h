@@ -22,6 +22,7 @@ public:
 
     void addSubmenu(SubMenu* subMenu);
     virtual void addAction(void (*action)());
+    virtual void addActandSubM(void (*action)(), SubMenu* subMenu);
     virtual void action();
 
 protected:

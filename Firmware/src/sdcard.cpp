@@ -159,7 +159,7 @@ void SDCard::toExternal()
 
     SD_MMC.end();
 
-    //Select ESP32 for SD
+    //Select USB for SD
     ioExpander.digitalWrite(EXT_PIN05_SD_SEL,LOW);
 
     //Output enable (inverted)
@@ -287,8 +287,13 @@ namespace
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
-                Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
-                        , gps_cnt, power_cnt, baro_cnt);
+
+
+                int nb_sec = timestamp.bytes[3]*256*256*256 + timestamp.bytes[2]*256*256+ timestamp.bytes[1]*256 + timestamp.bytes[0];
+                Serial.printf("TS %d\n",nb_sec );
+
+                // Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
+                //         , gps_cnt, power_cnt, baro_cnt);
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;

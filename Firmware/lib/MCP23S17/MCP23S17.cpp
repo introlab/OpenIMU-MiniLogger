@@ -116,7 +116,7 @@ void MCP::wordWrite(uint8_t reg, unsigned int word) {  // Accept the start regis
 // MODE SETTING FUNCTIONS - BY PIN AND BY WORD
 
 void MCP::pinMode(uint8_t pin, uint8_t mode) {  // Accept the pin # and I/O mode
-  if (pin < 1 | pin > 16) return;               // If the pin value is not valid (1-16) return, do nothing and return
+  if (pin < 1 || pin > 16) return;               // If the pin value is not valid (1-16) return, do nothing and return
   if (mode == INPUT) {                          // Determine the mode before changing the bit state in the mode cache
     _modeCache |= 1 << (pin - 1);               // Since input = "HIGH", OR in a 1 in the appropriate place
   } else {
@@ -135,7 +135,7 @@ void MCP::pinMode(unsigned int mode) {     // Accept the word…
 // WEAK PULL-UP SETTING FUNCTIONS - BY WORD AND BY PIN
 
 void MCP::pullupMode(uint8_t pin, uint8_t mode) {
-  if (pin < 1 | pin > 16) return;
+  if (pin < 1 || pin > 16) return;
   if (mode == ON) {
     _pullupCache |= 1 << (pin - 1);
   } else {
@@ -154,7 +154,7 @@ void MCP::pullupMode(unsigned int mode) {
 // INPUT INVERSION SETTING FUNCTIONS - BY WORD AND BY PIN
 
 void MCP::inputInvert(uint8_t pin, uint8_t mode) {
-  if (pin < 1 | pin > 16) return;
+  if (pin < 1 || pin > 16) return;
   if (mode == ON) {
     _invertCache |= 1 << (pin - 1);
   } else {
@@ -168,12 +168,11 @@ void MCP::inputInvert(unsigned int mode) {
   _invertCache = mode;
 }
 
-
 // WRITE FUNCTIONS - BY WORD AND BY PIN
 
 void MCP::digitalWrite(uint8_t pin, uint8_t value) {
-  if (pin < 1 | pin > 16) return;
-  if (pin < 1 | pin > 16) return;
+  if (pin < 1 || pin > 16) return;
+  if (pin < 1 || pin > 16) return;
   if (value) {
     _outputCache |= 1 << (pin - 1);
   } else {
@@ -212,6 +211,6 @@ uint8_t MCP::byteRead(uint8_t reg) {        // This function will read a single 
 }
 
 uint8_t MCP::digitalRead(uint8_t pin) {                    // Return a single bit value, supply the necessary bit (1-16)
-    if (pin < 1 | pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
+    if (pin < 1 || pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
     return digitalRead() & (1 << (pin - 1)) ? HIGH : LOW;  // Call the word reading function, extract HIGH/LOW information from the requested pin
 }
