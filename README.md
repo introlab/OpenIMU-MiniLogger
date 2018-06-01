@@ -12,6 +12,7 @@ Please see also :
 * François Michaud
 * Simon Brière
 * Mathieu Hamel
+* Thomas Godel
 
 # Pictures
 
