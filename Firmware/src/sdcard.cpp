@@ -205,7 +205,7 @@ void SDCard::startLog()
         if(_logFile) {
             _logFile.write('h');
             startTimestamp();
-            xTaskCreate(&logToFile, "SD card log", 2048, NULL, 5, &_logTask);
+            xTaskCreatePinnedToCore(&logToFile, "SD card log", 2048, NULL, 5, &_logTask, 1);
         }
 
         else {
@@ -252,7 +252,7 @@ void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
 void SDCard::startTimestamp()
 {
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
-    xTaskCreate(&generateTimestamp, "SD card log", 2048, NULL, 5, &_timestampTask);
+    xTaskCreatePinnedToCore(&generateTimestamp, "SD card log", 2048, NULL, 15, &_timestampTask, 1);
 }
 
 void SDCard::stopTimestamp()

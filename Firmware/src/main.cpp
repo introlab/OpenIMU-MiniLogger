@@ -109,7 +109,8 @@ void setup() {
     // This must be the first thing we do.
     setup_gpio();
 
-    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, &ledBlinkHandle);
+    //On Arduino Core
+    xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
 
 
 
@@ -136,6 +137,7 @@ void setup() {
     //rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
     Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
+
 
     // Start display
     display.begin();
@@ -182,18 +184,6 @@ void setup() {
 
 
 #endif
-
-/*
-BaseType_t xTaskCreate(    TaskFunction_t pvTaskCode,
-                            const char * const pcName,
-                            unsigned short usStackDepth,
-                            void *pvParameters,
-                            UBaseType_t uxPriority,
-                            TaskHandle_t *pxCreatedTask
-                          );
-
-*/
-
 
 }
 
