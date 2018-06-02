@@ -268,8 +268,8 @@ namespace
         Serial.println("logToFile Task started.");
 
 
-        gpsDataSendable_t gpsSendable;
-        imuDataSendable_t imuSendable;
+        // gpsDataSendable_t gpsSendable;
+        // imuDataSendable_t imuSendable;
         timestampSendable_t timestamp;
 
         int imu_cnt = 0;
@@ -289,8 +289,8 @@ namespace
                 _logFile.write(timestamp.bytes, sizeof(time_t));
 
 
-                int nb_sec = timestamp.bytes[3]*256*256*256 + timestamp.bytes[2]*256*256+ timestamp.bytes[1]*256 + timestamp.bytes[0];
-                Serial.printf("TS %d\n",nb_sec );
+                // int nb_sec = timestamp.bytes[3]*256*256*256 + timestamp.bytes[2]*256*256+ timestamp.bytes[1]*256 + timestamp.bytes[0];
+                // Serial.printf("TS %d\n",nb_sec );
 
                 // Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
                 //         , gps_cnt, power_cnt, baro_cnt);
@@ -340,6 +340,8 @@ namespace
             if(_baroQueue != NULL) {
                 baroData_ptr baroDataPtr = NULL;
                 if(xQueueReceive(_baroQueue, &baroDataPtr, 0) == pdTRUE) {
+                   
+                    // Serial.printf("Baro : %f\n", baroDataPtr->pressure );
                     _logFile.write('b');
                     _logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
                     free(baroDataPtr);
@@ -353,10 +355,13 @@ namespace
     {
         TickType_t lastGeneration = xTaskGetTickCount();
         time_t now;
-
+        // struct tm *ts;
         while(1) {
             vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
             time(&now);
+
+            // ts = localtime(&now);
+            // Serial.printf("%s", asctime(ts));
             if(xQueueSend(_timestampQueue, &now, 0) == pdTRUE) {
                 //Serial.println("giving data ready");
                 xSemaphoreGive(_dataReadySemaphore);

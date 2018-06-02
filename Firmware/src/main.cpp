@@ -363,6 +363,12 @@ namespace Actions
             else        // start case
 
             {
+
+            if (SD_USB_flag == true)
+            {
+            sdCard.toESP32();
+            SD_USB_flag = false;
+            }
             imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
             gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
             powerLoggingQueue = xQueueCreate(10, sizeof(powerData_ptr));
