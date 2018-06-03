@@ -47,7 +47,7 @@ void Buttons::begin()
     //USe
     //delay(200);
 
-    xTaskCreate(&readButton, "Buttons", 2048, NULL, 3, NULL);
+    xTaskCreatePinnedToCore(&readButton, "Buttons", 2048, NULL, 10, NULL, 1);
 }
 
 namespace {

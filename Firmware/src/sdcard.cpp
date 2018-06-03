@@ -23,6 +23,7 @@ extern "C" {
 namespace
 {
     File _logFile;
+    //int logNo = 0;
     QueueHandle_t _imuQueue = NULL;
     QueueHandle_t _gpsQueue = NULL;
     QueueHandle_t _powerQueue = NULL;
@@ -172,7 +173,7 @@ void SDCard::toExternal()
 void SDCard::startLog()
 {
     File latest;
-    int logNo;
+    int logNo = 0;
     char c;
     String str = "";
 
@@ -205,7 +206,7 @@ void SDCard::startLog()
         if(_logFile) {
             _logFile.write('h');
             startTimestamp();
-            xTaskCreate(&logToFile, "SD card log", 2048, NULL, 5, &_logTask);
+            xTaskCreatePinnedToCore(&logToFile, "SD card log", 2048, NULL, 5, &_logTask, 1);
         }
 
         else {
@@ -252,7 +253,7 @@ void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
 void SDCard::startTimestamp()
 {
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
-    xTaskCreate(&generateTimestamp, "SD card log", 2048, NULL, 5, &_timestampTask);
+    xTaskCreatePinnedToCore(&generateTimestamp, "SD card log", 2048, NULL, 15, &_timestampTask, 1);
 }
 
 void SDCard::stopTimestamp()
@@ -298,6 +299,21 @@ namespace
                 gps_cnt = 0;
                 power_cnt = 0;
                 baro_cnt = 0;
+
+                // Sync to disk
+                // DOES NOT WORK (BUG)
+                /*
+                  //Change libraries/FS/src/vfs_api.cpp and add fsync line...
+                  void VFSFileImpl::flush()
+                  {
+                      if(_isDirectory || !_f) {
+                          return;
+                      }
+                      fflush(_f);
+                      fsync(fileno(_f));
+                  }
+                */
+                _logFile.flush();
             }
 
             // Log imu
