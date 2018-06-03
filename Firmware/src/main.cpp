@@ -153,13 +153,17 @@ void setup() {
     sdCard.begin();
     Serial.println("SD Card ready");
 
-    Wire.setClock(400000);
+    //Wire.setClock(100000);
     //Wire.setTimeOut(200);
-    Wire.begin(23, 25);
+
+
+    Wire.begin(23, 25, 100000);
+    //Wire.flush();
+    //Wire.endTransmission();
 
     // Start IMU
-    imu.begin();
-    Serial.println("IMU Ready");
+    //imu.begin();
+    //Serial.println("IMU Ready");
 
     // Start Barometer
     baro.begin();
