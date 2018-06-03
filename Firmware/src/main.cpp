@@ -162,8 +162,8 @@ void setup() {
     //Wire.endTransmission();
 
     // Start IMU
-    //imu.begin();
-    //Serial.println("IMU Ready");
+    imu.begin();
+    Serial.println("IMU Ready");
 
     // Start Barometer
     baro.begin();
