@@ -109,7 +109,8 @@ void setup() {
     // This must be the first thing we do.
     setup_gpio();
 
-    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, &ledBlinkHandle);
+    //On Arduino Core
+    xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
 
 
 
@@ -137,6 +138,7 @@ void setup() {
     Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
 
+
     // Start display
     display.begin();
     //display.showMenu(&menu);
@@ -151,9 +153,13 @@ void setup() {
     sdCard.begin();
     Serial.println("SD Card ready");
 
-    Wire.setClock(400000);
+    //Wire.setClock(100000);
     //Wire.setTimeOut(200);
-    Wire.begin(23, 25);
+
+
+    Wire.begin(23, 25, 100000);
+    //Wire.flush();
+    //Wire.endTransmission();
 
     // Start IMU
     imu.begin();
@@ -182,18 +188,6 @@ void setup() {
 
 
 #endif
-
-/*
-BaseType_t xTaskCreate(    TaskFunction_t pvTaskCode,
-                            const char * const pcName,
-                            unsigned short usStackDepth,
-                            void *pvParameters,
-                            UBaseType_t uxPriority,
-                            TaskHandle_t *pxCreatedTask
-                          );
-
-*/
-
 
 }
 
