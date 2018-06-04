@@ -23,6 +23,7 @@ extern "C" {
 namespace
 {
     File _logFile;
+    //int logNo = 0;
     QueueHandle_t _imuQueue = NULL;
     QueueHandle_t _gpsQueue = NULL;
     QueueHandle_t _powerQueue = NULL;
@@ -172,7 +173,7 @@ void SDCard::toExternal()
 void SDCard::startLog()
 {
     File latest;
-    int logNo;
+    int logNo = 0;
     char c;
     String str = "";
 
@@ -205,7 +206,7 @@ void SDCard::startLog()
         if(_logFile) {
             _logFile.write('h');
             startTimestamp();
-            xTaskCreate(&logToFile, "SD card log", 2048, NULL, 5, &_logTask);
+            xTaskCreatePinnedToCore(&logToFile, "SD card log", 2048, NULL, 5, &_logTask, 1);
         }
 
         else {
@@ -252,7 +253,7 @@ void SDCard::setDataReadySemaphore(SemaphoreHandle_t semaphore)
 void SDCard::startTimestamp()
 {
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
-    xTaskCreate(&generateTimestamp, "SD card log", 2048, NULL, 5, &_timestampTask);
+    xTaskCreatePinnedToCore(&generateTimestamp, "SD card log", 2048, NULL, 15, &_timestampTask, 1);
 }
 
 void SDCard::stopTimestamp()
@@ -268,8 +269,8 @@ namespace
         Serial.println("logToFile Task started.");
 
 
-        gpsDataSendable_t gpsSendable;
-        imuDataSendable_t imuSendable;
+        // gpsDataSendable_t gpsSendable;
+        // imuDataSendable_t imuSendable;
         timestampSendable_t timestamp;
 
         int imu_cnt = 0;
@@ -287,12 +288,32 @@ namespace
             if(xQueueReceive(_timestampQueue, &timestamp.data, 0) == pdTRUE) {
                 _logFile.write('t');
                 _logFile.write(timestamp.bytes, sizeof(time_t));
-                Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
-                        , gps_cnt, power_cnt, baro_cnt);
+
+
+                // int nb_sec = timestamp.bytes[3]*256*256*256 + timestamp.bytes[2]*256*256+ timestamp.bytes[1]*256 + timestamp.bytes[0];
+                // Serial.printf("TS %d\n",nb_sec );
+
+                // Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
+                //         , gps_cnt, power_cnt, baro_cnt);
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;
                 baro_cnt = 0;
+
+                // Sync to disk
+                // DOES NOT WORK (BUG)
+                /*
+                  //Change libraries/FS/src/vfs_api.cpp and add fsync line...
+                  void VFSFileImpl::flush()
+                  {
+                      if(_isDirectory || !_f) {
+                          return;
+                      }
+                      fflush(_f);
+                      fsync(fileno(_f));
+                  }
+                */
+                _logFile.flush();
             }
 
             // Log imu
@@ -335,6 +356,8 @@ namespace
             if(_baroQueue != NULL) {
                 baroData_ptr baroDataPtr = NULL;
                 if(xQueueReceive(_baroQueue, &baroDataPtr, 0) == pdTRUE) {
+                   
+                    // Serial.printf("Baro : %f\n", baroDataPtr->pressure );
                     _logFile.write('b');
                     _logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
                     free(baroDataPtr);
@@ -348,10 +371,13 @@ namespace
     {
         TickType_t lastGeneration = xTaskGetTickCount();
         time_t now;
-
+        // struct tm *ts;
         while(1) {
             vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
             time(&now);
+
+            // ts = localtime(&now);
+            // Serial.printf("%s", asctime(ts));
             if(xQueueSend(_timestampQueue, &now, 0) == pdTRUE) {
                 //Serial.println("giving data ready");
                 xSemaphoreGive(_dataReadySemaphore);

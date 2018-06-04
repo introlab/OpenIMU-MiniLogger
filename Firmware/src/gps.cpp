@@ -361,11 +361,11 @@ namespace
         struct timeval timeval;
         minmea_gettime(&timeval, date, time_);
 
-        struct timezone timezone;
-        timezone.tz_minuteswest = -5 * 60;
-        timezone.tz_dsttime = 0; //DST_CAN;
+        // struct timezone timezone;
+        // timezone.tz_minuteswest = -5 * 60;
+        // timezone.tz_dsttime = 0; //DST_CAN;
        
-        settimeofday(&timeval, &timezone);
+        settimeofday(&timeval, NULL);
         //Serial.println("Got time from GPS");
 
     }

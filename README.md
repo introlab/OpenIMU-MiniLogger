@@ -12,6 +12,12 @@ Please see also :
 * François Michaud
 * Simon Brière
 * Mathieu Hamel
+* Thomas Godel
+
+# Pictures
+
+![PCB](./docs/images/OpenIMU_PCB.jpg)
+![CASE](./docs/images/OpenIMU_Case.jpg)
 
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
@@ -35,10 +41,10 @@ Please see also :
   * Additional use of [FreeRTOS](https://www.freertos.org/) Tasks 
 
 # Schematics & Fab Files
-* To be completed soon!
+* [Click on this link for AltiumPCB files](./Hardware/AltiumPCB)
 
 # Case & Mechanical Drawings
-* [Click on this link for CAD files](./Hardware/Solidworks)
+* [Click on this link for Solidworks and STL files](./Hardware/Solidworks)
 
 ## 3D Printing
 * [Top Cover STL x1](./Hardware/Solidworks/Top%20Cover.STL)
@@ -50,4 +56,5 @@ Please see also :
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).
 
 # See Also
-* [OpenIMU Open Source Analysis Software](https://github.com/introlab/OpenIMU)
+* [OpenIMU - Open Source Analysis Software](https://github.com/introlab/OpenIMU)
+* [OpenWIMU - Activity Tracker Hardware and Software Platform](https://github.com/introlab/openwimu)

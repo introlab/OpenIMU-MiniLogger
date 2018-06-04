@@ -35,6 +35,7 @@ void ledBlink(void *pvParameters)
 #include "barometer.h"
 #include "gps.h"
 #include "adc.h"
+#include <Esp.h>
 
 IMU imu;
 SDCard sdCard;
@@ -44,7 +45,9 @@ Display display;
 Barometer baro;
 GPS gps;
 ADC adc;
+EspClass esp;
 
+uint64_t mac_adress;
 bool log_flag = false;
 bool SD_USB_flag = false;
 
@@ -106,7 +109,8 @@ void setup() {
     // This must be the first thing we do.
     setup_gpio();
 
-    xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 8, &ledBlinkHandle);
+    //On Arduino Core
+    xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
 
 
 
@@ -117,6 +121,8 @@ void setup() {
     Serial.println("Starting...");
     //Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
+
+
     //Serial.println("Setting clock to 80MHz");
     /*
     typedef enum {
@@ -132,6 +138,7 @@ void setup() {
     Serial.println(String(rtc_clk_cpu_freq_get()));
     Serial.println("----");
 
+
     // Start display
     display.begin();
     //display.showMenu(&menu);
@@ -146,9 +153,13 @@ void setup() {
     sdCard.begin();
     Serial.println("SD Card ready");
 
-    Wire.setClock(400000);
+    //Wire.setClock(100000);
     //Wire.setTimeOut(200);
-    Wire.begin(23, 25);
+
+
+    Wire.begin(23, 25, 100000);
+    //Wire.flush();
+    //Wire.endTransmission();
 
     // Start IMU
     imu.begin();
@@ -172,21 +183,11 @@ void setup() {
 
     Serial.println("System ready");
 
+    mac_adress = esp.getEfuseMac();
+    Serial.printf("Mac : %" PRIu64 "\n", mac_adress);
 
 
 #endif
-
-/*
-BaseType_t xTaskCreate(    TaskFunction_t pvTaskCode,
-                            const char * const pcName,
-                            unsigned short usStackDepth,
-                            void *pvParameters,
-                            UBaseType_t uxPriority,
-                            TaskHandle_t *pxCreatedTask
-                          );
-
-*/
-
 
 }
 
@@ -213,7 +214,7 @@ void loop() {
             vTaskDelete( ledBlinkHandle );
             Actions::IMUStopSD();
             //sdCard.toExternal();
-            display.showSplashScreen();
+            display.showSplashScreen(mac_adress);
             Serial.println("Bye!");
             ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
         }
@@ -296,7 +297,7 @@ namespace Actions
         Serial.println("Shutting down.");
         vTaskDelete( ledBlinkHandle );
         Actions::IMUStopSD();
-        display.showSplashScreen();
+        display.showSplashScreen(mac_adress);
         Serial.println("Bye!");
         ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
     }
@@ -356,6 +357,12 @@ namespace Actions
             else        // start case
 
             {
+
+            if (SD_USB_flag == true)
+            {
+            sdCard.toESP32();
+            SD_USB_flag = false;
+            }
             imuLoggingQueue = xQueueCreate(20, sizeof(imuData_ptr));
             gpsLoggingQueue = xQueueCreate(10, sizeof(gpsData_t));
             powerLoggingQueue = xQueueCreate(10, sizeof(powerData_ptr));
