@@ -103,7 +103,7 @@ OutputEnabled5_OutputMedium3=4
 OutputDefault5=0
 
 [PublishSettings]
-OutputFilePath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\Job1.PDF
+OutputFilePath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
 ReleaseManaged2=1
 OutputBasePath2=Project Outputs for OpenIMU
 OutputPathMedia2==CurrentDate
@@ -143,7 +143,7 @@ OutputFileNameSpecial3=
 OpenOutput3=1
 
 [GeneratedFilesSettings]
-RelativeOutputPath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\Job1.PDF
+RelativeOutputPath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
 OpenOutputs2=1
 RelativeOutputPath3=C:\Travail\Introlab\OpenIMU\Project Outputs for OpenIMU\
 OpenOutputs3=1
