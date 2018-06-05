@@ -42,6 +42,7 @@ Please see also :
 
 # Schematics & Fab Files
 * [Click on this link for AltiumPCB files](./Hardware/AltiumPCB)
+* [Schematics](./Hardware/AltiumPCB/Project Outputs for OpenIMU/2018-06-04/OpenIMU.PDF)
 
 # Case & Mechanical Drawings
 * [Click on this link for Solidworks and STL files](./Hardware/Solidworks)
