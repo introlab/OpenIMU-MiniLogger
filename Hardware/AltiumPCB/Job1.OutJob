@@ -22,7 +22,7 @@ VariantName=[No Variations]
 VariantScope=1
 CurrentConfigurationName=
 TargetPrinter=Virtual Printer
-PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=1
+PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=0
 OutputMedium1=Print Job
 OutputMedium1_Type=Printer
 OutputMedium1_Printer=
@@ -41,9 +41,9 @@ OutputEnabled1_OutputMedium1=0
 OutputEnabled1_OutputMedium2=1
 OutputEnabled1_OutputMedium3=0
 OutputDefault1=0
-PageOptions1=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+PageOptions1=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=0|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
 Configuration1_Name1=OutputConfigurationParameter1
-Configuration1_Item1=Record=SchPrintView|ShowNoERC=True|ShowParamSet=True|ShowProbe=True|ShowBlanket=True|NoERCSymbolsToShow="Thin Cross","Thick Cross","Small Cross",Checkbox,Triangle|ShowNote=True|ShowNoteCollapsed=True|ShowOpenEnds=True|ExpandDesignator=True|ExpandNetLabel=False|ExpandPort=False|ExpandSheetNum=False|ExpandDocNum=False|PrintArea=0|PrintAreaRect.X1=0|PrintAreaRect.Y1=0|PrintAreaRect.X2=0|PrintAreaRect.Y2=0
+Configuration1_Item1=Record=SchPrintView|ShowNoERC=True|ShowParamSet=True|ShowProbe=False|ShowBlanket=True|NoERCSymbolsToShow="Thin Cross","Thick Cross","Small Cross",Checkbox,Triangle|ShowNote=True|ShowNoteCollapsed=True|ShowOpenEnds=True|ExpandDesignator=True|ExpandNetLabel=False|ExpandPort=False|ExpandSheetNum=False|ExpandDocNum=False|PrintArea=0|PrintAreaRect.X1=0|PrintAreaRect.Y1=0|PrintAreaRect.X2=0|PrintAreaRect.Y2=0
 OutputType2=BOM_PartType
 OutputName2=Bill of Materials
 OutputCategory2=Report
@@ -103,18 +103,18 @@ OutputEnabled5_OutputMedium3=4
 OutputDefault5=0
 
 [PublishSettings]
-OutputFilePath2=Project Outputs for Free Documents\.PDF
+OutputFilePath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
 ReleaseManaged2=1
 OutputBasePath2=Project Outputs for OpenIMU
-OutputPathMedia2=
-OutputPathMediaValue2=
+OutputPathMedia2==CurrentDate
+OutputPathMediaValue2==CurrentDate
 OutputPathOutputer2=[Output Type]
 OutputPathOutputerPrefix2=
 OutputPathOutputerValue2=
 OutputFileName2=Job1.PDF
 OutputFileNameMulti2=
-UseOutputNameForMulti2=1
-OutputFileNameSpecial2=
+UseOutputNameForMulti2=0
+OutputFileNameSpecial2==ProjectName
 OpenOutput2=1
 PromptOverwrite2=1
 PublishMethod2=0
@@ -143,7 +143,7 @@ OutputFileNameSpecial3=
 OpenOutput3=1
 
 [GeneratedFilesSettings]
-RelativeOutputPath2=Project Outputs for Free Documents\.PDF
+RelativeOutputPath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
 OpenOutputs2=1
 RelativeOutputPath3=C:\Travail\Introlab\OpenIMU\Project Outputs for OpenIMU\
 OpenOutputs3=1
