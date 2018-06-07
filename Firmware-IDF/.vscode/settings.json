@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.osx": {
+        "PATH": "/Users/dominic/.platformio/penv/bin:/Users/dominic/.platformio/penv:/Users/dominic/miniconda3/bin:/Users/dominic/anaconda3/bin:/Applications/Flash Tool Lite.app/Contents/MacOS:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin",
+        "PLATFORMIO_CALLER": "vscode"
+    }
+}
