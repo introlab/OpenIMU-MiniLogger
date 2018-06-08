@@ -47,10 +47,11 @@
 #define    ADDR_ENABLE   (0b00001000)  // Configuration register for MCP23S17, the only thing we change is enabling hardware addressing
 
 
-#define PIN_NUM_MISO 25
+#define PIN_NUM_MISO 39
 #define PIN_NUM_MOSI 18
-#define PIN_NUM_CLK  39
+#define PIN_NUM_CLK  19
 #define PIN_NUM_CS   5
+
 
 
 class IOExpander
@@ -179,20 +180,34 @@ extern "C"
         buscfg.max_transfer_sz = 1000;
   
         //SPI interface configuration
-        spi_device_interface_config_t devcfg;
-        
-        devcfg.clock_speed_hz = 10000000; //10MHz
-        devcfg.mode = 0;
-        devcfg.spics_io_num = -1; //Handled by code
-        devcfg.queue_size = 1; //One transaction at a time
+        spi_device_interface_config_t dev_config;
+        dev_config.command_bits = 0;
+        dev_config.address_bits = 8;
+        dev_config.dummy_bits = 0;
+        dev_config.mode = 0;
+        dev_config.duty_cycle_pos = 128;  // default 128 = 50%/50% duty
+        dev_config.cs_ena_pretrans = 0;  // 0 not used
+        dev_config.cs_ena_posttrans = 0;  // 0 not used
+        dev_config.clock_speed_hz = 10000000;
+        dev_config.spics_io_num = -1;
+        dev_config.flags = 0;  // 0 not used
+        dev_config.queue_size = 1;
+        dev_config.pre_cb = NULL;
+        dev_config.post_cb = NULL;
+    
+        vTaskDelay(500 / portTICK_RATE_MS);
  
         //Initialize the SPI bus data structure
         ret = spi_bus_initialize(HSPI_HOST, &buscfg, 1);
-        assert(ret == ESP_OK);
+        printf("SPI BUS RET : %i\n", ret);
+        //assert(ret == ESP_OK);
+
+        vTaskDelay(500 / portTICK_RATE_MS);
 
         //Setup SPI Dev
-        ret = spi_bus_add_device(HSPI_HOST, &devcfg, &dev);
-        assert(ret == ESP_OK);
+        ret = spi_bus_add_device(HSPI_HOST, &dev_config, &dev);
+        printf("SPI BUS ADD DEVICE RET: %i\n", ret);
+        //assert(ret == ESP_OK);
 
         //nvs_flash_init();
         xTaskCreate(&blinky, "blinky", 512,NULL,5,NULL );

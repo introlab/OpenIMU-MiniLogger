@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-//#define FIRSTBOOT
+#define FIRSTBOOT
 
 
 #include <ioexpander.h>
