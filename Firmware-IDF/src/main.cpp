@@ -53,14 +53,51 @@
 #define PIN_NUM_CS   5
 
 
+//I/O Expander pins (id is +1 of index)
+#define EXT_PIN00_DISPLAY_RESET 1
+#define EXT_PIN01_LED 2
+#define EXT_PIN02_UNUSED 3
+#define EXT_PIN03_SD_N_ENABLED 4
+#define EXT_PIN04_SD_N_CD 5
+#define EXT_PIN05_SD_SEL 6
+#define EXT_PIN06_BUTTON1 7
+#define EXT_PIN07_VUSB 8
+#define EXT_PIN08_BUTTON2 9
+#define EXT_PIN09_BUTTON3 10
+#define EXT_PIN10_CHARGING 11
+#define EXT_PIN11_BUTTON0 12
+#define EXT_PIN12_KEEP_ALIVE 13
+#define EXT_PIN13_BATT_READ_EN 14
+#define EXT_PIN14_EXTERNAL_POWER_EN 15
+#define EXT_PIN15_MOTOR_VIBRATE 16
+
+
+#define OUTPUT 0
+#define INPUT 1
+#define HIGH 1
+#define LOW 0
+#ifndef ON
+#define    ON            (1)
+#endif
+
+#ifndef OFF
+#define    OFF           (0)
+#endif
 
 class IOExpander
 {
     public:
 
-    IOExpander(int addr, gpio_num_t cs_pin, spi_device_handle_t* dev)
+    IOExpander(int addr, gpio_num_t cs_pin, spi_device_handle_t dev)
         : m_address(addr), m_cs_pin(cs_pin), m_spiDev(dev)
     {
+        _modeCache   = 0xFFFF;                // Default I/O mode is all input, 0xFFFF
+        _outputCache = 0x0000;                // Default output state is all off, 0x0000
+        _pullupCache = 0x0000;                // Default pull-up state is all off, 0x0000
+        _invertCache = 0x0000;                // Default input inversion state is not inverted, 0x0000
+
+        printf("Dev handle: %p\n",  m_spiDev);
+
         //ADDR 0, CS=PIN5
         setup();
     }
@@ -81,27 +118,56 @@ class IOExpander
         io_conf.pull_up_en = (gpio_pullup_t) 0;
         //configure GPIO with the given settings
         gpio_config(&io_conf);
+
+
+        //Enable addressing
+        byteWrite(IOCON, ADDR_ENABLE);
     }
 
-    void pullupMode(uint8_t pinNo, uint8_t mode)
-    {
-
+    void pullupMode(uint8_t pin, uint8_t mode) {
+        if (pin < 1 || pin > 16) return;
+        if (mode == ON) {
+            _pullupCache |= 1 << (pin - 1);
+        } else {
+            _pullupCache &= ~(1 << (pin -1));
+        }
+        wordWrite(GPPUA, _pullupCache);
     }
 
-    uint8_t digitalRead(uint8_t pinNo)
+    void pinMode(uint8_t pin, uint8_t mode) 
+    {  
+        // Accept the pin # and I/O mode
+        if (pin < 1 || pin > 16) return;               // If the pin value is not valid (1-16) return, do nothing and return
+        if (mode == INPUT) {                          // Determine the mode before changing the bit state in the mode cache
+            _modeCache |= 1 << (pin - 1);               // Since input = "HIGH", OR in a 1 in the appropriate place
+        } else {
+            _modeCache &= ~(1 << (pin - 1));            // If not, the mode must be output, so and in a 0 in the appropriate place
+        }
+        wordWrite(IODIRA, _modeCache);                // Call the generic word writer with start register and the mode cache
+    }
+
+    uint8_t digitalRead(uint8_t pin)
     {
+        //TODO
         return 0;
     }
 
-    void digitalWrite(uint8_t pinNo, uint8_t value)
+    void digitalWrite(uint8_t pin, uint8_t value)
     {
-
+        if (pin < 1 || pin > 16) return;
+        if (value) {
+            _outputCache |= 1 << (pin - 1);
+        } else {
+            _outputCache &= ~(1 << (pin - 1));
+        }
+        wordWrite(GPIOA, _outputCache);
     }
 
     protected:
    
     void byteWrite(uint8_t reg, uint8_t value)
     {
+        
         /*
             SPI.transfer(OPCODEW | (_address << 1));             // Send the MCP23S17 opcode, chip address, and write bit
             SPI.transfer(reg);                                   // Send the register we want to write
@@ -113,15 +179,21 @@ class IOExpander
         //function is finished because the SPI driver needs access to it even while we're already calculating the next line.
         spi_transaction_t trans;
         memset(&trans, 0, sizeof(spi_transaction_t));
-        trans.flags=SPI_TRANS_USE_TXDATA;
-        trans.tx_data[0]= OPCODEW | (m_address << 1);//Address
-        trans.tx_data[1] = reg;
-        trans.tx_data[2] = value;
+        trans.flags=0;
+        trans.addr = OPCODEW | (m_address << 1);//Address
+        uint8_t data[2];
+        trans.tx_buffer = data;
+        data[0] = reg;
+        data[1] = value;
+        trans.length = 2  * 8; // in bits
+        esp_err_t ret = ESP_OK;
 
-        gpio_set_level(m_cs_pin, 0);
+       
+        //Queue and wait for result, not thread safe
+        ret = spi_device_transmit(m_spiDev, &trans);
         
 
-        gpio_set_level(m_cs_pin, 1);
+        printf("SPI byteWrite returned: %i \n", ret);
 
     }
 
@@ -134,35 +206,55 @@ class IOExpander
             SPI.transfer((uint8_t) (word >> 8)); 
         
         */
+        spi_transaction_t trans;
+        memset(&trans, 0, sizeof(spi_transaction_t));
+        trans.flags=0;
+        trans.addr = OPCODEW | (m_address << 1);//Address
+        uint8_t data[10];
+        trans.tx_buffer = data;
+        data[0] = reg;
+        data[1] = (uint8_t) word;
+        data[2] = (uint8_t) (word >> 8);
+        trans.length = 3 * 8; //in bits
+        
+        esp_err_t ret = ESP_OK;
 
-        gpio_set_level(m_cs_pin, 0);
+        //Queue and wait for result, not thread safe
+        ret = spi_device_transmit(m_spiDev, &trans);
 
-
-        gpio_set_level(m_cs_pin, 1);
+        printf("SPI wordWrite returned: %i \n", ret);
 
     }
 
     int m_address;
     gpio_num_t m_cs_pin;
-    spi_device_handle_t *m_spiDev;
+    spi_device_handle_t m_spiDev;
+    unsigned int _modeCache;// Caches the mode (input/output) configuration of I/O pins
+    unsigned int _pullupCache;// Caches the internal pull-up configuration of input pins (values persist across mode changes)
+    unsigned int _invertCache;// Caches the input pin inversion selection (values persist across mode changes)
+    unsigned int _outputCache;// Caches the output pin state of pins
 
 };
 
-void blinky(void *pvParameter)
-{
-    while(1)
-    {
-        printf("Hello world!\n");
-        vTaskDelay(500 / portTICK_RATE_MS);
-        
 
-        vTaskDelay(500 / portTICK_RATE_MS);
+   void cs_active(spi_transaction_t* trans)
+    {
+        //printf("cs_active\n");
+        gpio_set_level((gpio_num_t)PIN_NUM_CS, 0);
     }
-}
+
+    void cs_inactive(spi_transaction_t* trans)
+    {
+        //printf("cs_inactive\n");
+        gpio_set_level((gpio_num_t)PIN_NUM_CS, 1);
+    }
+
 
 //app_main should have a "C" signature
 extern "C" 
 {
+ 
+
     void app_main()
     {
         esp_err_t ret;
@@ -181,6 +273,7 @@ extern "C"
   
         //SPI interface configuration
         spi_device_interface_config_t dev_config;
+        memset(&dev_config, 0, sizeof(spi_device_interface_config_t));
         dev_config.command_bits = 0;
         dev_config.address_bits = 8;
         dev_config.dummy_bits = 0;
@@ -192,13 +285,15 @@ extern "C"
         dev_config.spics_io_num = -1;
         dev_config.flags = 0;  // 0 not used
         dev_config.queue_size = 1;
-        dev_config.pre_cb = NULL;
-        dev_config.post_cb = NULL;
+        dev_config.pre_cb = cs_active;
+        dev_config.post_cb = cs_inactive;
+        
+        
     
         vTaskDelay(500 / portTICK_RATE_MS);
  
-        //Initialize the SPI bus data structure
-        ret = spi_bus_initialize(HSPI_HOST, &buscfg, 1);
+        //Initialize the SPI bus data structure, no DMA for now
+        ret = spi_bus_initialize(HSPI_HOST, &buscfg, 0);
         printf("SPI BUS RET : %i\n", ret);
         //assert(ret == ESP_OK);
 
@@ -206,16 +301,30 @@ extern "C"
 
         //Setup SPI Dev
         ret = spi_bus_add_device(HSPI_HOST, &dev_config, &dev);
-        printf("SPI BUS ADD DEVICE RET: %i\n", ret);
+        printf("SPI BUS ADD DEVICE RET: %i handle: %p\n", ret, dev);
         //assert(ret == ESP_OK);
 
         //nvs_flash_init();
-        xTaskCreate(&blinky, "blinky", 512,NULL,5,NULL );
+        //xTaskCreate(&blinky, "blinky", 512,NULL,5,NULL );
+
+        IOExpander ioExpander(0, (gpio_num_t) 5, dev);
+
+        //ALIVE -->HIGH, power will stay on
+        ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
+
+        //LED
+        ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
+
 
         //Do better...
         while(1)
         {
             printf("Hello World!\n");
+            ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
+            vTaskDelay(500 / portTICK_RATE_MS);
+            ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
             vTaskDelay(500 / portTICK_RATE_MS);
         }
     }
