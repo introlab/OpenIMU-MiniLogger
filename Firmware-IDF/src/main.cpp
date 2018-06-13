@@ -28,6 +28,9 @@ extern "C"
         buscfg.quadhd_io_num = -1;
         buscfg.max_transfer_sz = 1000;
   
+        gpio_set_direction((gpio_num_t)PIN_NUM_MISO, GPIO_MODE_INPUT);
+
+
         //Initialize the SPI bus data structure, no DMA for now
         ret = spi_bus_initialize(HSPI_HOST, &buscfg, 0);
         printf("SPI BUS RET : %i\n", ret);
