@@ -17,8 +17,7 @@ extern "C"
     {
         esp_err_t ret;
 
-        //SPI Device handle
-        spi_device_handle_t dev;
+
 
         //SPI bus configuration
         spi_bus_config_t buscfg;
@@ -46,11 +45,23 @@ extern "C"
         ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
 
+        //Buttons
+        ioExpander.pinMode(EXT_PIN11_BUTTON0, INPUT);
+        ioExpander.pullupMode(EXT_PIN11_BUTTON0, HIGH);
+        ioExpander.pinMode(EXT_PIN06_BUTTON1, INPUT);
+        ioExpander.pullupMode(EXT_PIN06_BUTTON1, HIGH);
+        ioExpander.pinMode(EXT_PIN08_BUTTON2, INPUT);
+        ioExpander.pullupMode(EXT_PIN08_BUTTON2, HIGH);
+        ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
+        ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
         //Do better...
         while(1)
         {
-            printf("Hello World!\n");
+            printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
+            printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));
+            printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
+            printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
             ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
             vTaskDelay(100 / portTICK_RATE_MS);
             ioExpander.digitalWrite(EXT_PIN01_LED, LOW);

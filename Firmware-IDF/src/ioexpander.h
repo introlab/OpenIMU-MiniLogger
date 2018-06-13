@@ -35,6 +35,8 @@ class IOExpander
 
     esp_err_t digitalWrite(uint8_t pin, uint8_t value);
 
+    unsigned int digitalRead();
+
     protected:
 
     void setup();
@@ -42,6 +44,8 @@ class IOExpander
     esp_err_t byteWrite(uint8_t reg, uint8_t value);
 
     esp_err_t wordWrite(uint8_t reg, unsigned int word);
+
+    uint8_t byteRead(uint8_t reg);
 
     int _address;
     int _cs_pin;

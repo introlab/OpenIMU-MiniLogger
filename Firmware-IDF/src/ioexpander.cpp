@@ -123,14 +123,6 @@ esp_err_t IOExpander::pinMode(uint8_t pin, uint8_t mode)
     return wordWrite(IODIRA, _modeCache);                // Call the generic word writer with start register and the mode cache
 }
 
-
-uint8_t IOExpander::digitalRead(uint8_t pin)
-{
-    //TODO
-    return 0;
-}
-
-
 esp_err_t IOExpander::digitalWrite(uint8_t pin, uint8_t value)
 {
     if (pin < 1 || pin > 16) return ESP_ERR_INVALID_ARG;
@@ -148,7 +140,7 @@ esp_err_t IOExpander::wordWrite(uint8_t reg, unsigned int word)
     memset(&trans, 0, sizeof(spi_transaction_t));
     trans.flags=0;
     trans.addr = OPCODEW | (_address << 1);//Address
-    uint8_t data[10];
+    uint8_t data[3];
     trans.tx_buffer = data;
     data[0] = reg;
     data[1] = (uint8_t) word;
@@ -177,3 +169,54 @@ esp_err_t IOExpander::byteWrite(uint8_t reg, uint8_t value)
     //Queue and wait for result, not thread safe
     return spi_device_transmit(_handle, &trans);
 }
+
+unsigned int IOExpander::digitalRead() 
+{                                           // This function will read all 16 bits of I/O, and return them as a word in the format 0x(portB)(portA)
+    unsigned int value = 0;                   // Initialize a variable to hold the read values to be returned
+
+    spi_transaction_t trans;
+    memset(&trans, 0, sizeof(spi_transaction_t));
+    trans.flags=0;
+    trans.addr = OPCODER | (_address << 1);//Address + Read
+    uint8_t tx_data[3] = {GPIOA, 0x00, 0x00};
+    trans.tx_buffer = tx_data;
+    trans.length = 3  * 8; // in bits
+    uint8_t rx_data[3] = {0x00, 0x00, 0x00};
+    trans.rx_buffer = rx_data;
+    trans.rxlength = 3 * 8; // in bits
+
+    esp_err_t ret = spi_device_transmit(_handle, &trans);
+    assert(ret == ESP_OK);
+
+    value = rx_data[1]; // Send any byte, the function will return the read value (register address pointer will auto-increment after write)
+    value |= (rx_data[2] << 8); // Read in the "high byte" (portB) and shift it up to the high location and merge with the "low byte"
+
+    return value; // Return the constructed word, the format is 0x(portB)(portA)
+}
+
+uint8_t IOExpander::byteRead(uint8_t reg)
+{                                          
+    // This function will read a single register, and return it
+    spi_transaction_t trans;
+    memset(&trans, 0, sizeof(spi_transaction_t));
+    trans.flags=0;
+    trans.addr = OPCODER | (_address << 1);//Address + Read
+    uint8_t tx_data[2] = {reg, 0x00};
+    trans.tx_buffer = tx_data;
+    trans.length = 2  * 8; // in bits
+    uint8_t rx_data[2] = {0x00, 0x00};
+    trans.rx_buffer = rx_data;
+    trans.rxlength = 2 * 8; // in bits
+
+    esp_err_t ret = spi_device_transmit(_handle, &trans);
+    assert(ret == ESP_OK);
+
+    return trans.rx_data[1];
+}
+
+uint8_t IOExpander::digitalRead(uint8_t pin) 
+{                    // Return a single bit value, supply the necessary bit (1-16)
+    if (pin < 1 || pin > 16) return 0x0;                    // If the pin value is not valid (1-16) return, do nothing and return
+    return digitalRead() & (1 << (pin - 1)) ? HIGH : LOW;  // Call the word reading function, extract HIGH/LOW information from the requested pin
+}
+
