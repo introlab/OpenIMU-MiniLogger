@@ -63,9 +63,9 @@ extern "C"
             printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
             printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
             ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
-            vTaskDelay(100 / portTICK_RATE_MS);
+            vTaskDelay(1000 / portTICK_RATE_MS);
             ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
-            vTaskDelay(100 / portTICK_RATE_MS);
+            vTaskDelay(1000 / portTICK_RATE_MS);
         }
     }
 }
