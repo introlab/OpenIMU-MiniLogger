@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include "driver/i2c.h"
 #include "ioexpander.h"
-
+#include "adc.h"
 
 esp_err_t configure_i2c(i2c_config_t &conf)
 {
@@ -79,6 +79,11 @@ extern "C"
         ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
 
+        //BATT READ ENABLE
+        ioExpander.pinMode(EXT_PIN13_BATT_READ_EN, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN13_BATT_READ_EN, HIGH);
+
+
         //Buttons
         ioExpander.pinMode(EXT_PIN11_BUTTON0, INPUT);
         ioExpander.pullupMode(EXT_PIN11_BUTTON0, HIGH);
@@ -89,13 +94,25 @@ extern "C"
         ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
         ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
+
+        ADC adc(I2C_NUM_1);
+
         //Do better...
         while(1)
         {
+            //Buttons tests
             printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
             printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));
             printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
             printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
+
+            //ADC tests
+            printf("ADC0: %i\n", adc.readADC_SingleEnded(0));
+            printf("ADC1: %i\n", adc.readADC_SingleEnded(1));
+            printf("ADC2: %i\n", adc.readADC_SingleEnded(2));
+            printf("ADC3: %i\n", adc.readADC_SingleEnded(3));
+
+
             ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
             vTaskDelay(1000 / portTICK_RATE_MS);
             ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
