@@ -56,5 +56,10 @@
 #define PIN_NUM_MOSI 18
 #define PIN_NUM_CLK  19
 
+//I2C definitions
+#define PIN_NUM_SDA 23
+#define PIN_NUM_SCL 25
+
+
 
 #endif
