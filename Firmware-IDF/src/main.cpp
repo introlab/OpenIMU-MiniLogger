@@ -107,10 +107,8 @@ extern "C"
             printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
 
             //ADC tests
-            printf("ADC0: %i\n", adc.readADC_SingleEnded(0));
-            printf("ADC1: %i\n", adc.readADC_SingleEnded(1));
-            printf("ADC2: %i\n", adc.readADC_SingleEnded(2));
-            printf("ADC3: %i\n", adc.readADC_SingleEnded(3));
+            printf("Batt: %4.4f Current: %4.4f\n", adc.read_voltage(), adc.read_current());
+       
 
 
             ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 

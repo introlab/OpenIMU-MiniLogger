@@ -154,7 +154,7 @@ uint16_t ADC::readADC_SingleEnded(uint8_t channel)
     writeRegister(_address, ADS1015_REG_POINTER_CONFIG, config);
 
     // Wait for the conversion to complete
-    vTaskDelay(1 / portTICK_RATE_MS);
+    // vTaskDelay(1 / portTICK_RATE_MS);
  
     // Read the conversion results
     // Shift 12-bit results right 4 bits for the ADS1015
@@ -215,6 +215,14 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
     i2c_master_read_byte(cmd, &data[0], (i2c_ack_type_t) ACK_VAL);
     i2c_master_read_byte(cmd, &data[1], (i2c_ack_type_t) ACK_VAL);
     i2c_master_stop(cmd);
+
+    /*
+        I2C master send queued commands. This function will trigger sending all queued commands. 
+        The task will be blocked until all the commands have been sent out. 
+        The I2C APIs are not thread-safe, if you want to use one I2C port in different tasks, 
+        you need to take care of the multi-thread issue.
+    */
+
     esp_err_t ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
     printf("ADC::readRegister ret: %i\n", ret);
 
@@ -234,4 +242,16 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
     */
 
 
+}
+
+float ADC::read_voltage()
+{
+    uint16_t value = readADC_SingleEnded(1);
+    return 5.0 * 0.002 * (float) value;
+}
+
+float ADC::read_current()
+{
+    uint16_t value = readADC_SingleEnded(1);
+    return ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
 }

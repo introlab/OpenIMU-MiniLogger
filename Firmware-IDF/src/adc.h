@@ -46,10 +46,13 @@ class ADC
     void setup();
 
 
+    float read_voltage();
+    float read_current();
     uint16_t readADC_SingleEnded(uint8_t channel);
 
-
     private:
+
+    
 
     uint16_t readRegister(uint8_t i2cAddress, uint8_t reg);
     esp_err_t writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value);
