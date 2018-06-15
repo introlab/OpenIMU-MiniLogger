@@ -39,11 +39,7 @@ class ADC
     
 
     public:
-    ADC(i2c_port_t port, uint8_t address=ADS1015_ADDRESS)
-        : _port(port), _address(address)
-    {
-        setup();
-    }
+    ADC(i2c_port_t port, uint8_t address=ADS1015_ADDRESS);
 
     void setup();
 

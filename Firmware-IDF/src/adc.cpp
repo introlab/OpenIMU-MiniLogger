@@ -125,6 +125,11 @@ namespace
 
 }
 
+ADC::ADC(i2c_port_t port, uint8_t address)
+    : _port(port), _address(address)
+{
+    setup();
+}
 
 void ADC::setup()
 {
@@ -230,14 +235,6 @@ esp_err_t ADC::writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value)
 
     i2c_cmd_link_delete(cmd);
     return ret;
-
-    /*
-    Wire.beginTransmission(i2cAddress);
-    i2cwrite((uint8_t)reg);
-    i2cwrite((uint8_t)(value>>8));
-    i2cwrite((uint8_t)(value & 0xFF));
-    Wire.endTransmission();
-    */
 }
 
 /**************************************************************************/
@@ -277,19 +274,6 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
     i2c_cmd_link_delete(cmd);
 
     return (data[0] << 8) | (data[1] & 0xFF);
-
-
-
-    /**  
-     Wire.beginTransmission(i2cAddress);
-    i2cwrite(ADS1015_REG_POINTER_CONVERT);
-    Wire.endTransmission();
-    Wire.requestFrom(i2cAddress, (uint8_t)2);
-    return ((i2cread() << 8) | i2cread());
-
-    */
-
-
 }
 
 float ADC::read_voltage()
