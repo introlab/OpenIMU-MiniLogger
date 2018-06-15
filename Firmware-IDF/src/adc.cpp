@@ -167,7 +167,7 @@ uint16_t ADC::readADC_SingleEnded(uint8_t channel)
                     ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
                     ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
                     ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
-                    ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
+                    ADS1015_REG_CONFIG_DR_128SPS   | // 1600 samples per second (default)
                     ADS1015_REG_CONFIG_MODE_SINGLE;    // Single-shot mode (default)
                     
 
@@ -194,16 +194,14 @@ uint16_t ADC::readADC_SingleEnded(uint8_t channel)
     // Set 'start single-conversion' bit
     config |= ADS1015_REG_CONFIG_OS_SINGLE;
 
-    printf("Pin state before: %i\n", gpio_get_level((gpio_num_t)PIN_NUM_ADC_READY));
+    //printf("Pin state before: %i\n", gpio_get_level((gpio_num_t)PIN_NUM_ADC_READY));
     // Write config register to the ADC
     writeRegister(_address, ADS1015_REG_POINTER_CONFIG, config);
 
     //Will wait for fallling edge
+    // Wait for the conversion to complete, read ready signal
     xSemaphoreTake(_semaphore, portMAX_DELAY);
 
-    // Wait for the conversion to complete, read ready signal
-    // vTaskDelay(1 / portTICK_RATE_MS);
- 
     // Read the conversion results
     // Shift 12-bit results right 4 bits for the ADS1015
     return readRegister(_address, ADS1015_REG_POINTER_CONVERT) >> 4;
@@ -227,7 +225,8 @@ esp_err_t ADC::writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value)
     i2c_master_write_byte(cmd, (value & 0xFF), ACK_CHECK_EN);
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
-    printf("ADC::writeRegister ret: %i\n", ret);
+    if (ret != ESP_OK)
+        printf("Error: ADC::writeRegister ret: %i\n", ret);
 
     i2c_cmd_link_delete(cmd);
     return ret;
@@ -272,11 +271,12 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
     */
 
     esp_err_t ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
-    printf("ADC::readRegister ret: %i\n", ret);
+    if (ret != ESP_OK)
+        printf("Error: ADC::readRegister ret: %i %2.2x%2.2x\n", ret, data[0], data[1]);
 
     i2c_cmd_link_delete(cmd);
 
-    return (data[0] << 8) | data[1];
+    return (data[0] << 8) | (data[1] & 0xFF);
 
 
 
@@ -295,11 +295,13 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
 float ADC::read_voltage()
 {
     uint16_t value = readADC_SingleEnded(ADC_VOLTAGE_CHANNEL);
+    //printf("VOLTAGE HEX: %4.4x, %i\n", value, value);
     return 5.0 * 0.002 * (float) value;
 }
 
 float ADC::read_current()
 {
     uint16_t value = readADC_SingleEnded(ADC_CURRENT_CHANNEL);
+    //printf("CURRENT HEX: %4.4x, %i\n", value, value);
     return ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
 }

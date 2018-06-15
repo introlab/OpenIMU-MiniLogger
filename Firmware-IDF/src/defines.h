@@ -63,9 +63,9 @@
 
 //ADC definitions
 #define PIN_NUM_ADC_READY 33
-#define ADC_THERM_CHANNEL 0
-#define ADC_VOLTAGE_CHANNEL 1
-#define ADC_CURRENT_CHANNEL 2
+#define ADC_VOLTAGE_CHANNEL 0
+#define ADC_CURRENT_CHANNEL 1
+#define ADC_THERM_CHANNEL 2
 
 
 #endif

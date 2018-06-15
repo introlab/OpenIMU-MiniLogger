@@ -188,8 +188,8 @@ unsigned int IOExpander::digitalRead()
     esp_err_t ret = spi_device_transmit(_handle, &trans);
     assert(ret == ESP_OK);
 
-    printf("Tx data %2.2x %2.2x %2.2x \n", tx_data[0], tx_data[1], tx_data[2]);
-    printf("Rx data %2.2x %2.2x %2.2x \n", rx_data[0], rx_data[1], rx_data[2]);
+    //printf("Tx data %2.2x %2.2x %2.2x \n", tx_data[0], tx_data[1], tx_data[2]);
+    //printf("Rx data %2.2x %2.2x %2.2x \n", rx_data[0], rx_data[1], rx_data[2]);
 
     value = rx_data[1]; // Send any byte, the function will return the read value (register address pointer will auto-increment after write)
     value |= (rx_data[2] << 8); // Read in the "high byte" (portB) and shift it up to the high location and merge with the "low byte"
