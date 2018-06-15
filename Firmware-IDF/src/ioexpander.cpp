@@ -54,6 +54,10 @@ IOExpander::IOExpander(int addr, gpio_num_t cs_pin, spi_host_device_t host_devic
     _pullupCache = 0x0000;                // Default pull-up state is all off, 0x0000
     _invertCache = 0x0000;                // Default input inversion state is not inverted, 0x0000
 
+    _mutex = xSemaphoreCreateMutex();
+    assert(_mutex != NULL);
+    
+
     setup();
 }
 
@@ -99,39 +103,58 @@ void IOExpander::setup()
     ret = byteWrite(IOCON, ADDR_ENABLE);
     assert(ret == ESP_OK);
 }
-    
+
+void IOExpander::lock()
+{
+    assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
+}
+
+void IOExpander::unlock()
+{
+    assert(xSemaphoreGive(_mutex) == pdTRUE);
+}
 
 esp_err_t IOExpander::pullupMode(uint8_t pin, uint8_t mode) {
     if (pin < 1 || pin > 16) return ESP_ERR_INVALID_ARG;
+    lock();
     if (mode == ON) {
         _pullupCache |= 1 << (pin - 1);
     } else {
         _pullupCache &= ~(1 << (pin -1));
     }
-    return wordWrite(GPPUA, _pullupCache);
+    esp_err_t ret = wordWrite(GPPUA, _pullupCache);
+    unlock();
+    return ret;
 }
 
 esp_err_t IOExpander::pinMode(uint8_t pin, uint8_t mode) 
 {  
     // Accept the pin # and I/O mode
     if (pin < 1 || pin > 16) return ESP_ERR_INVALID_ARG;               // If the pin value is not valid (1-16) return, do nothing and return
+    lock();
     if (mode == INPUT) {                          // Determine the mode before changing the bit state in the mode cache
         _modeCache |= 1 << (pin - 1);               // Since input = "HIGH", OR in a 1 in the appropriate place
     } else {
         _modeCache &= ~(1 << (pin - 1));            // If not, the mode must be output, so and in a 0 in the appropriate place
     }
-    return wordWrite(IODIRA, _modeCache);                // Call the generic word writer with start register and the mode cache
+    // Call the generic word writer with start register and the mode cache
+    esp_err_t ret = wordWrite(IODIRA, _modeCache);
+    unlock();
+    return ret;
 }
 
 esp_err_t IOExpander::digitalWrite(uint8_t pin, uint8_t value)
 {
     if (pin < 1 || pin > 16) return ESP_ERR_INVALID_ARG;
+    lock();
     if (value) {
         _outputCache |= 1 << (pin - 1);
     } else {
         _outputCache &= ~(1 << (pin - 1));
     }
-    return wordWrite(GPIOA, _outputCache);
+    esp_err_t ret = wordWrite(GPIOA, _outputCache);
+    unlock();
+    return ret;
 }
 
 esp_err_t IOExpander::wordWrite(uint8_t reg, unsigned int word)

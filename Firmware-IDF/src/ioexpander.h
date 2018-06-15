@@ -41,6 +41,10 @@ class IOExpander
     protected:
 
     void setup();
+
+    void lock();
+
+    void unlock();
    
     esp_err_t byteWrite(uint8_t reg, uint8_t value);
 
@@ -59,6 +63,8 @@ class IOExpander
     unsigned int _pullupCache;// Caches the internal pull-up configuration of input pins (values persist across mode changes)
     unsigned int _invertCache;// Caches the input pin inversion selection (values persist across mode changes)
     unsigned int _outputCache;// Caches the output pin state of pins
+
+    SemaphoreHandle_t _mutex;
 
 };
 
