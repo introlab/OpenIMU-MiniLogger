@@ -115,7 +115,7 @@ typedef enum
 
 namespace
 {
-    void IRAM_ATTR gpio_isr_handler(void* arg)
+    void IRAM_ATTR adc_gpio_isr_handler(void* arg)
     {
        //DO something
        ADC *adc = (ADC*) (arg);
@@ -159,7 +159,7 @@ void ADC::setup()
 
     _semaphore = xSemaphoreCreateCounting(1,0);
     
-    gpio_isr_handler_add((gpio_num_t)PIN_NUM_ADC_READY, gpio_isr_handler, this);
+    gpio_isr_handler_add((gpio_num_t)PIN_NUM_ADC_READY, adc_gpio_isr_handler, this);
 
 }
 

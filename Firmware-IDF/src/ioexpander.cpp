@@ -148,7 +148,7 @@ esp_err_t IOExpander::wordWrite(uint8_t reg, unsigned int word)
     trans.length = 3 * 8; //in bits    
 
     //Queue and wait for result, not thread safe
-    return spi_device_transmit(_handle, &trans);
+    return SPIBus::spi_device_transmit(_handle, &trans);
 }
 
 esp_err_t IOExpander::byteWrite(uint8_t reg, uint8_t value)
@@ -166,8 +166,8 @@ esp_err_t IOExpander::byteWrite(uint8_t reg, uint8_t value)
     data[1] = value;
     trans.length = 2  * 8; // in bits
     
-    //Queue and wait for result, not thread safe
-    return spi_device_transmit(_handle, &trans);
+    //Queue and wait for result
+    return SPIBus::spi_device_transmit(_handle, &trans);
 }
 
 unsigned int IOExpander::digitalRead() 
@@ -185,7 +185,7 @@ unsigned int IOExpander::digitalRead()
     trans.rx_buffer = rx_data;
     trans.rxlength = 3 * 8; // in bits
 
-    esp_err_t ret = spi_device_transmit(_handle, &trans);
+    esp_err_t ret = SPIBus::spi_device_transmit(_handle, &trans);
     assert(ret == ESP_OK);
 
     //printf("Tx data %2.2x %2.2x %2.2x \n", tx_data[0], tx_data[1], tx_data[2]);
@@ -211,7 +211,7 @@ uint8_t IOExpander::byteRead(uint8_t reg)
     trans.rx_buffer = rx_data;
     trans.rxlength = 2 * 8; // in bits
 
-    esp_err_t ret = spi_device_transmit(_handle, &trans);
+    esp_err_t ret = SPIBus::spi_device_transmit(_handle, &trans);
     assert(ret == ESP_OK);
 
     return trans.rx_data[1];
