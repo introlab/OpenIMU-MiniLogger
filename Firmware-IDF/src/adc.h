@@ -36,6 +36,8 @@
 
 class ADC
 {
+    
+
     public:
     ADC(i2c_port_t port, uint8_t address=ADS1015_ADDRESS)
         : _port(port), _address(address)
@@ -50,6 +52,8 @@ class ADC
     float read_current();
     uint16_t readADC_SingleEnded(uint8_t channel);
 
+    SemaphoreHandle_t getSemaphore() {return _semaphore;}
+
     private:
 
     
@@ -59,6 +63,7 @@ class ADC
 
     i2c_port_t _port;
     uint8_t _address;
+    SemaphoreHandle_t _semaphore;
 
     
 

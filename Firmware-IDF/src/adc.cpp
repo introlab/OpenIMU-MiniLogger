@@ -1,5 +1,5 @@
 #include "adc.h"
-
+#include "defines.h"
 /*!
 
     Inspired by:
@@ -112,9 +112,50 @@ typedef enum
 #define ACK_VAL                            0x0              /*!< I2C ack value */
 #define NACK_VAL                           0x1              /*!< I2C nack value */
 
+
+namespace
+{
+    void IRAM_ATTR gpio_isr_handler(void* arg)
+    {
+       //DO something
+       ADC *adc = (ADC*) (arg);
+
+       xSemaphoreGiveFromISR(adc->getSemaphore(), NULL);
+    }
+
+}
+
+
 void ADC::setup()
 {
+    gpio_config_t io_conf;
+    //interrupt on falling edge
+    io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_NEGEDGE;
+    //set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO33
+    io_conf.pin_bit_mask =  (1ULL << PIN_NUM_ADC_READY);
+    //disable pull-down mode
+    io_conf.pull_down_en = (gpio_pulldown_t) 0;
+    //enable pull-up mode
+    io_conf.pull_up_en = (gpio_pullup_t) 1;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+
+
+    /*
+    The ALERT/RDY pin can also be configured as a conversion ready pin. Set the most-significant bit of the
+    Hi_thresh register to 1 and the most-significant bit of Lo_thresh register to 0 to enable the pin as a conversion
+    ready pin.
+    */
+
+    writeRegister(_address, ADS1015_REG_POINTER_HITHRESH, 0x8000);
+    writeRegister(_address, ADS1015_REG_POINTER_LOWTHRESH, 0x7FFF);
+
+    _semaphore = xSemaphoreCreateCounting(1,0);
     
+    gpio_isr_handler_add((gpio_num_t)PIN_NUM_ADC_READY, gpio_isr_handler, this);
+
 }
 
 
@@ -122,13 +163,16 @@ uint16_t ADC::readADC_SingleEnded(uint8_t channel)
 {
 
     // Start with default values
-    uint16_t config = ADS1015_REG_CONFIG_CQUE_NONE    | // Disable the comparator (default val)
+    uint16_t config = ADS1015_REG_CONFIG_CQUE_1CONV    | // Enable comparator, 1 conv
                     ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
                     ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
                     ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
                     ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
-                    ADS1015_REG_CONFIG_MODE_SINGLE |   // Single-shot mode (default)
-                    GAIN_ONE; //GAIN = 1
+                    ADS1015_REG_CONFIG_MODE_SINGLE;    // Single-shot mode (default)
+                    
+
+    // Set PGA/voltage range
+    config |= (uint16_t) GAIN_ONE; //GAIN = 1;
 
     // Set single-ended input channel
     switch (channel)
@@ -150,10 +194,14 @@ uint16_t ADC::readADC_SingleEnded(uint8_t channel)
     // Set 'start single-conversion' bit
     config |= ADS1015_REG_CONFIG_OS_SINGLE;
 
+    printf("Pin state before: %i\n", gpio_get_level((gpio_num_t)PIN_NUM_ADC_READY));
     // Write config register to the ADC
     writeRegister(_address, ADS1015_REG_POINTER_CONFIG, config);
 
-    // Wait for the conversion to complete
+    //Will wait for fallling edge
+    xSemaphoreTake(_semaphore, portMAX_DELAY);
+
+    // Wait for the conversion to complete, read ready signal
     // vTaskDelay(1 / portTICK_RATE_MS);
  
     // Read the conversion results
@@ -246,12 +294,12 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
 
 float ADC::read_voltage()
 {
-    uint16_t value = readADC_SingleEnded(1);
+    uint16_t value = readADC_SingleEnded(ADC_VOLTAGE_CHANNEL);
     return 5.0 * 0.002 * (float) value;
 }
 
 float ADC::read_current()
 {
-    uint16_t value = readADC_SingleEnded(1);
+    uint16_t value = readADC_SingleEnded(ADC_CURRENT_CHANNEL);
     return ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
 }

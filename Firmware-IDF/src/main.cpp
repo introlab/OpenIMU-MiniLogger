@@ -8,6 +8,7 @@
 #include "driver/gpio.h"
 #include <stdio.h>
 #include "driver/i2c.h"
+
 #include "ioexpander.h"
 #include "adc.h"
 
@@ -69,6 +70,9 @@ extern "C"
 
         vTaskDelay(500 / portTICK_RATE_MS);
 
+        //install gpio isr service
+        gpio_install_isr_service(0);
+
         IOExpander ioExpander(0, (gpio_num_t) 5, HSPI_HOST);
 
         //ALIVE -->HIGH, power will stay on
@@ -94,6 +98,7 @@ extern "C"
         ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
         ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
+        
 
         ADC adc(I2C_NUM_1);
 
