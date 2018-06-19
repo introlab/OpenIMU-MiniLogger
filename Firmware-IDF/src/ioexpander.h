@@ -19,15 +19,13 @@
   February, 2016
  **/
 
-
-
-
 class IOExpander
 {
     public:
 
-    IOExpander(int addr, gpio_num_t cs_pin, spi_host_device_t host_device);
-
+    //Singleton pattern
+    static IOExpander& instance();
+  
     esp_err_t pullupMode(uint8_t pin, uint8_t mode);
 
     esp_err_t pinMode(uint8_t pin, uint8_t mode);
@@ -39,6 +37,9 @@ class IOExpander
     unsigned int digitalRead();
 
     protected:
+
+    //Protected, cannot be called directly
+    IOExpander(int addr, gpio_num_t cs_pin, spi_host_device_t host_device);
 
     void setup();
 
@@ -66,10 +67,9 @@ class IOExpander
 
     SemaphoreHandle_t _mutex;
 
+    
+
 };
-
-
-
 
 
 

@@ -12,6 +12,7 @@
 #include "ioexpander.h"
 #include "adc.h"
 #include "spibus.h"
+#include "screen.h"
 
 esp_err_t configure_i2c(i2c_config_t &conf)
 {
@@ -54,7 +55,8 @@ extern "C"
         //install gpio isr service
         gpio_install_isr_service(0);
 
-        IOExpander ioExpander(0, (gpio_num_t) 5, HSPI_HOST);
+        //Get single instance of IOExpander...
+        IOExpander &ioExpander = IOExpander::instance();
 
         //ALIVE -->HIGH, power will stay on
         ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);

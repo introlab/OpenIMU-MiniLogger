@@ -67,5 +67,4 @@
 #define ADC_CURRENT_CHANNEL 1
 #define ADC_THERM_CHANNEL 2
 
-
 #endif

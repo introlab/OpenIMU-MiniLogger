@@ -46,6 +46,12 @@ namespace
     }
 }
 
+IOExpander& IOExpander::instance()
+{
+    static IOExpander expander(0, (gpio_num_t) 5, HSPI_HOST);
+    return expander;
+}
+
 IOExpander::IOExpander(int addr, gpio_num_t cs_pin, spi_host_device_t host_device)
     : _address(addr), _cs_pin(cs_pin), _host_device(host_device)
 {
