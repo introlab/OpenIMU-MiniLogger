@@ -53,8 +53,8 @@ private:
 
     static bool isExternal(int pin);
     static void epdPinMode(int pin, int mode);
-    spi_device_handle_t _handle;
-    spi_device_interface_config_t _config;
+    static spi_device_handle_t _handle;
+    static spi_device_interface_config_t _config;
 };
 
 #endif

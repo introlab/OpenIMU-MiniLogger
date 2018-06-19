@@ -43,13 +43,19 @@ namespace
     {
         gpio_set_level((gpio_num_t)CS_PIN, 1);
     }
+
+
+
 }
+
+spi_device_handle_t EpdIf::_handle;
+spi_device_interface_config_t EpdIf::_config;
 
 EpdIf::EpdIf() {
     //SPI device interface configuration
     memset(&_config, 0, sizeof(spi_device_interface_config_t));
-    _config.command_bits = 0;
-    _config.address_bits = 8;
+    _config.command_bits = 8;
+    _config.address_bits = 0;
     _config.dummy_bits = 0;
     _config.mode = 0;
     _config.duty_cycle_pos = 128;  // default 128 = 50%/50% duty
@@ -75,7 +81,7 @@ bool EpdIf::isExternal(int pin) {
 }
 
 void EpdIf::DigitalWrite(int pin, int value) {
-    //Serial.printf("EpdIf::DigitalWrite %i %i\n", pin, value );
+    //printf("EpdIf::DigitalWrite %i %i\n", pin, value );
     if(isExternal(pin)) {
         //Serial.printf("EpdIf::DigitalWrite (ext) %i %i\n", pin, value );
         IOExpander::instance().digitalWrite(pin, value);
@@ -86,7 +92,7 @@ void EpdIf::DigitalWrite(int pin, int value) {
 }
 
 int EpdIf::DigitalRead(int pin) {
-    //Serial.printf("EpdIf::DigitalRead %i\n", pin);
+    //printf("EpdIf::DigitalRead %i\n", pin);
     if(isExternal(pin)) {
         return IOExpander::instance().digitalRead(pin);
     }
@@ -96,7 +102,7 @@ int EpdIf::DigitalRead(int pin) {
 }
 
 void EpdIf::epdPinMode(int pin, int mode) {
-    //Serial.printf("EpdIf::epdPinMode %i %i\n", pin, mode);
+    //printf("EpdIf::epdPinMode %i %i\n", pin, mode);
     if(isExternal(pin)) {
         IOExpander::instance().pinMode(pin, mode);
     }
@@ -105,7 +111,7 @@ void EpdIf::epdPinMode(int pin, int mode) {
         gpio_config_t io_conf;
         //No interrupt 
         io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_DISABLE;
-        //set as input mode
+        //set as input/output mode
         io_conf.mode = (gpio_mode_t) mode;
         //bit mask of the pins that you want to set,e.g.GPIO33
         io_conf.pin_bit_mask =  (1ULL << pin);
@@ -127,19 +133,15 @@ void EpdIf::DelayMs(unsigned int delaytime) {
 }
 
 void EpdIf::SpiTransfer(unsigned char data) {
-    //Serial.println("EpdIf::SpiTransfer");
-#if 0    
-    if(_expander.acquire(100))
-    {
-      digitalWrite(CS_PIN, LOW);
-      SPI.transfer(data);
-      digitalWrite(CS_PIN, HIGH);
-      _expander.release();
-    }
-    else {
-      Serial.println("unable to lock SPI bus in EpdIf::SpiTransfer");
-    }
-#endif
+    //printf("EpdIf::SpiTransfer\n");
+    spi_transaction_t trans;
+    memset(&trans, 0, sizeof(spi_transaction_t));
+    trans.cmd = data;
+    
+    esp_err_t err = SPIBus::spi_device_transmit(_handle, &trans);
+    if (err != ESP_OK)
+        printf("EpdIf::SpiTransfer error: %i\n", err);
+
 }
 
 int EpdIf::IfInit(void) {

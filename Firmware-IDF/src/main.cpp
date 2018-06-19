@@ -12,7 +12,7 @@
 #include "ioexpander.h"
 #include "adc.h"
 #include "spibus.h"
-#include "screen.h"
+#include "display.h"
 
 esp_err_t configure_i2c(i2c_config_t &conf)
 {
@@ -33,6 +33,36 @@ esp_err_t configure_i2c(i2c_config_t &conf)
     return ret;
 }
 
+namespace Actions
+{
+    // Software Shutdown by the menu
+    void Shutdown()
+    {
+        
+    }
+
+    void SDToESP32()
+    {
+        
+    }
+
+    void SDToExternal()
+    {
+       
+    }
+
+    //Same function to start and stop logging to avoid double start
+    void IMUStartSD()     
+    {
+      
+
+    }
+
+    void IMUStopSD()    // used to be sure to stop log when device shutdown
+    {
+       
+    }
+}
 
 
 
@@ -85,6 +115,10 @@ extern "C"
 
         ADC adc(I2C_NUM_1);
 
+        Display display;
+        display.begin();
+        //display.showSplashScreen(0);
+
         //Do better...
         while(1)
         {
@@ -96,7 +130,8 @@ extern "C"
 
             //ADC tests
             printf("Batt: %4.4f Current: %4.4f\n", adc.read_voltage(), adc.read_current());
-       
+
+            display.displayVoltage(adc.read_voltage(), adc.read_current(), false, false, false);
 
 
             ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
