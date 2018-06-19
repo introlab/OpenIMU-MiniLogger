@@ -64,6 +64,19 @@ namespace Actions
     }
 }
 
+void ledBlink(void *pvParameters)
+{
+  while(1)
+  {
+    IOExpander::instance().digitalWrite(EXT_PIN01_LED, LOW);
+
+    vTaskDelay(500 / portTICK_RATE_MS);
+
+    IOExpander::instance().digitalWrite(EXT_PIN01_LED, HIGH);
+
+    vTaskDelay(500 / portTICK_RATE_MS);
+  }
+}
 
 
 //app_main should have a "C" signature
@@ -111,12 +124,14 @@ extern "C"
         ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
         ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
-        
+        TaskHandle_t ledBlinkHandle;
+        xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
 
         ADC adc(I2C_NUM_1);
 
         Display display;
         display.begin();
+        display.clear();
         //display.showSplashScreen(0);
 
         //Do better...
@@ -132,12 +147,7 @@ extern "C"
             printf("Batt: %4.4f Current: %4.4f\n", adc.read_voltage(), adc.read_current());
 
             display.displayVoltage(adc.read_voltage(), adc.read_current(), false, false, false);
-
-
-            ioExpander.digitalWrite(EXT_PIN01_LED, HIGH); 
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            ioExpander.digitalWrite(EXT_PIN01_LED, LOW);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            vTaskDelay(100 / portTICK_RATE_MS);
         }
     }
 }
