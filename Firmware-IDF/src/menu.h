@@ -72,5 +72,4 @@ public:
 private:
     SubMenu* _currentSubMenu = nullptr;
 };
-
 #endif

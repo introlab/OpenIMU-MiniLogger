@@ -22,29 +22,29 @@ namespace Actions
     // Software Shutdown by the menu
     void Shutdown()
     {
-        
+
     }
 
     void SDToESP32()
     {
-        
+
     }
 
     void SDToExternal()
     {
-       
+
     }
 
     //Same function to start and stop logging to avoid double start
-    void IMUStartSD()     
+    void IMUStartSD()
     {
-      
+
 
     }
 
     void IMUStopSD()    // used to be sure to stop log when device shutdown
     {
-       
+
     }
 }
 
@@ -64,7 +64,7 @@ void ledBlink(void *pvParameters)
 
 
 //app_main should have a "C" signature
-extern "C" 
+extern "C"
 {
     void app_main()
     {

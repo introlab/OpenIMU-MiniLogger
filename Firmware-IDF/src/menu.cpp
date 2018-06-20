@@ -1,5 +1,5 @@
-#include "menu.h"
 
+#include "menu.h"
 #include "actions.h"
 
 MenuItem::MenuItem(std::string text)
@@ -82,9 +82,9 @@ void SubMenu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
 void SubMenu::selectNextItem()
 {
     if(_currentItem != nullptr) {
-        if(_currentItem->_nextItem != nullptr) 
+        if(_currentItem->_nextItem != nullptr)
             _currentItem = _currentItem->_nextItem;
-        else 
+        else
             while(_currentItem->_previousItem != nullptr)
                 _currentItem = _currentItem->_previousItem;
 
@@ -94,9 +94,9 @@ void SubMenu::selectNextItem()
 void SubMenu::selectPreviousItem()
 {
     if(_currentItem != nullptr) {
-        if(_currentItem->_previousItem != nullptr) 
+        if(_currentItem->_previousItem != nullptr)
             _currentItem = _currentItem->_previousItem;
-        else 
+        else
             while(_currentItem->_nextItem != nullptr)
                 _currentItem = _currentItem->_nextItem;
     }
@@ -171,8 +171,8 @@ void Menu::action()
 {
     if(_currentSubMenu->_currentItem != nullptr) {
 
-        if(_currentSubMenu->_currentItem->_action != nullptr ) 
-             _currentSubMenu->_currentItem->action();       
+        if(_currentSubMenu->_currentItem->_action != nullptr )
+             _currentSubMenu->_currentItem->action();
 
         if (_currentSubMenu->_currentItem->_childSubMenu != nullptr)
             _currentSubMenu = _currentSubMenu->_currentItem->_childSubMenu;

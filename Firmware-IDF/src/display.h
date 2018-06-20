@@ -29,5 +29,4 @@ private:
     Paint _redPaint{_redImage, EPD_WIDTH, EPD_HEIGHT};
 };
 
-
 #endif

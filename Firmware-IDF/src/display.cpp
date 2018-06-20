@@ -1,3 +1,4 @@
+
 #include "display.h"
 #include "fonts.h"
 #include <string>
@@ -105,7 +106,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     strftime(strftime_buf, sizeof(strftime_buf), "%R", timeinfo);
     _blackPaint.DrawStringAt(47, 105, strftime_buf, &Font24, 0);
-    
+
     strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
     _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
 
@@ -128,7 +129,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     _blackPaint.DrawStringAt(0, 50, gps_data.str().c_str(), &Font16, 0);
     logstate << " Logging: ";
-    
+
     (stateLog) ?  logstate << "ON" :  logstate << "OFF";
 
     _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);
@@ -137,4 +138,3 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
     _epd.DisplayFrame(_blackImage, NULL/*_redImage */);
 
 }
-
