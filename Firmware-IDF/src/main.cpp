@@ -12,26 +12,10 @@
 #include "ioexpander.h"
 #include "adc.h"
 #include "spibus.h"
+#include "i2cbus.h"
 #include "display.h"
 
-esp_err_t configure_i2c(i2c_config_t &conf)
-{
-    i2c_port_t i2c_master_port = I2C_NUM_1;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = (gpio_num_t) PIN_NUM_SDA;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = (gpio_num_t) PIN_NUM_SCL;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = 400000;
-    i2c_param_config(i2c_master_port, &conf);
 
-    //Master mode does not need buffers
-    esp_err_t ret = i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
-    printf("configure_i2c ret: %i\n", ret);
-    assert(ret == ESP_OK);
-
-    return ret;
-}
 
 namespace Actions
 {
@@ -90,8 +74,7 @@ extern "C"
         SPIBus spibus;
 
         //I2C bus configuration
-        i2c_config_t i2ccfg;
-        ret = configure_i2c(i2ccfg);
+        I2CBus i2cbus;
 
         vTaskDelay(500 / portTICK_RATE_MS);
 
