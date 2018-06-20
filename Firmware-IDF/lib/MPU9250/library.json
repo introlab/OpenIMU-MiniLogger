@@ -1,0 +1,4 @@
+{
+    "name": "MPU9250",  
+    "include": "src"
+}
