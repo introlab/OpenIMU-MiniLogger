@@ -134,6 +134,8 @@ extern "C"
         display.clear();
         //display.showSplashScreen(0);
 
+        Menu menu;
+
         //Do better...
         while(1)
         {
@@ -147,6 +149,7 @@ extern "C"
             printf("Batt: %4.4f Current: %4.4f\n", adc.read_voltage(), adc.read_current());
 
             display.displayVoltage(adc.read_voltage(), adc.read_current(), false, false, false);
+            //display.updateMenu(&menu, false);
             vTaskDelay(100 / portTICK_RATE_MS);
         }
     }
