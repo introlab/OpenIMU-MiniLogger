@@ -17,10 +17,12 @@ class I2CBus
 
     static bool unlock();
 
+    static esp_err_t i2c_master_cmd_begin(i2c_cmd_handle_t cmd, TickType_t timeout = portMAX_DELAY);
+
     protected:
 
-    i2c_port_t _port;
-    i2c_config_t _buscfg;
+    static i2c_port_t _port;
+    static i2c_config_t _buscfg;
     static SemaphoreHandle_t _mutex;
     
 };

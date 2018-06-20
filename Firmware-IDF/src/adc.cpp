@@ -229,7 +229,7 @@ esp_err_t ADC::writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value)
     i2c_master_write_byte(cmd, (value >> 8), ACK_CHECK_EN);
     i2c_master_write_byte(cmd, (value & 0xFF), ACK_CHECK_EN);
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+    esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd, 1000 / portTICK_RATE_MS);
     if (ret != ESP_OK)
         printf("Error: ADC::writeRegister ret: %i\n", ret);
 
@@ -267,7 +267,7 @@ uint16_t ADC::readRegister(uint8_t i2cAddress, uint8_t reg)
         you need to take care of the multi-thread issue.
     */
 
-    esp_err_t ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+    esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd, 1000 / portTICK_RATE_MS);
     if (ret != ESP_OK)
         printf("Error: ADC::readRegister ret: %i %2.2x%2.2x\n", ret, data[0], data[1]);
 

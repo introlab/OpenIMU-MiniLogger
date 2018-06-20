@@ -2,7 +2,7 @@
 #define _ADC_H_
 
 #include <stdio.h>
-#include "driver/i2c.h"
+#include "i2cbus.h"
 
 
 /*!
