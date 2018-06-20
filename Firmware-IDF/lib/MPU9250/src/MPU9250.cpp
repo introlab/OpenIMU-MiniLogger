@@ -26,6 +26,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <stdlib.h>
 #include <string.h>
 
+#define ACK_CHECK_EN                       0x1              /*!< I2C master will check ack from slave*/
+#define ACK_CHECK_DIS                      0x0              /*!< I2C master will not check ack from slave */
+#define ACK_VAL                            0x0              /*!< I2C ack value */
+#define NACK_VAL                           0x1              /*!< I2C nack value */
+
 void delay(int ms)
 {
     vTaskDelay(ms / portTICK_RATE_MS);
@@ -981,6 +986,22 @@ void MPU9250::setMagCalZ(float bias,float scaleFactor) {
 /* writes a byte to MPU9250 register given a register address and data */
 int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 
+  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+  i2c_master_start(cmd);
+  i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, data, ACK_CHECK_EN);
+  i2c_master_stop(cmd);
+
+  //Send command
+  esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
+  i2c_cmd_link_delete(cmd);
+
+  if (ret != ESP_OK)
+  {
+      return -1;
+  }
+
 #if 0
     _i2c->beginTransmission(_address); // open the device
     _i2c->write(subAddress); // write the register address
@@ -988,22 +1009,45 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
     _i2c->endTransmission();
 #endif
 
-  delay(10);
+    delay(10);
 
-  /* read back the register */
-  readRegisters(subAddress,1,_buffer);
-  /* check the read back register against the written register */
-  if(_buffer[0] == data) {
-    return 1;
-  }
-  else{
-    return -1;
-  }
+    /* read back the register */
+    readRegisters(subAddress,1,_buffer);
+    /* check the read back register against the written register */
+    if(_buffer[0] == data) {
+        return 1;
+    }
+    else{
+        return -1;
+    }
 }
 
 /* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
 int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
+    //Re-start
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
+    //Read bytes
+    i2c_master_read(cmd, dest, count, (i2c_ack_type_t) ACK_VAL);
+    //Stop
+    i2c_master_stop(cmd);
+    //Send command
+    esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
+
+
+
+    i2c_cmd_link_delete(cmd);
+
+    if (ret == ESP_OK)
+      return 1;
+    else 
+      return -1;
 #if 0
     _i2c->beginTransmission(_address); // open the device
     if (_i2c->write(subAddress) == 0)
@@ -1019,7 +1063,7 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
       return -1;
     }
  #endif
- return -1; 
+
 }
 
 /* writes a register to the AK8963 given a register address and data */

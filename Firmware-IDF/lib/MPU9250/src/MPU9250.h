@@ -68,7 +68,7 @@ class MPU9250{
       LP_ACCEL_ODR_500HZ = 11
     };
 
-    MPU9250(i2c_port_t port, uint8_t);
+    MPU9250(i2c_port_t port, uint8_t address);
     int begin();
     int setAccelRange(AccelRange range);
     int setGyroRange(GyroRange range);
