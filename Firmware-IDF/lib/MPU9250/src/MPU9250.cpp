@@ -1020,13 +1020,6 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
         return -1;
     }
 
-#if 0
-    _i2c->beginTransmission(_address); // open the device
-    _i2c->write(subAddress); // write the register address
-    _i2c->write(data); // write the data
-    _i2c->endTransmission();
-#endif
-
     delay(10);
 
     /* read back the register */
@@ -1053,6 +1046,7 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
 
+
     for (int i = 0; i < count; i++)
     {
         //Read bytes
@@ -1061,13 +1055,12 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
         else
             i2c_master_read_byte(cmd, &dest[i], (i2c_ack_type_t) ACK_VAL);
     }
+    
 
     //Stop
     i2c_master_stop(cmd);
     //Send command
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
-
-
 
     i2c_cmd_link_delete(cmd);
 
@@ -1080,22 +1073,6 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
         printf("MPU9250::readRegisters Error \n");
         return -1;
     }
-#if 0
-    _i2c->beginTransmission(_address); // open the device
-    if (_i2c->write(subAddress) == 0)
-        Serial.println("Error writing i2c");// specify the starting register address
-    _i2c->endTransmission(false);
-    _numBytes = _i2c->requestFrom(_address, count); // specify the number of bytes to receive
-    if (_numBytes == count) {
-        for(uint8_t i = 0; i < count; i++){
-            dest[i] = _i2c->read();
-        }
-        return 1;
-    } else {
-        return -1;
-    }
-#endif
-
 }
 
 /* writes a register to the AK8963 given a register address and data */

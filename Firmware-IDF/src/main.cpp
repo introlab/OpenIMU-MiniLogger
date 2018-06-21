@@ -15,6 +15,7 @@
 #include "i2cbus.h"
 #include "display.h"
 #include "imu.h"
+#include "sdcard.h"
 
 
 namespace Actions
@@ -90,20 +91,8 @@ extern "C"
         IOExpander &ioExpander = IOExpander::instance();
 
 
-        IMU *imu = IMU::instance();
-
-        ADC adc(I2C_NUM_1);
-
-        Display *display = Display::instance();
-
-        Menu menu;
-
-        
-
-        vTaskDelay(500 / portTICK_RATE_MS);
-
-
-
+     
+    
         //ALIVE -->HIGH, power will stay on
         ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
@@ -129,6 +118,17 @@ extern "C"
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
+
+        SDCard *sdcard = SDCard::instance();
+
+        IMU *imu = IMU::instance();
+
+        ADC adc(I2C_NUM_1);
+
+        Display *display = Display::instance();
+
+        Menu menu;
+
 
         display->begin();
         display->clear();
