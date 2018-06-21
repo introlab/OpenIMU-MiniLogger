@@ -50,23 +50,23 @@ namespace Actions
 
 void ledBlink(void *pvParameters)
 {
-  while(1)
-  {
-    IOExpander::instance().digitalWrite(EXT_PIN01_LED, LOW);
+    while(1)
+    {
+        IOExpander::instance().digitalWrite(EXT_PIN01_LED, LOW);
 
-    vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
 
-    IOExpander::instance().digitalWrite(EXT_PIN01_LED, HIGH);
+        IOExpander::instance().digitalWrite(EXT_PIN01_LED, HIGH);
 
-    vTaskDelay(500 / portTICK_RATE_MS);
-  }
+        vTaskDelay(500 / portTICK_RATE_MS);
+    }
 }
 
 namespace 
 {
     
 
-   
+
 }
 
 //app_main should have a "C" signature
@@ -102,9 +102,7 @@ extern "C"
 
         vTaskDelay(500 / portTICK_RATE_MS);
 
-  
 
-       
 
         //ALIVE -->HIGH, power will stay on
         ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
@@ -130,9 +128,8 @@ extern "C"
         ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
 
         TaskHandle_t ledBlinkHandle;
-        xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
+        xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
 
-     
         display->begin();
         display->clear();
         //display.showSplashScreen(0);
