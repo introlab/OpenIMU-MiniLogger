@@ -4,6 +4,7 @@
         "PLATFORMIO_CALLER": "vscode"
     },
     "files.associations": {
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "istream": "cpp"
     }
 }

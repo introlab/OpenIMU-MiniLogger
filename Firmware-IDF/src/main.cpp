@@ -63,13 +63,6 @@ void ledBlink(void *pvParameters)
     }
 }
 
-namespace 
-{
-    
-
-
-}
-
 //app_main should have a "C" signature
 extern "C"
 {
@@ -140,7 +133,7 @@ extern "C"
         while(1)
         {
 
-            imu->readSensor();
+            //imu->readSensor();
 
             //Buttons tests
             printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));

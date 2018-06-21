@@ -3,8 +3,36 @@
 
 IMU* IMU::_instance = NULL;
 
+namespace
+{
+    void IRAM_ATTR imu_gpio_isr_handler(void* arg)
+    {
+        IMU *imu = (IMU*) (arg);
+        assert(imu != NULL);
+        xSemaphoreGiveFromISR(imu->getSemaphore(), NULL);
+    }
+
+
+    void readIMU(void *pvParameters)
+    {
+        printf("readIMU starting \n");
+        IMU *imu = (IMU*) (pvParameters);
+        assert(imu != NULL);
+
+        while(1)
+        {
+            xSemaphoreTake(imu->getSemaphore(), portMAX_DELAY);
+            //printf("should read from task\n");
+            imu->readSensor();
+        }
+    }
+
+}
+
+
+
 IMU::IMU()
-    : _mpu9250(I2C_NUM_1, MPU9250_I2C_ADDRESS)
+    : _mpu9250(I2C_NUM_1, MPU9250_I2C_ADDRESS), _readIMUHandle(NULL)
 {
     if (_mpu9250.begin() == 1)
     {
@@ -17,7 +45,7 @@ IMU::IMU()
         _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
         _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
         
-
+        //Does not work...
         //_mpu9250.calibrateAccel();
         //_mpu9250.calibrateGyro();
         //_mpu9250.calibrateMag();
@@ -25,6 +53,14 @@ IMU::IMU()
         // Enable FIFO
         //_mpu9250.enableFifo(true, true, true, true);
 
+        
+        // Setup interrupt handling
+        _semaphore = xSemaphoreCreateCounting(1,0);
+        setup_interrupt_pin();
+        _mpu9250.enableDataReadyInterrupt();
+
+        //Create reading task
+        xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
         printf("IMU initialized\n");
     }
     else
@@ -41,19 +77,19 @@ void IMU::readSensor()
     float ax = _mpu9250.getAccelX_mss() / (float) 9.81;
     float ay = _mpu9250.getAccelY_mss() / (float) 9.81;
     float az = _mpu9250.getAccelZ_mss() / (float) 9.81;
-    printf("Acc %3.3f, %3.3f, %3.3f \n", ax, ay, az);
+    //printf("Acc %3.3f, %3.3f, %3.3f \n", ax, ay, az);
 
 
     float gx  = _mpu9250.getGyroX_rads();
     float gy  = _mpu9250.getGyroY_rads();
     float gz  = _mpu9250.getGyroZ_rads();
-    printf("Gyro %3.3f, %3.3f, %3.3f \n", gx, gy, gz);
+    //printf("Gyro %3.3f, %3.3f, %3.3f \n", gx, gy, gz);
 
 
     float mx = _mpu9250.getMagX_uT();
     float my = _mpu9250.getMagY_uT();
     float mz = _mpu9250.getMagZ_uT();
-    printf("Mag %3.3f, %3.3f, %3.3f \n", mx, my, mz);
+    //printf("Mag %3.3f, %3.3f, %3.3f \n", mx, my, mz);
 
 
 }
@@ -64,3 +100,25 @@ IMU* IMU::instance()
         IMU::_instance = new IMU();
     return IMU::_instance;
 }
+
+void IMU::setup_interrupt_pin()
+{
+    gpio_config_t io_conf;
+    //interrupt on falling edge
+    io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_NEGEDGE;
+    //set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO33
+    io_conf.pin_bit_mask =  (1ULL << INTERRUPT_PIN);
+    //disable pull-down mode
+    io_conf.pull_down_en = (gpio_pulldown_t) 0;
+    //enable pull-up mode
+    io_conf.pull_up_en = (gpio_pullup_t) 1;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+
+
+    //Set ISR
+    gpio_isr_handler_add((gpio_num_t)INTERRUPT_PIN, imu_gpio_isr_handler, this);
+}
+
