@@ -988,7 +988,7 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (_address) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
   i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
   i2c_master_write_byte(cmd, data, ACK_CHECK_EN);
   i2c_master_stop(cmd);
@@ -999,6 +999,7 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 
   if (ret != ESP_OK)
   {
+      printf("MPU9250::writeRegister Error wrting to I2CBus \n");
       return -1;
   }
 
@@ -1018,6 +1019,7 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
         return 1;
     }
     else{
+        //printf("MPU9250::writeRegister Error reading back to I2CBus  reg: %2.2x, expected %2.2x read %2.2x\n",subAddress,  data, _buffer[0]);
         return -1;
     }
 }
@@ -1028,13 +1030,13 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (_address) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
     //Re-start
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
     //Read bytes
-    i2c_master_read(cmd, dest, count, (i2c_ack_type_t) ACK_VAL);
+    i2c_master_read(cmd, dest, count, (i2c_ack_type_t) NACK_VAL);
     //Stop
     i2c_master_stop(cmd);
     //Send command
@@ -1045,9 +1047,14 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
     i2c_cmd_link_delete(cmd);
 
     if (ret == ESP_OK)
+    {
       return 1;
+    }
     else 
+    {
+      printf("MPU9250::readRegisters Error \n");
       return -1;
+    }
 #if 0
     _i2c->beginTransmission(_address); // open the device
     if (_i2c->write(subAddress) == 0)

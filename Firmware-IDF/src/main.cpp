@@ -90,13 +90,15 @@ extern "C"
         IOExpander &ioExpander = IOExpander::instance();
 
 
+        IMU *imu = IMU::instance();
+        
         ADC adc(I2C_NUM_1);
 
         Display *display = Display::instance();
 
         Menu menu;
 
-        IMU *imu = IMU::instance();
+        
 
         vTaskDelay(500 / portTICK_RATE_MS);
 
