@@ -1,7 +1,7 @@
 #ifndef _IMU_H_
 #define _IMU_H_
 
-#if 0
+
 #include "MPU9250.h"
 
 #define INTERRUPT_PIN 34
@@ -10,12 +10,16 @@
 class IMU
 {
     public:
-    IMU();
+   
+    static IMU* instance();
 
     protected:
 
-    MPU9250 _imu;
-};
+    IMU();
 
-#endif
+    MPU9250 _mpu9250;
+
+    static IMU * _instance;
+
+};
 #endif

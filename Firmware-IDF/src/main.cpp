@@ -14,7 +14,7 @@
 #include "spibus.h"
 #include "i2cbus.h"
 #include "display.h"
-
+#include "imu.h"
 
 
 namespace Actions
@@ -62,6 +62,12 @@ void ledBlink(void *pvParameters)
   }
 }
 
+namespace 
+{
+    
+
+   
+}
 
 //app_main should have a "C" signature
 extern "C"
@@ -70,19 +76,33 @@ extern "C"
     {
         esp_err_t ret;
 
+        //This needs to be called first
+        //install gpio isr service
+        gpio_install_isr_service(0);
+
         //SPI bus configuration
         SPIBus spibus;
 
         //I2C bus configuration
         I2CBus i2cbus;
 
-        vTaskDelay(500 / portTICK_RATE_MS);
-
-        //install gpio isr service
-        gpio_install_isr_service(0);
-
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
+
+
+        ADC adc(I2C_NUM_1);
+
+        Display *display = Display::instance();
+
+        Menu menu;
+
+        IMU *imu = IMU::instance();
+
+        vTaskDelay(500 / portTICK_RATE_MS);
+
+  
+
+       
 
         //ALIVE -->HIGH, power will stay on
         ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
@@ -110,14 +130,12 @@ extern "C"
         TaskHandle_t ledBlinkHandle;
         xTaskCreatePinnedToCore(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle,1);
 
-        ADC adc(I2C_NUM_1);
-
-        Display display;
-        display.begin();
-        display.clear();
+     
+        display->begin();
+        display->clear();
         //display.showSplashScreen(0);
 
-        Menu menu;
+    
 
         //Do better...
         while(1)
@@ -131,7 +149,7 @@ extern "C"
             //ADC tests
             printf("Batt: %4.4f Current: %4.4f\n", adc.read_voltage(), adc.read_current());
 
-            display.displayVoltage(adc.read_voltage(), adc.read_current(), false, false, false);
+            display->displayVoltage(adc.read_voltage(), adc.read_current(), false, false, false);
             //display.updateMenu(&menu, false);
             vTaskDelay(100 / portTICK_RATE_MS);
         }

@@ -4,6 +4,14 @@
 #include <string>
 #include <sstream>
 
+Display* Display::_instance = NULL;
+
+Display* Display::instance()
+{
+    if (Display::_instance == NULL)
+        Display::_instance = new Display();
+    return Display::_instance;
+}
 
 Display::Display()
 {

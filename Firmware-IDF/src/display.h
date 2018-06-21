@@ -8,11 +8,13 @@
 class Display
 {
 public:
-    Display();
-    ~Display();
+   
+    //Singleton pattern
+    static Display* instance();
 
     void begin();
     void end();
+
 
     void showSplashScreen(uint64_t mac_adress);
     void clear();
@@ -27,6 +29,10 @@ private:
     Epd _epd;
     Paint _blackPaint{_blackImage, EPD_WIDTH, EPD_HEIGHT};
     Paint _redPaint{_redImage, EPD_WIDTH, EPD_HEIGHT};
+
+    static Display* _instance;
+     Display();
+    ~Display();
 };
 
 #endif

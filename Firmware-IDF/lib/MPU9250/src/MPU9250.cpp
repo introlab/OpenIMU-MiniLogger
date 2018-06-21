@@ -988,7 +988,7 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
 
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+  i2c_master_write_byte(cmd, (_address) | I2C_MASTER_WRITE, ACK_CHECK_EN);
   i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
   i2c_master_write_byte(cmd, data, ACK_CHECK_EN);
   i2c_master_stop(cmd);
@@ -1028,7 +1028,7 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (_address) | I2C_MASTER_WRITE, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, subAddress, ACK_CHECK_EN);
     //Re-start
     i2c_master_start(cmd);
