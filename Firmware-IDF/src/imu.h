@@ -12,10 +12,14 @@ class IMU
     public:
    
     static IMU* instance();
+    
+    void readSensor();
 
     protected:
 
     IMU();
+
+   
 
     MPU9250 _mpu9250;
 

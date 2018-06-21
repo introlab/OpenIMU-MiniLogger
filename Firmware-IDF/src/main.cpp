@@ -91,7 +91,7 @@ extern "C"
 
 
         IMU *imu = IMU::instance();
-        
+
         ADC adc(I2C_NUM_1);
 
         Display *display = Display::instance();
@@ -142,6 +142,9 @@ extern "C"
         //Do better...
         while(1)
         {
+
+            imu->readSensor();
+
             //Buttons tests
             printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
             printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));

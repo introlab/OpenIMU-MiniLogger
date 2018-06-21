@@ -1035,8 +1035,16 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
     //Re-start
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
-    //Read bytes
-    i2c_master_read(cmd, dest, count, (i2c_ack_type_t) NACK_VAL);
+
+    for (int i = 0; i < count; i++)
+    {
+        //Read bytes
+        if (i == count -1)
+          i2c_master_read_byte(cmd, &dest[i], (i2c_ack_type_t) NACK_VAL);
+        else
+          i2c_master_read_byte(cmd, &dest[i], (i2c_ack_type_t) ACK_VAL);
+    }
+
     //Stop
     i2c_master_stop(cmd);
     //Send command

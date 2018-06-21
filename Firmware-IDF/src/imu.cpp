@@ -32,6 +32,17 @@ IMU::IMU()
     }
 }
 
+void IMU::readSensor()
+{
+    _mpu9250.readSensor();
+
+    //Debug
+    float ax = _mpu9250.getAccelX_mss() / 9.81;
+    float ay = _mpu9250.getAccelY_mss() / 9.81;
+    float az = _mpu9250.getAccelZ_mss() / 9.81;
+
+    printf("Acc %3.3f, %3.3f, %3.3f \n", ax, ay, az);
+}
 
 IMU* IMU::instance()
 {
