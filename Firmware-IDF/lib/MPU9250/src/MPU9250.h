@@ -116,6 +116,12 @@ public:
     void setMagCalX(float bias,float scaleFactor);
     void setMagCalY(float bias,float scaleFactor);
     void setMagCalZ(float bias,float scaleFactor);
+
+
+    // constants
+    static constexpr float G = 9.807f;
+    static constexpr float _d2r = 3.14159265359f/180.0f;
+
 protected:
     // i2c
     uint8_t _address;
@@ -183,9 +189,7 @@ protected:
     const int16_t tX[3] = {0,  1,  0};
     const int16_t tY[3] = {1,  0,  0};
     const int16_t tZ[3] = {0,  0, -1};
-    // constants
-    const float G = 9.807f;
-    const float _d2r = 3.14159265359f/180.0f;
+
     // MPU9250 registers
     const uint8_t ACCEL_OUT = 0x3B;
     const uint8_t GYRO_OUT = 0x43;

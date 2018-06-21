@@ -23,7 +23,8 @@ namespace
         {
             xSemaphoreTake(imu->getSemaphore(), portMAX_DELAY);
             //printf("should read from task\n");
-            imu->readSensor();
+            imuData_t data;
+            imu->readSensor(&data);
         }
     }
 
@@ -69,29 +70,23 @@ IMU::IMU()
     }
 }
 
-void IMU::readSensor()
+void IMU::readSensor(imuDataPtr data)
 {
     _mpu9250.readSensor();
 
-    //Debug
-    float ax = _mpu9250.getAccelX_mss() / (float) 9.81;
-    float ay = _mpu9250.getAccelY_mss() / (float) 9.81;
-    float az = _mpu9250.getAccelZ_mss() / (float) 9.81;
-    //printf("Acc %3.3f, %3.3f, %3.3f \n", ax, ay, az);
+    if (data)
+    {
+        data->accelX = _mpu9250.getAccelX_mss() / MPU9250::G;
+        data->accelY = _mpu9250.getAccelY_mss() / MPU9250::G;
+        data->accelZ = _mpu9250.getAccelZ_mss() / MPU9250::G;
+        data->gyroX  = _mpu9250.getGyroX_rads();
+        data->gyroY  = _mpu9250.getGyroY_rads();
+        data->gyroZ  = _mpu9250.getGyroZ_rads();
+        data->magX = _mpu9250.getMagX_uT();
+        data->magY = _mpu9250.getMagY_uT();
+        data->magZ = _mpu9250.getMagZ_uT();
 
-
-    float gx  = _mpu9250.getGyroX_rads();
-    float gy  = _mpu9250.getGyroY_rads();
-    float gz  = _mpu9250.getGyroZ_rads();
-    //printf("Gyro %3.3f, %3.3f, %3.3f \n", gx, gy, gz);
-
-
-    float mx = _mpu9250.getMagX_uT();
-    float my = _mpu9250.getMagY_uT();
-    float mz = _mpu9250.getMagZ_uT();
-    //printf("Mag %3.3f, %3.3f, %3.3f \n", mx, my, mz);
-
-
+    }
 }
 
 IMU* IMU::instance()
