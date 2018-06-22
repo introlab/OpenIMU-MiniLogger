@@ -15,6 +15,8 @@ class Power
     float read_voltage();
     float read_current();
     
+    void enableExternalPower();
+    void disableExternalPower();
 
     private:
 

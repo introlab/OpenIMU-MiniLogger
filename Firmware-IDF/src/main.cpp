@@ -16,6 +16,7 @@
 #include "display.h"
 #include "imu.h"
 #include "sdcard.h"
+#include "MPL115A2.h"
 
 
 namespace Actions
@@ -83,9 +84,6 @@ extern "C"
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
 
-
-     
-    
         //ALIVE -->HIGH, power will stay on
         ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
@@ -129,6 +127,10 @@ extern "C"
 
         //Debug
         SDCard::instance()->startLog();
+
+
+        MPL115A2 test(I2C_NUM_1);
+        printf("Temp: %f, Pressure %f\n", test.getTemperature(), test.getPressure());
 
         //Do better...
         while(1)

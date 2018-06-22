@@ -1,5 +1,6 @@
 #include "power.h"
 #include "sdcard.h"
+#include "ioexpander.h"
 
 Power* Power::_instance = NULL;
 
@@ -39,9 +40,21 @@ Power* Power::instance()
 Power::Power()
     : _ads1015(I2C_NUM_1)
 {
+
+    IOExpander::instance().pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
+    disableExternalPower();
     xTaskCreate(&powerTask, "PowerTask", 2048, this, 10, &_powerTaskHandle);
 }
 
+void Power::enableExternalPower()
+{
+    IOExpander::instance().digitalWrite(EXT_PIN14_EXTERNAL_POWER_EN, HIGH);
+}
+
+void Power::disableExternalPower()
+{
+    IOExpander::instance().digitalWrite(EXT_PIN14_EXTERNAL_POWER_EN, LOW);
+}
 
 float Power::read_voltage()
 {
