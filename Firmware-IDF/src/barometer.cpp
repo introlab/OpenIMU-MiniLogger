@@ -12,8 +12,14 @@ namespace
         Barometer* baro = reinterpret_cast<Barometer*>(pvParameters);
         assert(baro);
 
+        //Initialize last tick
+        TickType_t _lastTick = xTaskGetTickCount();
+
         while(1)
         {
+            //1Hz
+            vTaskDelayUntil(&_lastTick, 1000 / portTICK_RATE_MS);
+
             //Memory allocation of data structure
             baroDataPtr_t data = (baroDataPtr_t) malloc(sizeof(baroData_t));
 
@@ -24,8 +30,7 @@ namespace
             if (!SDCard::instance()->enqueue(data))
                 free(data);
             
-            //Sleep
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            
         }
     }
 }

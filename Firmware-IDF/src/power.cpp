@@ -12,8 +12,14 @@ namespace
         Power* power = reinterpret_cast<Power*>(pvParameters);
         assert(power);
 
+        //Initialize last tick
+        TickType_t _lastTick = xTaskGetTickCount();
+
         while(1)
         {
+            //1Hz
+            vTaskDelayUntil(&_lastTick, 1000 / portTICK_RATE_MS);
+
             powerDataPtr_t data = (powerDataPtr_t) malloc(sizeof(powerData_t));
             //Fill data
             data->voltage = power->read_voltage();
@@ -22,9 +28,6 @@ namespace
             //Send to logging thread
             if (!SDCard::instance()->enqueue(data))
                 free(data);
-
-            //Sleep
-            vTaskDelay(1000 / portTICK_RATE_MS);
         }
     }
 }
