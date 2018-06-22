@@ -57,6 +57,9 @@ public:
 
     //Data from Power
     bool enqueue(powerDataPtr_t data, bool from_isr = false);
+
+    //Data from Baro
+    bool enqueue(baroDataPtr_t data, bool from_isr = false);
     
 
     /* 

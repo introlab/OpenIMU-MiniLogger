@@ -16,7 +16,7 @@
 #include "display.h"
 #include "imu.h"
 #include "sdcard.h"
-#include "MPL115A2.h"
+#include "barometer.h"
 
 
 namespace Actions
@@ -116,7 +116,12 @@ extern "C"
 
         Power *power = Power::instance();
 
+        Barometer *baro = Barometer::instance();
+
         Display *display = Display::instance();
+
+        //Debug
+        SDCard::instance()->startLog();
 
         Menu menu;
 
@@ -125,12 +130,7 @@ extern "C"
         display->clear();
         //display.showSplashScreen(0);
 
-        //Debug
-        SDCard::instance()->startLog();
-
-
-        MPL115A2 test(I2C_NUM_1);
-        printf("Temp: %f, Pressure %f\n", test.getTemperature(), test.getPressure());
+ 
 
         //Do better...
         while(1)

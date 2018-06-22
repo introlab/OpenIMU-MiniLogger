@@ -77,10 +77,20 @@ namespace sdcard
             {
                 //_logFile.write('p');
                 //_logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
-
                 free(powerPtr);
                 power_cnt++;
             }
+
+            // Data from Barometer
+            baroDataPtr_t baroPtr;
+            if(xQueueReceive(sdcard->getBaroQueue(), &baroPtr, 0) == pdTRUE)
+            {
+                //_logFile.write('b');
+                //_logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
+                free(baroPtr);
+                baro_cnt++;
+            }
+            
 
             
             
@@ -113,6 +123,7 @@ SDCard::SDCard()
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
     _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
     _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
+    _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
 
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
@@ -344,6 +355,31 @@ bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
         else
         {
             if (xQueueSend(_powerQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
+{
+    if (data != nullptr && _baroQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_baroQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_baroQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
                 return true;

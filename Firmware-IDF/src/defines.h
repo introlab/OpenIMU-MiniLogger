@@ -25,6 +25,14 @@ typedef struct {
 } powerData_t;
 typedef powerData_t* powerDataPtr_t;
 
+
+typedef struct {
+    float temperature;
+    float pressure;
+} baroData_t;
+typedef baroData_t* baroDataPtr_t;
+
+
 #ifndef OUTPUT
 #define OUTPUT (0)
 #endif
