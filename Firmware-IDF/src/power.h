@@ -1,15 +1,15 @@
-#ifndef _ADC_H_
-#define _ADC_H_
+#ifndef _POWER_H_
+#define _POWER_H_
 
 #include "defines.h"
 #include "ADS1015.h"
 
-class ADC
+class Power
 {
     public:
     
     //Singleton
-    static ADC* instance();
+    static Power* instance();
 
 
     float read_voltage();
@@ -18,9 +18,9 @@ class ADC
 
     private:
 
-    static ADC* _instance;
+    static Power* _instance;
 
-    ADC();
+    Power();
 
     ADS1015 _ads1015;
 

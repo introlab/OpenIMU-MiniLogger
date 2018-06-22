@@ -10,7 +10,7 @@
 #include "driver/i2c.h"
 
 #include "ioexpander.h"
-#include "adc.h"
+#include "power.h"
 #include "spibus.h"
 #include "i2cbus.h"
 #include "display.h"
@@ -116,7 +116,7 @@ extern "C"
 
         IMU *imu = IMU::instance();
 
-        ADC *adc = ADC::instance();
+        Power *power = Power::instance();
 
         Display *display = Display::instance();
 
@@ -143,9 +143,9 @@ extern "C"
             printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
 
             //ADC tests
-            printf("Batt: %4.4f Current: %4.4f\n", adc->read_voltage(), adc->read_current());
+            printf("Batt: %4.4f Current: %4.4f\n", power->read_voltage(), power->read_current());
 
-            display->displayVoltage(adc->read_voltage(), adc->read_current(), false, false, false);
+            display->displayVoltage(power->read_voltage(), power->read_current(), false, false, false);
             //display.updateMenu(&menu, false);
             vTaskDelay(100 / portTICK_RATE_MS);
         }

@@ -1,30 +1,30 @@
-#include "adc.h"
+#include "power.h"
 #include "defines.h"
 
-ADC* ADC::_instance = NULL;
+Power* Power::_instance = NULL;
 
-ADC* ADC::instance()
+Power* Power::instance()
 {
-    if (ADC::_instance == NULL)
-        ADC::_instance = new ADC();
-    return ADC::_instance;
+    if (Power::_instance == NULL)
+        Power::_instance = new Power();
+    return Power::_instance;
 }
 
-ADC::ADC()
+Power::Power()
     : _ads1015(I2C_NUM_1)
 {
     
 }
 
 
-float ADC::read_voltage()
+float Power::read_voltage()
 {
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_VOLTAGE_CHANNEL);
     //printf("VOLTAGE HEX: %4.4x, %i\n", value, value);
     return 5.0 * 0.002 * (float) value;
 }
 
-float ADC::read_current()
+float Power::read_current()
 {
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_CURRENT_CHANNEL);
     //printf("CURRENT HEX: %4.4x, %i\n", value, value);
