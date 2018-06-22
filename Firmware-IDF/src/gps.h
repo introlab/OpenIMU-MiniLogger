@@ -16,11 +16,13 @@ class GPS
     GPS();
 
     int read_uart(uint8_t *buffer, int max_size);
+    void setup_uart();
 
     private:
-    void setup_uart();
+   
     void setup_gpio();
    
+    uart_port_t _port;
     uart_config_t _uart_config;
     TaskHandle_t _readGPSHandle;
 };
