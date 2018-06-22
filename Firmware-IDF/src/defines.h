@@ -87,6 +87,10 @@ typedef baroData_t* baroDataPtr_t;
 #define PIN_NUM_SDA 23
 #define PIN_NUM_SCL 25
 
+//GPS definitions
+#define PIN_NUM_UART_TX 26 
+#define PIN_NUM_UART_RX 35
+
 
 //ADC definitions
 #define PIN_NUM_ADC_READY 33

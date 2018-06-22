@@ -17,6 +17,7 @@
 #include "imu.h"
 #include "sdcard.h"
 #include "barometer.h"
+#include "gps.h"
 
 
 namespace Actions
@@ -122,6 +123,8 @@ extern "C"
 
         //Debug
         SDCard::instance()->startLog();
+
+        GPS gps;
 
         Menu menu;
 
