@@ -18,8 +18,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#include "imu.h"
-#include "adc.h"
+
 
 
 #define PIN_INTERRUPT_FROM_GPS_REF 32
@@ -54,7 +53,7 @@ public:
     bool enqueue(timestampSendable_t data, bool from_isr = false);
 
     //Data from IMU
-    bool enqueue(imuData_t* data, bool from_isr = false);
+    bool enqueue(imuDataPtr_t data, bool from_isr = false);
     
 
     /* 

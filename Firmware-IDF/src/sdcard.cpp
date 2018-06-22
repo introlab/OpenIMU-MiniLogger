@@ -60,7 +60,7 @@ namespace sdcard
             }
 
             // Data from IMU
-            imuDataPtr imuPtr = nullptr;
+            imuDataPtr_t imuPtr = nullptr;
             if(xQueueReceive(sdcard->getIMUQueue(), &imuPtr, 0) == pdTRUE) 
             {
                 //_logFile.write('i');
@@ -267,7 +267,7 @@ void SDCard::stopLog()
 }
 
 
-bool SDCard::enqueue(imuData_t* data, bool from_isr)
+bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
 {
     if (data != nullptr && _imuQueue != nullptr)
     {

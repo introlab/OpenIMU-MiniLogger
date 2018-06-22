@@ -27,7 +27,7 @@ namespace
         {
             xSemaphoreTake(imu->getSemaphore(), portMAX_DELAY);
             //printf("should read from task\n");
-            imuData_t *data = (imuData_t*) malloc(sizeof(imuData_t));
+            imuDataPtr_t data = (imuDataPtr_t) malloc(sizeof(imuData_t));
             imu->readSensor(data);
 
             //Send to queue, delete if not working
@@ -80,7 +80,7 @@ IMU::IMU()
     }
 }
 
-void IMU::readSensor(imuDataPtr data)
+void IMU::readSensor(imuDataPtr_t data)
 {
     _mpu9250.readSensor();
 

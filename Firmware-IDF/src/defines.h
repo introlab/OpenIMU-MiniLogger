@@ -6,6 +6,21 @@
  * 
  **/
 
+typedef struct {
+    float accelX;
+    float accelY;
+    float accelZ;
+    float gyroX;
+    float gyroY;
+    float gyroZ;
+    float magX;
+    float magY;
+    float magZ;
+} imuData_t;
+typedef imuData_t* imuDataPtr_t;
+
+
+
 #ifndef OUTPUT
 #define OUTPUT (0)
 #endif
