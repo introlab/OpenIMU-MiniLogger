@@ -1,7 +1,44 @@
 #include "sdcard.h"
 #include "ioexpander.h"
 
+//Static instance
 SDCard* SDCard::_instance = NULL;
+
+//Anonymous namespace to avoid name collision with other modules
+namespace
+{
+
+    /**
+     * Interrupt handler 
+     */
+    void IRAM_ATTR sdcard_gpio_isr_handler(void* arg)
+    {
+        SDCard *sdcard = reinterpret_cast<SDCard*>(arg);
+        assert(sdcard);
+
+        if (sdcard->getTimeSemaphore() != NULL)
+        {
+            xSemaphoreGiveFromISR(sdcard->getTimeSemaphore(), NULL);
+        }
+    }
+
+    void logTask(void *pvParameters)
+    {
+        SDCard *sdcard = reinterpret_cast<SDCard*>(pvParameters);
+        assert(sdcard);
+
+        printf("SDCard LogTask starting... \n");
+
+        while(1)
+        {
+            xSemaphoreTake(sdcard->getTimeSemaphore(), portMAX_DELAY);
+            printf("Time pulse \n");
+        }
+
+    }
+
+
+}
 
 SDCard* SDCard::instance()
 {
@@ -12,7 +49,12 @@ SDCard* SDCard::instance()
 
 
 SDCard::SDCard()
+    :   _logTaskHandle(NULL), _timeSemaphore(NULL)
 {
+
+    _timeSemaphore = xSemaphoreCreateCounting(1,0);
+
+
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
 
@@ -64,6 +106,34 @@ void SDCard::setup_gpio(int pin)
     //configure GPIO with the given settings
     gpio_config(&io_conf);
 
+}
+
+void SDCard::setup_interrupt_pin(bool enable)
+{
+    gpio_config_t io_conf;
+    //interrupt on falling edge if enabled
+    if (enable)
+        io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_NEGEDGE;
+    else
+        io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_DISABLE;
+
+    //set as input mode
+    io_conf.mode = GPIO_MODE_INPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO33
+    io_conf.pin_bit_mask =  (1ULL << PIN_INTERRUPT_FROM_GPS_REF);
+    //disable pull-down mode
+    io_conf.pull_down_en = (gpio_pulldown_t) 0;
+    //enable pull-up mode
+    io_conf.pull_up_en = (gpio_pullup_t) 1;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+
+
+    //Set ISR if enabled
+    if (enable)
+        gpio_isr_handler_add((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF, sdcard_gpio_isr_handler, this);
+    else
+        gpio_isr_handler_remove((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF);
 }
 
 void SDCard::toESP32()
@@ -128,4 +198,23 @@ bool SDCard::mount()
 void SDCard::unmount()
 {
     esp_vfs_fat_sdmmc_unmount();
+}
+
+
+void SDCard::startLog()
+{
+    //Create file
+
+
+    
+    //Create task
+    xTaskCreate(&logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
+
+    //Enable interrupt
+    setup_interrupt_pin(true);
+}
+
+void stopLog()
+{
+
 }

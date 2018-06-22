@@ -15,6 +15,8 @@
 #include "driver/sdmmc_host.h"
 #include "sdmmc_cmd.h"
 
+#define PIN_INTERRUPT_FROM_GPS_REF 32
+
 class SDCard
 {
 public:
@@ -25,6 +27,9 @@ public:
     void toExternal();
     bool mount();
     void unmount();
+
+    void startLog();
+    void stopLog();
 
     /* 
     void begin();
@@ -49,9 +54,12 @@ private:
     void stopTimestamp();
 
     */
+
+    SemaphoreHandle_t getTimeSemaphore(){return _timeSemaphore;}
+
 private:
     void setup_gpio(int pin);
-   
+    void setup_interrupt_pin(bool enable);
 
     SDCard();
     virtual ~SDCard();
@@ -59,6 +67,8 @@ private:
     sdmmc_host_t _host;
     sdmmc_slot_config_t _slot_config;
     sdmmc_card_t* _card;
+    TaskHandle_t _logTaskHandle;
+    SemaphoreHandle_t _timeSemaphore;
 };
 
 

@@ -127,7 +127,8 @@ extern "C"
         display->clear();
         //display.showSplashScreen(0);
 
-    
+        //Debug
+        SDCard::instance()->startLog();
 
         //Do better...
         while(1)

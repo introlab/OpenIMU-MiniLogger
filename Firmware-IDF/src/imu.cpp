@@ -5,6 +5,9 @@ IMU* IMU::_instance = NULL;
 
 namespace
 {
+    /**
+     * Interrupt handler will wake up the readIMU task at every sample (for each axis). 
+     */
     void IRAM_ATTR imu_gpio_isr_handler(void* arg)
     {
         IMU *imu = (IMU*) (arg);
