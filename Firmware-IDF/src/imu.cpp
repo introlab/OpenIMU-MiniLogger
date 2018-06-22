@@ -1,5 +1,6 @@
 
 #include "imu.h"
+#include "sdcard.h"
 
 IMU* IMU::_instance = NULL;
 
@@ -26,8 +27,14 @@ namespace
         {
             xSemaphoreTake(imu->getSemaphore(), portMAX_DELAY);
             //printf("should read from task\n");
-            imuData_t data;
-            imu->readSensor(&data);
+            imuData_t *data = (imuData_t*) malloc(sizeof(imuData_t));
+            imu->readSensor(data);
+
+            //Send to queue, delete if not working
+            if (!SDCard::instance()->enqueue(data))
+                free(data);
+
+
         }
     }
 

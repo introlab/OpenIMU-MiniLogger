@@ -5,7 +5,7 @@
 SDCard* SDCard::_instance = NULL;
 
 //Anonymous namespace to avoid name collision with other modules
-namespace
+namespace sdcard
 {
 
     /**
@@ -16,10 +16,15 @@ namespace
         SDCard *sdcard = reinterpret_cast<SDCard*>(arg);
         assert(sdcard);
 
-        if (sdcard->getTimeSemaphore() != NULL)
-        {
-            xSemaphoreGiveFromISR(sdcard->getTimeSemaphore(), NULL);
-        }
+        //TODO Handle timestamp drifts and update...
+        //get time
+ 
+        timestampSendable_t now;
+        time(&now.data);
+
+
+        //Post time to queue, from isr
+        sdcard->enqueue(now, true);
     }
 
     void logTask(void *pvParameters)
@@ -29,10 +34,44 @@ namespace
 
         printf("SDCard LogTask starting... \n");
 
+        timestampSendable_t timestamp;
+        int imu_cnt = 0;
+        int gps_cnt = 0;
+        int power_cnt = 0;
+        int baro_cnt = 0;
+
         while(1)
         {
-            xSemaphoreTake(sdcard->getTimeSemaphore(), portMAX_DELAY);
-            printf("Time pulse \n");
+            //Waiting for new data from any source
+            xSemaphoreTake(sdcard->getDataReadySemaphore(), portMAX_DELAY);
+
+            // Timestamp received
+            if(xQueueReceive(sdcard->getTimestampQueue(), &timestamp.data, 0) == pdTRUE) 
+            {
+                printf("Timestamp %li i: %i g: %i p: %i b: %i\n", timestamp.data, 
+                    imu_cnt, gps_cnt, power_cnt, baro_cnt);
+
+                //Reset counters
+                imu_cnt = 0;
+                gps_cnt = 0;
+                power_cnt = 0;
+                baro_cnt = 0;
+
+            }
+
+            // Data from IMU
+            imuDataPtr imuPtr = nullptr;
+            if(xQueueReceive(sdcard->getIMUQueue(), &imuPtr, 0) == pdTRUE) 
+            {
+                //_logFile.write('i');
+                //_logFile.write((uint8_t*) imuDataPtr, sizeof(imuData_t));
+                
+                //Free memory
+                free(imuPtr);
+                imu_cnt++;
+            }
+            
+            
         }
 
     }
@@ -49,10 +88,18 @@ SDCard* SDCard::instance()
 
 
 SDCard::SDCard()
-    :   _logTaskHandle(NULL), _timeSemaphore(NULL)
+    :   _logTaskHandle(NULL), 
+        _imuQueue(NULL),  
+        _gpsQueue(NULL), 
+        _powerQueue(NULL), 
+        _baroQueue(NULL),
+        _timestampQueue(NULL),
+        _dataReadySemaphore(NULL)
 {
 
-    _timeSemaphore = xSemaphoreCreateCounting(1,0);
+    _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
+    _timestampQueue = xQueueCreate(20, sizeof(time_t));
+    _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
 
 
     //TODO, unused for now
@@ -131,7 +178,7 @@ void SDCard::setup_interrupt_pin(bool enable)
 
     //Set ISR if enabled
     if (enable)
-        gpio_isr_handler_add((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF, sdcard_gpio_isr_handler, this);
+        gpio_isr_handler_add((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF, sdcard::sdcard_gpio_isr_handler, this);
     else
         gpio_isr_handler_remove((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF);
 }
@@ -208,13 +255,62 @@ void SDCard::startLog()
 
     
     //Create task
-    xTaskCreate(&logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
+    xTaskCreate(&sdcard::logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
 
     //Enable interrupt
     setup_interrupt_pin(true);
 }
 
-void stopLog()
+void SDCard::stopLog()
 {
 
+}
+
+
+bool SDCard::enqueue(imuData_t* data, bool from_isr)
+{
+    if (data != nullptr && _imuQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_imuQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_imuQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
+{
+    if (_timestampQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_timestampQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_timestampQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                return true;
+            }
+        }
+    }
+    return false;
 }
