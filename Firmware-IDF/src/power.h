@@ -24,6 +24,8 @@ class Power
 
     ADS1015 _ads1015;
 
+    TaskHandle_t _powerTaskHandle;
+
 };
 
 

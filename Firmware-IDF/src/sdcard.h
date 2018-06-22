@@ -54,6 +54,9 @@ public:
 
     //Data from IMU
     bool enqueue(imuDataPtr_t data, bool from_isr = false);
+
+    //Data from Power
+    bool enqueue(powerDataPtr_t data, bool from_isr = false);
     
 
     /* 
@@ -84,6 +87,9 @@ protected:
     SemaphoreHandle_t getDataReadySemaphore(){return _dataReadySemaphore;}
     QueueHandle_t getTimestampQueue(){return _timestampQueue;}
     QueueHandle_t getIMUQueue(){return _imuQueue;}
+    QueueHandle_t getPowerQueue(){return _powerQueue;}
+    QueueHandle_t getBaroQueue(){return _baroQueue;}
+    QueueHandle_t getGPSQueue(){return _gpsQueue;}
 
 private:
     void setup_gpio(int pin);

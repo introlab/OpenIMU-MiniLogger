@@ -19,7 +19,11 @@ typedef struct {
 } imuData_t;
 typedef imuData_t* imuDataPtr_t;
 
-
+typedef struct {
+    float voltage;
+    float current;
+} powerData_t;
+typedef powerData_t* powerDataPtr_t;
 
 #ifndef OUTPUT
 #define OUTPUT (0)

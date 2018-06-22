@@ -1,7 +1,33 @@
 #include "power.h"
-#include "defines.h"
+#include "sdcard.h"
 
 Power* Power::_instance = NULL;
+
+namespace 
+{
+    void powerTask(void *pvParameters)
+    {
+        printf("powerTask starting...\n");
+        Power* power = reinterpret_cast<Power*>(pvParameters);
+        assert(power);
+
+        while(1)
+        {
+            powerDataPtr_t data = (powerDataPtr_t) malloc(sizeof(powerData_t));
+            //Fill data
+            data->voltage = power->read_voltage();
+            data->current = power->read_current();
+
+            //Send to logging thread
+            if (!SDCard::instance()->enqueue(data))
+                free(data);
+
+            //Sleep
+            vTaskDelay(1000 / portTICK_RATE_MS);
+        }
+    }
+}
+
 
 Power* Power::instance()
 {
@@ -13,7 +39,7 @@ Power* Power::instance()
 Power::Power()
     : _ads1015(I2C_NUM_1)
 {
-    
+    xTaskCreate(&powerTask, "PowerTask", 2048, this, 10, &_powerTaskHandle);
 }
 
 

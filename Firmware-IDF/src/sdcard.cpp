@@ -70,6 +70,18 @@ namespace sdcard
                 free(imuPtr);
                 imu_cnt++;
             }
+
+            //Data from Power
+            powerDataPtr_t powerPtr = nullptr;
+            if (xQueueReceive(sdcard->getPowerQueue(), &powerPtr, 0) == pdTRUE)
+            {
+                //_logFile.write('p');
+                //_logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
+
+                free(powerPtr);
+                power_cnt++;
+            }
+
             
             
         }
@@ -100,7 +112,7 @@ SDCard::SDCard()
     _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
     _timestampQueue = xQueueCreate(20, sizeof(time_t));
     _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
-
+    _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
 
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
@@ -306,6 +318,32 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
         else
         {
             if (xQueueSend(_timestampQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+//Data from Power
+bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
+{
+    
+    if (data != nullptr && _powerQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_powerQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_powerQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
                 return true;
