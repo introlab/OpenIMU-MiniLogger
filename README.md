@@ -17,7 +17,7 @@ Please see also :
 # Pictures
 
 ![PCB](./docs/images/OpenIMU_PCB.jpg)
-![CASE](./docs/images/OpenIMU_Case.jpg)
+![CASE](./docs/images/StatusScreen.jpeg)
 
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
