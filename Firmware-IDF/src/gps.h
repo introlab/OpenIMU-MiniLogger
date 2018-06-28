@@ -13,13 +13,18 @@
 class GPS
 {
     public:
-    GPS();
+
+    //Singleton
+    static GPS* instance();
+    
 
     int read_uart(uint8_t *buffer, int max_size);
     void setup_uart();
 
     private:
-
+    
+    GPS();
+    static GPS* _instance;
     uart_port_t _port;
     uart_config_t _uart_config;
     TaskHandle_t _readGPSHandle;

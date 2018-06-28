@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <ctime>
+#include "sdcard.h"
 
 namespace
 {
@@ -50,14 +51,14 @@ namespace
 
                         float latitude = minmea_tocoord(&rmc.latitude);
                         float longitude = minmea_tocoord(&rmc.longitude);
-                        printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
+                        //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
 
                     }
                 }
             break;
 
             case MINMEA_SENTENCE_GGA:
-                printf("MINMEA_SENTENCE_GGA\n");
+                //printf("MINMEA_SENTENCE_GGA\n");
                 struct minmea_sentence_gga gga;
                 if (minmea_parse_gga(&gga, sentence))
                 {
@@ -78,7 +79,19 @@ namespace
                     float latitude = minmea_tocoord(&gga.latitude);
                     float longitude = minmea_tocoord(&gga.longitude);
                     float altitude = minmea_tofloat(&gga.altitude);
-                    printf("GGA sat: %i, latitude: %f, longitude: %f, altitude: %f\n", sat, latitude, longitude, altitude);
+                    //printf("GGA sat: %i, latitude: %f, longitude: %f, altitude: %f\n", sat, latitude, longitude, altitude);
+
+                    gpsDataPtr_t data = (gpsDataPtr_t) malloc(sizeof(gpsData_t));
+                    //Fill data
+                    data->altitude = altitude;
+                    data->fix = true;
+                    data->latitude = latitude;
+                    data->longitude = longitude;
+
+                    //Send to logging thread
+                    if (!SDCard::instance()->enqueue(data))
+                        free(data);
+
                 }
             break;
 
@@ -203,12 +216,21 @@ namespace
     }
 }
 
+GPS* GPS::_instance = NULL;
+
+GPS* GPS::instance()
+{
+    if (GPS::_instance == NULL)
+        GPS::_instance = new GPS();
+    return GPS::_instance;
+}
+
 GPS::GPS()
     : _port(UART_NUM_1)
 {
     setup_uart();
     
-    xTaskCreate(&readGPS, "ReadGPS", 2048, this, 8, &_readGPSHandle);
+    xTaskCreate(&readGPS, "ReadGPS", 4096, this, 8, &_readGPSHandle);
     printf("GPS initialized\n");
 
 }

@@ -33,6 +33,15 @@ typedef struct {
 typedef baroData_t* baroDataPtr_t;
 
 
+typedef struct {
+    bool fix;
+    float latitude;
+    float longitude;
+    float altitude;
+} gpsData_t;
+
+typedef gpsData_t* gpsDataPtr_t;
+
 #ifndef OUTPUT
 #define OUTPUT (0)
 #endif

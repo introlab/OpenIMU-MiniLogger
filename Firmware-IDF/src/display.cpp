@@ -102,7 +102,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     _blackPaint.DrawStringAt(5, 2, batt_text.str().c_str(), &Font16, 0);
 
-#if 0
+
     time_t now;
     struct tm *timeinfo;
     time(&now);
@@ -118,8 +118,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
     strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
     _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
 
-    //Serial.print("Current time ");
-    //Serial.println(strftime_buf);
+#if 0
 
     std::stringstream gps_data, logstate, sdstate;
 

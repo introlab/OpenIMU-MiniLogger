@@ -60,6 +60,9 @@ public:
 
     //Data from Baro
     bool enqueue(baroDataPtr_t data, bool from_isr = false);
+
+    //Data from GPS
+    bool enqueue(gpsDataPtr_t data, bool from_isr = false);
     
 
     /* 

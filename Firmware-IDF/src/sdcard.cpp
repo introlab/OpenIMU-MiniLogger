@@ -91,9 +91,15 @@ namespace sdcard
                 baro_cnt++;
             }
             
-
-            
-            
+            // Data from GPS
+            gpsDataPtr_t gpsPtr;
+            if(xQueueReceive(sdcard->getGPSQueue(), &gpsPtr, 0) == pdTRUE)
+            {
+                //_logFile.write('g');
+                //_logFile.write((uint8_t*)gpsDataPtr, sizeof(gpsData_t));
+                free(gpsPtr);
+                gps_cnt++;
+            }
         }
 
     }
@@ -124,6 +130,7 @@ SDCard::SDCard()
     _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
     _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
     _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
+    _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
 
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
@@ -380,6 +387,30 @@ bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
         else
         {
             if (xQueueSend(_baroQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
+{
+    if (data != nullptr && _gpsQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_gpsQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_gpsQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
                 return true;

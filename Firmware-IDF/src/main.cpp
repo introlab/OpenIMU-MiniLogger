@@ -112,19 +112,25 @@ extern "C"
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
 
         SDCard *sdcard = SDCard::instance();
+        assert(sdcard);
 
         IMU *imu = IMU::instance();
+        assert(imu);
 
         Power *power = Power::instance();
+        assert(power);
 
         Barometer *baro = Barometer::instance();
+        assert(baro);
 
         Display *display = Display::instance();
+        assert(display);
+
+        GPS*  gps = GPS::instance();
+        assert(gps);
 
         //Debug
         SDCard::instance()->startLog();
-
-        GPS gps;
 
         Menu menu;
 
@@ -140,6 +146,7 @@ extern "C"
         {
 
             //imu->readSensor();
+            printf("reading io\n");
 
             //Buttons tests
             printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
@@ -148,10 +155,11 @@ extern "C"
             printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
 
             //ADC tests
-            printf("Batt: %4.4f Current: %4.4f\n", power->read_voltage(), power->read_current());
+            //printf("Batt: %4.4f Current: %4.4f\n", power->read_voltage(), power->read_current());
 
-            display->displayVoltage(power->read_voltage(), power->read_current(), false, false, false);
+            display->displayVoltage(0, 0, false, false, false);
             //display.updateMenu(&menu, false);
+            printf("display done!\n");
             vTaskDelay(100 / portTICK_RATE_MS);
         }
     }
