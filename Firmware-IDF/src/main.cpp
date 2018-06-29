@@ -169,6 +169,9 @@ extern "C"
     
         int change_counter = 0;
 
+
+        //Debug
+        Actions::IMUStartSD();
         //Do better...
         while(1)
         {

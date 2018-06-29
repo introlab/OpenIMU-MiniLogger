@@ -353,7 +353,7 @@ void SDCard::startLog()
     unlock();
 
     //Create task
-    xTaskCreate(&sdcard::logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
+    xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
 
     //Enable interrupt
     setup_interrupt_pin(true);
@@ -365,7 +365,10 @@ void SDCard::stopLog()
     setup_interrupt_pin(false);
 
     //Destroy task
-    vTaskDelete(_logTaskHandle); _logTaskHandle = NULL;
+    if (_logTaskHandle)
+        vTaskDelete(_logTaskHandle); 
+    _logTaskHandle = NULL;
+
 
     //Close file
     syncFile();
@@ -377,21 +380,38 @@ void SDCard::stopLog()
 
     //Destroy queues
     lock();
-    vQueueDelete(_timestampQueue); _timestampQueue = NULL;
-    vQueueDelete(_imuQueue); _imuQueue = NULL;
-    vQueueDelete(_powerQueue); _powerQueue = NULL;
-    vQueueDelete(_baroQueue); _baroQueue = NULL;
-    vQueueDelete(_gpsQueue); _gpsQueue = NULL;
+    if (_timestampQueue)
+        vQueueDelete(_timestampQueue); 
+    _timestampQueue = NULL;
+
+    if (_imuQueue)
+        vQueueDelete(_imuQueue); 
+    _imuQueue = NULL;
+
+    if (_powerQueue)
+        vQueueDelete(_powerQueue);
+    _powerQueue = NULL;
+
+    if (_baroQueue)
+        vQueueDelete(_baroQueue); 
+    _baroQueue = NULL;
+
+    if (_gpsQueue)
+        vQueueDelete(_gpsQueue); 
+    _gpsQueue = NULL;
 
     //Destroy semaphore
-    vSemaphoreDelete(_dataReadySemaphore); _dataReadySemaphore = NULL;
+    if (_dataReadySemaphore)
+        vSemaphoreDelete(_dataReadySemaphore); 
+    _dataReadySemaphore = NULL;
+
     unlock();
 }
 
 
 bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
 {
-    lock();
+    lock(from_isr);
     if (data != nullptr && _imuQueue != nullptr)
     {
         if (from_isr)
@@ -399,7 +419,7 @@ bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_imuQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
@@ -408,18 +428,21 @@ bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
             if (xQueueSend(_imuQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
     }
-    unlock();
+    unlock(from_isr);
     return false;
 }
 
 bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
 {
-    lock();
+    /**
+     *  THIS IS CALLED FROM AN ISR. BE CAREFUL. 
+     *  NO NEED TO PROTECT QUEUES, WE KNOW THEY ARE VALID
+     */
     if (_timestampQueue != nullptr)
     {
         if (from_isr)
@@ -427,7 +450,6 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSendFromISR(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
-                unlock();
                 return true;
             }
         }
@@ -436,19 +458,17 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSend(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
-                unlock();
                 return true;
             }
         }
     }
-    unlock();
     return false;
 }
 
 //Data from Power
 bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
 {
-    lock();
+    lock(from_isr);
     if (data != nullptr && _powerQueue != nullptr)
     {
         if (from_isr)
@@ -456,7 +476,7 @@ bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_powerQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
@@ -465,19 +485,19 @@ bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
             if (xQueueSend(_powerQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
     }
-    unlock();
+    unlock(from_isr);
     return false;
 }
 
 
 bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
 {
-    lock();
+    lock(from_isr);
     if (data != nullptr && _baroQueue != nullptr)
     {
         if (from_isr)
@@ -485,7 +505,7 @@ bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_baroQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
@@ -494,18 +514,18 @@ bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
             if (xQueueSend(_baroQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
     }
-    unlock();
+    unlock(from_isr);
     return false;
 }
 
 bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
 {
-    lock();
+    lock(from_isr);
     if (data != nullptr && _gpsQueue != nullptr)
     {
         if (from_isr)
@@ -513,7 +533,7 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_gpsQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
@@ -522,12 +542,12 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
             if (xQueueSend(_gpsQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
-                unlock();
+                unlock(from_isr);
                 return true;
             }
         }
     }
-    unlock();
+    unlock(from_isr);
     return false;
 }
 
@@ -555,12 +575,18 @@ bool SDCard::syncFile()
     return false;
 }
 
-void SDCard::lock()
+void SDCard::lock(bool from_isr)
 {
-    assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
+    if (from_isr)
+        xSemaphoreTakeFromISR(_mutex, NULL);
+    else
+        assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
 }
 
-void SDCard::unlock()
-{
-    assert(xSemaphoreGive(_mutex) == pdTRUE);
+void SDCard::unlock(bool from_isr)
+{   
+    if (from_isr)
+        xSemaphoreGiveFromISR(_mutex, NULL);
+    else
+        assert(xSemaphoreGive(_mutex) == pdTRUE);
 }

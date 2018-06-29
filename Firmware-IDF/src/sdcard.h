@@ -83,9 +83,9 @@ private:
 
     SDCard();
     virtual ~SDCard();
-    void lock();
-    void unlock();
-    
+    void lock(bool from_isr = false);
+    void unlock(bool from_isr = false);
+
     static SDCard* _instance;
     sdmmc_host_t _host;
     sdmmc_slot_config_t _slot_config;
