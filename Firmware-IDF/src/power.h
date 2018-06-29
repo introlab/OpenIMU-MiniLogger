@@ -23,10 +23,13 @@ class Power
     static Power* _instance;
 
     Power();
+    void lock();
+    void unlock();
 
     ADS1015 _ads1015;
 
     TaskHandle_t _powerTaskHandle;
+    SemaphoreHandle_t _mutex;
 
 };
 

@@ -25,12 +25,12 @@ Display::~Display()
 
 void Display::begin()
 {
-  _epd.Init();
+    _epd.Init();
 }
 
 void Display::end()
 {
-  _epd.Sleep();
+    _epd.Sleep();
 }
 
 void Display::showSplashScreen(uint64_t mac_adress)
@@ -118,11 +118,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
     strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
     _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
 
-#if 0
-
     std::stringstream gps_data, logstate, sdstate;
-
-
 
     sdstate << "  SD Mode : " ;
 
@@ -141,7 +137,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);
 
-#endif
+
     _epd.DisplayFrame(_blackImage, NULL/*_redImage */);
 
 }

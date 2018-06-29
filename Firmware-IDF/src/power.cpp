@@ -43,7 +43,8 @@ Power* Power::instance()
 Power::Power()
     : _ads1015(I2C_NUM_1)
 {
-
+    _mutex = xSemaphoreCreateMutex();
+    assert(_mutex != NULL);
     IOExpander::instance().pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
     disableExternalPower();
     xTaskCreate(&powerTask, "PowerTask", 2048, this, 5, &_powerTaskHandle);
@@ -60,15 +61,29 @@ void Power::disableExternalPower()
 }
 
 float Power::read_voltage()
-{
+{   
+    lock();
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_VOLTAGE_CHANNEL);
+    unlock();
     //printf("VOLTAGE HEX: %4.4x, %i\n", value, value);
     return 5.0 * 0.002 * (float) value;
 }
 
 float Power::read_current()
 {
+    lock();
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_CURRENT_CHANNEL);
+    unlock();
     //printf("CURRENT HEX: %4.4x, %i\n", value, value);
     return ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
+}
+
+void Power::lock()
+{
+    assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
+}
+
+void Power::unlock()
+{
+    assert(xSemaphoreGive(_mutex) == pdTRUE);
 }

@@ -140,6 +140,8 @@ extern "C"
         while(1)
         {
             bool changed = false;
+            float voltage = power->read_voltage();
+            float current = power->read_current();
 
             while(buttons->getActionCtn() > 0) 
             {
@@ -164,7 +166,7 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(0, 0, 0, false, false);
+                display->displayVoltage(voltage, current, false, false, false);
                 buttons->decrementBackCtn();
             }
             
@@ -182,7 +184,7 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
-                    display->displayVoltage(0, 0 , false, false, false);
+                    display->displayVoltage(voltage, current , false, false, false);
                     change_counter = 0;
                 }
             }

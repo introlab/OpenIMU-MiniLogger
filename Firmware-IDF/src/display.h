@@ -7,8 +7,8 @@
 
 class Display
 {
-public:
-   
+    public:
+
     //Singleton pattern
     static Display* instance();
 
