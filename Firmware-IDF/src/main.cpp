@@ -18,6 +18,7 @@
 #include "sdcard.h"
 #include "barometer.h"
 #include "gps.h"
+#include "buttons.h"
 
 
 namespace Actions
@@ -98,18 +99,12 @@ extern "C"
         ioExpander.digitalWrite(EXT_PIN13_BATT_READ_EN, HIGH);
 
 
-        //Buttons
-        ioExpander.pinMode(EXT_PIN11_BUTTON0, INPUT);
-        ioExpander.pullupMode(EXT_PIN11_BUTTON0, HIGH);
-        ioExpander.pinMode(EXT_PIN06_BUTTON1, INPUT);
-        ioExpander.pullupMode(EXT_PIN06_BUTTON1, HIGH);
-        ioExpander.pinMode(EXT_PIN08_BUTTON2, INPUT);
-        ioExpander.pullupMode(EXT_PIN08_BUTTON2, HIGH);
-        ioExpander.pinMode(EXT_PIN09_BUTTON3, INPUT);
-        ioExpander.pullupMode(EXT_PIN09_BUTTON3, HIGH);
-
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
+
+        Buttons *buttons = Buttons::instance();
+        assert(buttons);
+
 
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
@@ -149,16 +144,16 @@ extern "C"
             printf("reading io\n");
 
             //Buttons tests
-            printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
-            printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));
-            printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
-            printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
+            //printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
+            //printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));
+            //printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
+            //printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
 
             //ADC tests
             //printf("Batt: %4.4f Current: %4.4f\n", power->read_voltage(), power->read_current());
 
-            display->displayVoltage(0, 0, false, false, false);
-            //display.updateMenu(&menu, false);
+            //display->displayVoltage(0, 0, false, false, false);
+            display->updateMenu(&menu, false);
             printf("display done!\n");
             vTaskDelay(100 / portTICK_RATE_MS);
         }
