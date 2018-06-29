@@ -64,6 +64,9 @@ public:
     //Data from GPS
     bool enqueue(gpsDataPtr_t data, bool from_isr = false);
     
+    bool logFileWrite(const void* data, size_t size);
+
+    bool syncFile();
 
     /* 
     void begin();
@@ -115,6 +118,7 @@ private:
     QueueHandle_t _baroQueue; 
     QueueHandle_t _timestampQueue; 
     SemaphoreHandle_t _dataReadySemaphore; 
+    FILE* _logFile;
 };
 
 

@@ -23,25 +23,61 @@
 
 namespace Actions
 {
+    bool loggingEnabled = false;
+
     // Software Shutdown by the menu
     void Shutdown()
     {
+        if (loggingEnabled)
+        {
+            loggingEnabled = false;
+            SDCard::instance()->stopLog();  
+        }
+
+        //TODO show spash screen
+
+        //Shutdown
+        printf("Bye!\n");
+        IOExpander::instance().digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
 
     }
 
     void SDToESP32()
     {
-
+        if (loggingEnabled)
+        {
+            loggingEnabled = false;
+            SDCard::instance()->stopLog();  
+        }
+        SDCard::instance()->toESP32();
     }
 
     void SDToExternal()
     {
-
+        if (loggingEnabled)
+        {
+            loggingEnabled = false;
+            SDCard::instance()->stopLog();  
+        }
+        SDCard::instance()->toExternal();
     }
 
     //Same function to start and stop logging to avoid double start
     void IMUStartSD()
     {
+        printf("IMUStartSD\n");
+        if (loggingEnabled)
+        {
+            printf("Stopping log\n");
+            loggingEnabled = false;
+            SDCard::instance()->stopLog();
+        }
+        else
+        {
+            printf("Starting log\n");
+            loggingEnabled = true;
+            SDCard::instance()->startLog();
+        }
 
 
     }
@@ -109,6 +145,9 @@ extern "C"
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
 
+        GPS*  gps = GPS::instance();
+        assert(gps);
+
         IMU *imu = IMU::instance();
         assert(imu);
 
@@ -121,11 +160,8 @@ extern "C"
         Display *display = Display::instance();
         assert(display);
 
-        GPS*  gps = GPS::instance();
-        assert(gps);
-
         //Debug
-        SDCard::instance()->startLog();
+        //SDCard::instance()->startLog();
 
         Menu menu;
 
@@ -166,14 +202,14 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(voltage, current, false, false, false);
+                display->displayVoltage(voltage, current, false, Actions::loggingEnabled, false);
                 buttons->decrementBackCtn();
             }
             
             if(changed) 
             {
             
-                display->updateMenu(&menu,false);
+                display->updateMenu(&menu, Actions::loggingEnabled);
             
                 change_counter = 0;
             }
@@ -184,7 +220,7 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
-                    display->displayVoltage(voltage, current , false, false, false);
+                    display->displayVoltage(voltage, current , false, Actions::loggingEnabled, false);
                     change_counter = 0;
                 }
             }

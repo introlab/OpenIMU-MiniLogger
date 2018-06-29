@@ -1,5 +1,6 @@
 #include "sdcard.h"
 #include "ioexpander.h"
+#include <stdio.h>
 
 //Static instance
 SDCard* SDCard::_instance = NULL;
@@ -18,7 +19,6 @@ namespace sdcard
 
         //TODO Handle timestamp drifts and update...
         //get time
- 
         timestampSendable_t now;
         time(&now.data);
 
@@ -48,6 +48,15 @@ namespace sdcard
             // Timestamp received
             if(xQueueReceive(sdcard->getTimestampQueue(), &timestamp.data, 0) == pdTRUE) 
             {
+
+                //_logFile.write('t');
+                //_logFile.write(timestamp.bytes, sizeof(time_t));
+                sdcard->logFileWrite("t", 1);
+                sdcard->logFileWrite(timestamp.bytes, sizeof(time_t));
+
+                //Should sync file
+                sdcard->syncFile();
+
                 printf("Timestamp %li i: %i g: %i p: %i b: %i\n", timestamp.data, 
                     imu_cnt, gps_cnt, power_cnt, baro_cnt);
 
@@ -64,8 +73,10 @@ namespace sdcard
             if(xQueueReceive(sdcard->getIMUQueue(), &imuPtr, 0) == pdTRUE) 
             {
                 //_logFile.write('i');
-                //_logFile.write((uint8_t*) imuDataPtr, sizeof(imuData_t));
-                
+                //_logFile.write((uint8_t*) imuPtr, sizeof(imuData_t));
+                sdcard->logFileWrite("i", 1);
+                sdcard->logFileWrite(imuPtr, sizeof(imuData_t));
+
                 //Free memory
                 free(imuPtr);
                 imu_cnt++;
@@ -76,7 +87,9 @@ namespace sdcard
             if (xQueueReceive(sdcard->getPowerQueue(), &powerPtr, 0) == pdTRUE)
             {
                 //_logFile.write('p');
-                //_logFile.write((uint8_t*) powerDataPtr, sizeof(powerData_t));
+                //_logFile.write((uint8_t*) powerPtr, sizeof(powerData_t));
+                sdcard->logFileWrite("p",1);
+                sdcard->logFileWrite(powerPtr, sizeof(powerData_t));
                 free(powerPtr);
                 power_cnt++;
             }
@@ -86,7 +99,9 @@ namespace sdcard
             if(xQueueReceive(sdcard->getBaroQueue(), &baroPtr, 0) == pdTRUE)
             {
                 //_logFile.write('b');
-                //_logFile.write((uint8_t*) baroDataPtr, sizeof(baroData_t));
+                //_logFile.write((uint8_t*) baroPtr, sizeof(baroData_t));
+                sdcard->logFileWrite("b", 1);
+                sdcard->logFileWrite(baroPtr, sizeof(baroData_t));
                 free(baroPtr);
                 baro_cnt++;
             }
@@ -96,15 +111,15 @@ namespace sdcard
             if(xQueueReceive(sdcard->getGPSQueue(), &gpsPtr, 0) == pdTRUE)
             {
                 //_logFile.write('g');
-                //_logFile.write((uint8_t*)gpsDataPtr, sizeof(gpsData_t));
+                //_logFile.write((uint8_t*)gpsPtr, sizeof(gpsData_t));
+                sdcard->logFileWrite("g",1);
+                sdcard->logFileWrite(gpsPtr, sizeof(gpsData_t));
                 free(gpsPtr);
                 gps_cnt++;
             }
         }
 
     }
-
-
 }
 
 SDCard* SDCard::instance()
@@ -122,7 +137,8 @@ SDCard::SDCard()
         _powerQueue(NULL), 
         _baroQueue(NULL),
         _timestampQueue(NULL),
-        _dataReadySemaphore(NULL)
+        _dataReadySemaphore(NULL), 
+        _logFile(NULL)
 {
 
     _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
@@ -154,9 +170,7 @@ SDCard::SDCard()
 
     // This initializes the slot without card detect (CD) and write protect (WP) signals.
     // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
-    _slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-
-    
+    _slot_config = SDMMC_SLOT_CONFIG_DEFAULT();    
 
     toESP32();
     //toExternal();
@@ -258,7 +272,6 @@ bool SDCard::mount()
     esp_vfs_fat_sdmmc_mount_config_t mount_config;
     mount_config.format_if_mount_failed = false;
     mount_config.max_files = 5;
-    //mount_config.allocation_unit_size = 16 * 1024;
 
 
     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &_host, &_slot_config, &mount_config, &_card);
@@ -269,21 +282,60 @@ bool SDCard::mount()
         return true;
     }
 
+    printf("Error mounting file system\n");
     return false;
 }
 
 void SDCard::unmount()
 {
+    if (_logFile)
+        fclose(_logFile);
+
+    _logFile = NULL;
+
     esp_vfs_fat_sdmmc_unmount();
 }
 
 
 void SDCard::startLog()
 {
-    //Create file
+    //Look for latest file
+    //Create it if not 
+    struct stat st;
+    int file_id = 0;
+    if (stat("/sdcard/latest.txt", &st) != 0)
+    {
+        printf("latest file not found.Creating...\n");
+        //Write first index to the file
+        FILE* f = fopen("/sdcard/latest.txt", "w");
+        fprintf(f,"%i\n",0);
+        fclose(f);
+    }
+    else
+    {
+        //Read latest file
+        FILE *f = fopen("/sdcard/latest.txt", "r");
+        fscanf(f,"%i", &file_id);
+        //Increment file id
+        file_id++;
+        fclose(f);
+        printf("file ID is now : %i\n", file_id);
+    }
 
+    //Safety, if we were already logging
+    if (_logFile)
+        fclose(_logFile);
 
+    //Open binary file
+    char logfile_name[32];
+    sprintf(logfile_name, "/sdcard/%i.dat", file_id);
+    printf("Log file name %s \n", logfile_name);
+    _logFile = fopen(logfile_name,"w");
+    assert(_logFile);
     
+    //Write header...
+    logFileWrite("h",1);
+
     //Create task
     xTaskCreate(&sdcard::logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
 
@@ -417,5 +469,29 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
             }
         }
     }
+    return false;
+}
+
+bool SDCard::logFileWrite(const void* data, size_t size)
+{
+    if (_logFile)
+    {
+        if (fwrite(data, size, 1, _logFile) == 1)
+            return true;
+    }
+
+    printf("Error writing to log file\n");
+    return false;
+}
+
+bool SDCard::syncFile()
+{
+    if (_logFile)
+    {
+        fflush(_logFile);
+        fsync(fileno(_logFile));
+        return true;
+    }
+    printf("Error sync to log file\n");
     return false;
 }

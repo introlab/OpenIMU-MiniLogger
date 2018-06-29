@@ -5,6 +5,7 @@
     },
     "files.associations": {
         "initializer_list": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "cmath": "cpp"
     }
 }

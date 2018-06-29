@@ -11,11 +11,20 @@ namespace
         struct timeval timeval;
         minmea_gettime(&timeval, date, time_);
 
+        /*
+        struct timeval timeval_now;
+        gettimeofday(&timeval_now, NULL);
+
+        printf("timediff: %li\n",(timeval_now.tv_sec * 1000000 + timeval_now.tv_usec) - 
+            (timeval.tv_sec * 1000000 + timeval.tv_usec));
+        */
         // struct timezone timezone;
         // timezone.tz_minuteswest = -5 * 60;
         // timezone.tz_dsttime = 0; //DST_CAN;
         settimeofday(&timeval, NULL);
         //Serial.println("Got time from GPS");
+
+    
     }
 
     //Called from task
