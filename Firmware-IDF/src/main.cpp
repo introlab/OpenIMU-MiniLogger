@@ -8,6 +8,7 @@
 #include "driver/gpio.h"
 #include <stdio.h>
 #include "driver/i2c.h"
+#include <soc/efuse_reg.h>
 
 #include "ioexpander.h"
 #include "power.h"
@@ -34,9 +35,11 @@ namespace Actions
             loggingEnabled = false;
             SDCard::instance()->stopLog();  
         }
+        uint64_t mac_adress = 0;
+        esp_efuse_mac_get_default((uint8_t*) (&mac_adress));
 
-        //TODO show spash screen with mac
-        Display::instance()->showSplashScreen(0);
+        //Show spash screen with mac
+        Display::instance()->showSplashScreen(mac_adress);
 
         //Shutdown
         printf("Bye!\n");
@@ -169,9 +172,8 @@ extern "C"
     
         int change_counter = 0;
 
-
         //Debug
-        Actions::IMUStartSD();
+        //Actions::IMUStartSD();
         //Do better...
         while(1)
         {
