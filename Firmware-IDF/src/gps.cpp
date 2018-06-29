@@ -54,6 +54,11 @@ namespace
                         //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
 
                     }
+                    else
+                    {
+                        //No GPS fix, but valid date and time
+                        setTimeFromGPS(&rmc.date, &rmc.time);
+                    }
                 }
             break;
 
