@@ -134,28 +134,61 @@ extern "C"
         display->clear();
         //display.showSplashScreen(0);
 
- 
+        int change_counter = 0;
 
         //Do better...
         while(1)
         {
+            bool changed = false;
 
-            //imu->readSensor();
-            printf("reading io\n");
+            while(buttons->getActionCtn() > 0) 
+            {
+                menu.action();
+                buttons->decrementActionCtn();
+                changed = true;
+            }
 
-            //Buttons tests
-            //printf("B0: %i\n", ioExpander.digitalRead(EXT_PIN11_BUTTON0));
-            //printf("B1: %i\n", ioExpander.digitalRead(EXT_PIN06_BUTTON1));
-            //printf("B2: %i\n", ioExpander.digitalRead(EXT_PIN08_BUTTON2));
-            //printf("B3: %i\n", ioExpander.digitalRead(EXT_PIN09_BUTTON3));
+            while(buttons->getPreviousCtn() > 0) 
+            {
+                menu.previous();
+                buttons->decrementPreviousCtn();
+                changed = true;
+            }
 
-            //ADC tests
-            //printf("Batt: %4.4f Current: %4.4f\n", power->read_voltage(), power->read_current());
+            while(buttons->getNextCtn() > 0) 
+            {
+                menu.next();
+                buttons->decrementNextCtn();
+                changed = true;
+            }
 
-            //display->displayVoltage(0, 0, false, false, false);
-            display->updateMenu(&menu, false);
-            printf("display done!\n");
+            while(buttons->getBackCtn() > 0) 
+            {
+                display->displayVoltage(0, 0, 0, false, false);
+                buttons->decrementBackCtn();
+            }
+            
+            if(changed) 
+            {
+            
+                display->updateMenu(&menu,false);
+            
+                change_counter = 0;
+            }
+            else 
+            {
+                change_counter++;
+
+                // Every 5 seconds verify if no activity, then paint state
+                if (change_counter > 50)
+                {
+                    display->displayVoltage(0, 0 , false, false, false);
+                    change_counter = 0;
+                }
+            }
+        
+            // Sleep for 100ms
             vTaskDelay(100 / portTICK_RATE_MS);
-        }
+        } //while
     }
 }
