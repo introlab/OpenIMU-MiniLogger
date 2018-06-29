@@ -24,6 +24,7 @@
 namespace Actions
 {
     bool loggingEnabled = false;
+    bool sdcardExternal = false;
 
     // Software Shutdown by the menu
     void Shutdown()
@@ -34,7 +35,8 @@ namespace Actions
             SDCard::instance()->stopLog();  
         }
 
-        //TODO show spash screen
+        //TODO show spash screen with mac
+        Display::instance()->showSplashScreen(0);
 
         //Shutdown
         printf("Bye!\n");
@@ -49,6 +51,7 @@ namespace Actions
             loggingEnabled = false;
             SDCard::instance()->stopLog();  
         }
+        sdcardExternal = false;
         SDCard::instance()->toESP32();
     }
 
@@ -59,6 +62,7 @@ namespace Actions
             loggingEnabled = false;
             SDCard::instance()->stopLog();  
         }
+        sdcardExternal = true;
         SDCard::instance()->toExternal();
     }
 
@@ -78,27 +82,24 @@ namespace Actions
             loggingEnabled = true;
             SDCard::instance()->startLog();
         }
-
-
-    }
-
-    void IMUStopSD()    // used to be sure to stop log when device shutdown
-    {
-
     }
 }
 
 void ledBlink(void *pvParameters)
 {
+
+    //Initialize last tick
+    TickType_t _lastTick = xTaskGetTickCount();
+
+    int state = LOW;
+
     while(1)
     {
-        IOExpander::instance().digitalWrite(EXT_PIN01_LED, LOW);
-
-        vTaskDelay(500 / portTICK_RATE_MS);
-
-        IOExpander::instance().digitalWrite(EXT_PIN01_LED, HIGH);
-
-        vTaskDelay(500 / portTICK_RATE_MS);
+        //2Hz
+        vTaskDelayUntil(&_lastTick, 500 / portTICK_RATE_MS);
+        IOExpander::instance().digitalWrite(EXT_PIN01_LED, state);
+        state = !state;
+        
     }
 }
 
@@ -141,7 +142,6 @@ extern "C"
         Buttons *buttons = Buttons::instance();
         assert(buttons);
 
-
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
 
@@ -160,16 +160,11 @@ extern "C"
         Display *display = Display::instance();
         assert(display);
 
-        //Debug
-        //SDCard::instance()->startLog();
-
         Menu menu;
-
 
         display->begin();
         display->clear();
-        //display.showSplashScreen(0);
-
+    
         int change_counter = 0;
 
         //Do better...
@@ -202,15 +197,13 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(voltage, current, false, Actions::loggingEnabled, false);
+                display->displayVoltage(voltage, current, false, Actions::loggingEnabled, Actions::sdcardExternal);
                 buttons->decrementBackCtn();
             }
             
             if(changed) 
             {
-            
                 display->updateMenu(&menu, Actions::loggingEnabled);
-            
                 change_counter = 0;
             }
             else 
@@ -220,7 +213,7 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
-                    display->displayVoltage(voltage, current , false, Actions::loggingEnabled, false);
+                    display->displayVoltage(voltage, current , false, Actions::loggingEnabled, Actions::sdcardExternal);
                     change_counter = 0;
                 }
             }

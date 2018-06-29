@@ -94,7 +94,8 @@ uint16_t ADS1015::readADC_SingleEnded(uint8_t channel)
 
     //Will wait for fallling edge
     // Wait for the conversion to complete, read ready signal
-    xSemaphoreTake(_semaphore, portMAX_DELAY);
+    if (xSemaphoreTake(_semaphore, 1000 / portTICK_RATE_MS) != pdTRUE)
+        printf("ERROR: could not wait for adc semaphore\n");
 
     // Read the conversion results
     // Shift 12-bit results right 4 bits for the ADS1015

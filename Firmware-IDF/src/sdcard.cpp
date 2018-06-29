@@ -138,15 +138,12 @@ SDCard::SDCard()
         _baroQueue(NULL),
         _timestampQueue(NULL),
         _dataReadySemaphore(NULL), 
-        _logFile(NULL)
+        _logFile(NULL), 
+        _mutex(NULL)
 {
-
-    _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
-    _timestampQueue = xQueueCreate(20, sizeof(time_t));
-    _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
-    _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
-    _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
-    _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
+    //Init mutex
+    _mutex = xSemaphoreCreateMutex();
+    assert(_mutex != NULL);
 
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
@@ -299,6 +296,9 @@ void SDCard::unmount()
 
 void SDCard::startLog()
 {
+    //Make sure we are connected to the SD card!
+    toESP32();
+
     //Look for latest file
     //Create it if not 
     struct stat st;
@@ -336,6 +336,16 @@ void SDCard::startLog()
     //Write header...
     logFileWrite("h",1);
 
+    //Create queues
+    lock();
+    _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
+    _timestampQueue = xQueueCreate(20, sizeof(time_t));
+    _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
+    _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
+    _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
+    _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
+    unlock();
+
     //Create task
     xTaskCreate(&sdcard::logTask, "LogTask", 2048, this, 10, &_logTaskHandle);
 
@@ -345,12 +355,37 @@ void SDCard::startLog()
 
 void SDCard::stopLog()
 {
+    //Disable interrupt
+    setup_interrupt_pin(false);
 
+    //Destroy task
+    vTaskDelete(_logTaskHandle); _logTaskHandle = NULL;
+
+    //Close file
+    syncFile();
+    if (_logFile)
+    {
+        fclose(_logFile);
+        _logFile = NULL;
+    }
+
+    //Destroy queues
+    lock();
+    vQueueDelete(_timestampQueue); _timestampQueue = NULL;
+    vQueueDelete(_imuQueue); _imuQueue = NULL;
+    vQueueDelete(_powerQueue); _powerQueue = NULL;
+    vQueueDelete(_baroQueue); _baroQueue = NULL;
+    vQueueDelete(_gpsQueue); _gpsQueue = NULL;
+
+    //Destroy semaphore
+    vSemaphoreDelete(_dataReadySemaphore); _dataReadySemaphore = NULL;
+    unlock();
 }
 
 
 bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
 {
+    lock();
     if (data != nullptr && _imuQueue != nullptr)
     {
         if (from_isr)
@@ -358,6 +393,7 @@ bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_imuQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock();
                 return true;
             }
         }
@@ -366,15 +402,18 @@ bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
             if (xQueueSend(_imuQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock();
                 return true;
             }
         }
     }
+    unlock();
     return false;
 }
 
 bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
 {
+    lock();
     if (_timestampQueue != nullptr)
     {
         if (from_isr)
@@ -382,6 +421,7 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSendFromISR(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock();
                 return true;
             }
         }
@@ -390,17 +430,19 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSend(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock();
                 return true;
             }
         }
     }
+    unlock();
     return false;
 }
 
 //Data from Power
 bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
 {
-    
+    lock();
     if (data != nullptr && _powerQueue != nullptr)
     {
         if (from_isr)
@@ -408,6 +450,7 @@ bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_powerQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock();
                 return true;
             }
         }
@@ -416,16 +459,19 @@ bool SDCard::enqueue(powerDataPtr_t data, bool from_isr)
             if (xQueueSend(_powerQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock();
                 return true;
             }
         }
     }
+    unlock();
     return false;
 }
 
 
 bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
 {
+    lock();
     if (data != nullptr && _baroQueue != nullptr)
     {
         if (from_isr)
@@ -433,6 +479,7 @@ bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_baroQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock();
                 return true;
             }
         }
@@ -441,15 +488,18 @@ bool SDCard::enqueue(baroDataPtr_t data, bool from_isr)
             if (xQueueSend(_baroQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock();
                 return true;
             }
         }
     }
+    unlock();
     return false;
 }
 
 bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
 {
+    lock();
     if (data != nullptr && _gpsQueue != nullptr)
     {
         if (from_isr)
@@ -457,6 +507,7 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
             if (xQueueSendFromISR(_gpsQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock();
                 return true;
             }
         }
@@ -465,10 +516,12 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
             if (xQueueSend(_gpsQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock();
                 return true;
             }
         }
     }
+    unlock();
     return false;
 }
 
@@ -492,6 +545,16 @@ bool SDCard::syncFile()
         fsync(fileno(_logFile));
         return true;
     }
-    printf("Error sync to log file\n");
+    printf("Error syncing log file\n");
     return false;
+}
+
+void SDCard::lock()
+{
+    assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
+}
+
+void SDCard::unlock()
+{
+    assert(xSemaphoreGive(_mutex) == pdTRUE);
 }

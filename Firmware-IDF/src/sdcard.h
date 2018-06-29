@@ -68,29 +68,6 @@ public:
 
     bool syncFile();
 
-    /* 
-    void begin();
-
-    void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
-    bool mount();
-
-    
-    
-
-    void setDataReadySemaphore(SemaphoreHandle_t semaphore);
-    void setIMUQueue(QueueHandle_t queue);
-    void setGPSQueue(QueueHandle_t queue);
-    void setPowerQueue(QueueHandle_t queue);
-    void setBarometerQueue(QueueHandle_t queue);
-
-    void startLog();
-    void stopLog();
-
-private:
-    void startTimestamp();
-    void stopTimestamp();
-
-    */
 protected:
 
     SemaphoreHandle_t getDataReadySemaphore(){return _dataReadySemaphore;}
@@ -106,6 +83,9 @@ private:
 
     SDCard();
     virtual ~SDCard();
+    void lock();
+    void unlock();
+    
     static SDCard* _instance;
     sdmmc_host_t _host;
     sdmmc_slot_config_t _slot_config;
@@ -119,6 +99,7 @@ private:
     QueueHandle_t _timestampQueue; 
     SemaphoreHandle_t _dataReadySemaphore; 
     FILE* _logFile;
+    SemaphoreHandle_t _mutex;
 };
 
 
