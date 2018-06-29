@@ -74,12 +74,14 @@ namespace Actions
         {
             printf("Stopping log\n");
             loggingEnabled = false;
+            sdcardExternal = false;
             SDCard::instance()->stopLog();
         }
         else
         {
             printf("Starting log\n");
             loggingEnabled = true;
+            sdcardExternal = false;
             SDCard::instance()->startLog();
         }
     }
@@ -197,7 +199,7 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(voltage, current, false, Actions::loggingEnabled, Actions::sdcardExternal);
+                display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                 buttons->decrementBackCtn();
             }
             
@@ -213,7 +215,7 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
-                    display->displayVoltage(voltage, current , false, Actions::loggingEnabled, Actions::sdcardExternal);
+                    display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                     change_counter = 0;
                 }
             }

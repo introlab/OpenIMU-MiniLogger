@@ -20,6 +20,8 @@ class GPS
 
     int read_uart(uint8_t *buffer, int max_size);
     void setup_uart();
+    void setFix(bool fix);
+    bool getFix(){return _gpsFix;}
 
     private:
     
@@ -28,6 +30,7 @@ class GPS
     uart_port_t _port;
     uart_config_t _uart_config;
     TaskHandle_t _readGPSHandle;
+    bool _gpsFix;
 };
 
 #endif

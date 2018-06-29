@@ -48,6 +48,7 @@ namespace
                 {
                     if (rmc.valid)
                     {
+                        GPS::instance()->setFix(true);
                         /*
                         struct minmea_float latitude;
                         struct minmea_float longitude;
@@ -65,6 +66,7 @@ namespace
                     }
                     else
                     {
+                        GPS::instance()->setFix(false);
                         //No GPS fix, but valid date and time
                         setTimeFromGPS(&rmc.date, &rmc.time);
                     }
@@ -240,7 +242,7 @@ GPS* GPS::instance()
 }
 
 GPS::GPS()
-    : _port(UART_NUM_1)
+    : _port(UART_NUM_1), _gpsFix(false)
 {
     setup_uart();
     
@@ -273,4 +275,9 @@ int GPS::read_uart(uint8_t *buffer, int max_size)
 {
     int len = uart_read_bytes(_port, buffer, max_size, 20 / portTICK_RATE_MS);
     return len;
+}
+
+void GPS::setFix(bool fix)
+{
+    _gpsFix = fix;
 }
