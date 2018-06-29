@@ -320,6 +320,12 @@ void SDCard::startLog()
         file_id++;
         fclose(f);
         printf("file ID is now : %i\n", file_id);
+
+        //Write back file id to file
+        f = fopen("/sdcard/latest.txt", "w");
+        fprintf(f,"%i\n",file_id);
+        fclose(f);
+
     }
 
     //Safety, if we were already logging

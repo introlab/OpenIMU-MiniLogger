@@ -165,8 +165,8 @@ namespace
         assert(gps != NULL);
 
         
-        uint8_t buffer[128];
-        memset(buffer, 0, 128 * sizeof(uint8_t));
+        uint8_t buffer[MAXLINELENGTH];
+        memset(buffer, 0, MAXLINELENGTH * sizeof(uint8_t));
 
         typedef enum 
         {
@@ -196,7 +196,7 @@ namespace
                 case READ_SENTENCE:
                     //Read first char
                     len = gps->read_uart(&buffer[pos], 1);
-                    if (len == 1 && pos < 128)
+                    if (len == 1 && pos < MAXLINELENGTH)
                     {
                         if ( buffer[pos] != '\n')
                         {
@@ -204,7 +204,7 @@ namespace
                         }
                         else
                         {
-                            buffer[++pos] = '\0';
+                            //buffer[++pos] = '\0';
                             state = PROCESS_SENTENCE;
                         }
                     }
@@ -222,8 +222,12 @@ namespace
                         //printf("Found sentence : %s\n", buffer);
                         process_sentence((const char*) buffer);
                     }
+                    else
+                    {
+                        printf("ERROR: sentence check failed\n");
+                    }
                     state = SCAN_FIRST_CHAR;
-                    memset(buffer, 0, 128 * sizeof(uint8_t));
+                    memset(buffer, 0, MAXLINELENGTH * sizeof(uint8_t));
                 break;
 
             }
