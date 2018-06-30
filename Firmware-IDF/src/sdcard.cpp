@@ -100,6 +100,7 @@ namespace sdcard
             {
                 //_logFile.write('b');
                 //_logFile.write((uint8_t*) baroPtr, sizeof(baroData_t));
+                // printf("saving baro : %f %f \n", baroPtr->pressure, baroPtr->temperature);
                 sdcard->logFileWrite("b", 1);
                 sdcard->logFileWrite(baroPtr, sizeof(baroData_t));
                 free(baroPtr);

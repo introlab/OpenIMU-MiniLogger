@@ -25,6 +25,8 @@ namespace
 
             //fill data
             baro->getPT(data->pressure, data->temperature);
+
+            //printf("baro : %f %f\n", data->pressure, data->temperature);
             
             //Send to logging thread
             if (!SDCard::instance()->enqueue(data))

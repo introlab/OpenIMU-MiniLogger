@@ -48,7 +48,7 @@ void MPL115A2::getPT(float &P, float &T)
 
     writeRegister(MPL115A2_REGISTER_STARTCONVERSION, 0x00);
     // Wait a bit for the conversion to complete (3ms max)
-    delay(5);
+    delay(10);
 
     // Read all data
     readRegisters(MPL115A2_REGISTER_PRESSURE_MSB, 4, data);
@@ -95,6 +95,8 @@ esp_err_t MPL115A2::readRegisters(uint8_t reg, uint8_t count, uint8_t* dest)
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (_address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
 
+    i2c_master_read(cmd, dest, count, (i2c_ack_type_t) ACK_VAL);
+/*
     for (int i = 0; i < count; i++)
     {
         //Read bytes
@@ -103,7 +105,7 @@ esp_err_t MPL115A2::readRegisters(uint8_t reg, uint8_t count, uint8_t* dest)
         else
             i2c_master_read_byte(cmd, &dest[i], (i2c_ack_type_t) ACK_VAL);
     }
-
+*/
     //Stop
     i2c_master_stop(cmd);
 
