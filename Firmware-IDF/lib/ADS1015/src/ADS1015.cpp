@@ -118,7 +118,7 @@ uint16_t ADS1015::readRegister(uint8_t i2cAddress, uint8_t reg)
     uint8_t data[2];
 
     i2c_master_read_byte(cmd, &data[0], (i2c_ack_type_t) ACK_VAL);
-    i2c_master_read_byte(cmd, &data[1], (i2c_ack_type_t) ACK_VAL);
+    i2c_master_read_byte(cmd, &data[1], (i2c_ack_type_t) NACK_VAL);
     i2c_master_stop(cmd);
 
     /*
