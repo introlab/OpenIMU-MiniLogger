@@ -47,7 +47,7 @@ Power::Power()
     assert(_mutex != NULL);
     IOExpander::instance().pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
     disableExternalPower();
-    xTaskCreate(&powerTask, "PowerTask", 2048, this, 5, &_powerTaskHandle);
+    xTaskCreate(&powerTask, "PowerTask", 2048, this, 6, &_powerTaskHandle);
 }
 
 void Power::enableExternalPower()

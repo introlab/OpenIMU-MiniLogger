@@ -48,13 +48,15 @@ void MPL115A2::getPT(float &P, float &T)
 
     writeRegister(MPL115A2_REGISTER_STARTCONVERSION, 0x00);
     // Wait a bit for the conversion to complete (3ms max)
-    delay(5);
+    delay(3);
 
     // Read all data
     readRegisters(MPL115A2_REGISTER_PRESSURE_MSB, 4, data);
 
     pressure = (( (uint16_t) data[0] << 8) | data[1]) >> 6;
     temp = (( (uint16_t) data[2] << 8) | data[3]) >> 6;
+
+    printf("P%2.2x T%2.2x \n", pressure, temp);
 
     // See datasheet p.6 for evaluation sequence
     pressureComp = _mpl115a2_a0 + (_mpl115a2_b1 + _mpl115a2_c12 * temp ) * pressure + _mpl115a2_b2 * temp;
@@ -112,6 +114,9 @@ esp_err_t MPL115A2::readRegisters(uint8_t reg, uint8_t count, uint8_t* dest)
     //Send command
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
 
+    if (ret != ESP_OK)
+        printf("ERROR MPL115A2::readRegisters I2C Bus: ret = %i\n", ret);
+
     //Delete cmd
     i2c_cmd_link_delete(cmd);
 
@@ -131,6 +136,9 @@ esp_err_t MPL115A2::writeRegister(uint8_t reg, uint8_t data)
 
     //Send command
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
+    if (ret != ESP_OK)
+        printf("ERROR MPL115A2::writeRegister I2C Bus: ret = %i\n", ret);
+
     i2c_cmd_link_delete(cmd);
 
     //Return result

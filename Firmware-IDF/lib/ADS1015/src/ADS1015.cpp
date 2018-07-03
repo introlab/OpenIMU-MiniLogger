@@ -95,7 +95,7 @@ uint16_t ADS1015::readADC_SingleEnded(uint8_t channel)
     //Will wait for fallling edge
     // Wait for the conversion to complete, read ready signal
     if (xSemaphoreTake(_semaphore, 1000 / portTICK_RATE_MS) != pdTRUE)
-        printf("ERROR: could not wait for adc semaphore\n");
+        printf("ERROR ADS1015::readADC_SingleEnded : could not wait for adc semaphore after interrupt.\n");
 
     // Read the conversion results
     // Shift 12-bit results right 4 bits for the ADS1015
@@ -130,7 +130,7 @@ uint16_t ADS1015::readRegister(uint8_t i2cAddress, uint8_t reg)
 
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd, 1000 / portTICK_RATE_MS);
     if (ret != ESP_OK)
-        printf("Error: ADS1015::readRegister ret: %i %2.2x%2.2x\n", ret, data[0], data[1]);
+        printf("ERROR: ADS1015::readRegister ret: %i %2.2x%2.2x\n", ret, data[0], data[1]);
 
     i2c_cmd_link_delete(cmd);
 
@@ -149,7 +149,7 @@ esp_err_t ADS1015::writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value
     i2c_master_stop(cmd);
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd, 1000 / portTICK_RATE_MS);
     if (ret != ESP_OK)
-        printf("Error: ADC1015::writeRegister ret: %i\n", ret);
+        printf("ERROR: ADC1015::writeRegister ret: %i\n", ret);
 
     i2c_cmd_link_delete(cmd);
     return ret;
