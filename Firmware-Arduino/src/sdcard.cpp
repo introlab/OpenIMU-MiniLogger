@@ -293,8 +293,8 @@ namespace
                 // int nb_sec = timestamp.bytes[3]*256*256*256 + timestamp.bytes[2]*256*256+ timestamp.bytes[1]*256 + timestamp.bytes[0];
                 // Serial.printf("TS %d\n",nb_sec );
 
-                // Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
-                //         , gps_cnt, power_cnt, baro_cnt);
+                Serial.printf("WR Timestamp i: %i g: %i p: %i b: %i\n", imu_cnt
+                         , gps_cnt, power_cnt, baro_cnt);
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;
