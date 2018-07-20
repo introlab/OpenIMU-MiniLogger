@@ -56,7 +56,7 @@ void MPL115A2::getPT(float &P, float &T)
     pressure = (( (uint16_t) data[0] << 8) | data[1]) >> 6;
     temp = (( (uint16_t) data[2] << 8) | data[3]) >> 6;
 
-    printf("P%2.2x T%2.2x \n", pressure, temp);
+    //printf("P%2.2x T%2.2x \n", pressure, temp);
 
     // See datasheet p.6 for evaluation sequence
     pressureComp = _mpl115a2_a0 + (_mpl115a2_b1 + _mpl115a2_c12 * temp ) * pressure + _mpl115a2_b2 * temp;

@@ -42,7 +42,6 @@ namespace
             break;
 
             case MINMEA_SENTENCE_RMC:
-                //printf("MINMEA_SENTENCE_RMC\n");
                 struct minmea_sentence_rmc rmc;
                 if (minmea_parse_rmc(&rmc, sentence))
                 {
@@ -56,9 +55,6 @@ namespace
                         struct minmea_float course;
                         struct minmea_float variation;
                         */
-                    
-                        setTimeFromGPS(&rmc.date, &rmc.time);
-
                         float latitude = minmea_tocoord(&rmc.latitude);
                         float longitude = minmea_tocoord(&rmc.longitude);
                         //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
@@ -67,9 +63,13 @@ namespace
                     else
                     {
                         GPS::instance()->setFix(false);
-                        //No GPS fix, but valid date and time
-                        setTimeFromGPS(&rmc.date, &rmc.time);
                     }
+                    //Date and time are always valid
+                    setTimeFromGPS(&rmc.date, &rmc.time);
+                }
+                else
+                {
+                    printf("GPS: error parsing RMC\n");
                 }
             break;
 

@@ -21,8 +21,7 @@ namespace sdcard
         //get time
         timestampSendable_t now;
         time(&now.data);
-
-
+        
         //Post time to queue, from isr
         sdcard->enqueue(now, true);
     }
