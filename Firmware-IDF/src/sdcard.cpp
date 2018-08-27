@@ -9,22 +9,45 @@ SDCard* SDCard::_instance = NULL;
 namespace sdcard
 {
 
+    void generateTimestamp(void *pvParameters)
+    {
+        SDCard *sdcard = reinterpret_cast<SDCard*>(pvParameters);
+        assert(sdcard);
+
+        TickType_t lastGeneration = xTaskGetTickCount();
+        timestampSendable_t now;
+        time(&now.data);
+        // struct tm *ts;
+        while(1) {
+            vTaskDelayUntil(&lastGeneration, 1000 / portTICK_RATE_MS);
+            time(&now.data);
+            // ts = localtime(&now);
+            // Serial.printf("%s", asctime(ts));
+            sdcard->enqueue(now,false);
+            
+                //Serial.println("giving data ready");
+                // xSemaphoreGive(_dataReadySemaphore);
+            
+        }
+    }
+
+
     /**
      * Interrupt handler 
      */
-    void IRAM_ATTR sdcard_gpio_isr_handler(void* arg)
-    {
-        SDCard *sdcard = reinterpret_cast<SDCard*>(arg);
-        assert(sdcard);
+    // void IRAM_ATTR sdcard_gpio_isr_handler(void* arg)
+    // {
+    //     SDCard *sdcard = reinterpret_cast<SDCard*>(arg);
+    //     assert(sdcard);
 
-        //TODO Handle timestamp drifts and update...
-        //get time
-        timestampSendable_t now;
-        time(&now.data);
+    //     //TODO Handle timestamp drifts and update...
+    //     //get time
+    //     timestampSendable_t now;
+    //     time(&now.data);
         
-        //Post time to queue, from isr
-        sdcard->enqueue(now, true);
-    }
+    //     //Post time to queue, from isr
+    //     sdcard->enqueue(now, true);
+    // }
 
     void logTask(void *pvParameters)
     {
@@ -218,10 +241,10 @@ void SDCard::setup_interrupt_pin(bool enable)
 
 
     //Set ISR if enabled
-    if (enable)
-        gpio_isr_handler_add((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF, sdcard::sdcard_gpio_isr_handler, this);
-    else
-        gpio_isr_handler_remove((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF);
+    // if (enable)
+    //     gpio_isr_handler_add((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF, sdcard::sdcard_gpio_isr_handler, this);
+    // else
+    //     gpio_isr_handler_remove((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF);
 }
 
 void SDCard::toESP32()
@@ -354,6 +377,7 @@ void SDCard::startLog()
 
     //Create task
     xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
+    xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
 
     //Enable interrupt
     setup_interrupt_pin(true);
@@ -369,6 +393,9 @@ void SDCard::stopLog()
         vTaskDelete(_logTaskHandle); 
     _logTaskHandle = NULL;
 
+    if (_timestampTask)
+        vTaskDelete(_timestampTask); 
+    _timestampTask = NULL;
 
     //Close file
     syncFile();
@@ -443,6 +470,7 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
      *  THIS IS CALLED FROM AN ISR. BE CAREFUL. 
      *  NO NEED TO PROTECT QUEUES, WE KNOW THEY ARE VALID
      */
+    lock(from_isr);
     if (_timestampQueue != nullptr)
     {
         if (from_isr)
@@ -450,6 +478,7 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSendFromISR(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock(from_isr);
                 return true;
             }
         }
@@ -458,6 +487,7 @@ bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
             if (xQueueSend(_timestampQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
+                unlock(from_isr);
                 return true;
             }
         }

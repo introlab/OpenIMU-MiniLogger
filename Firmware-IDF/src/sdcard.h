@@ -31,12 +31,13 @@ union timestampSendable_t {
 namespace sdcard
 {
     void logTask(void *pvParameters);
+    void generateTimestamp(void *pvParameters);
 }
 
 class SDCard
 {
     friend void sdcard::logTask(void *pvParameters);
-
+    friend void generateTimestamp(void *pvParameters);
 public:
 
     static SDCard* instance();
@@ -91,6 +92,7 @@ private:
     sdmmc_slot_config_t _slot_config;
     sdmmc_card_t* _card;
     TaskHandle_t _logTaskHandle;
+    TaskHandle_t _timestampTask;
 
     QueueHandle_t _imuQueue; 
     QueueHandle_t _gpsQueue;
