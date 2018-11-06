@@ -31,6 +31,7 @@ namespace
     void process_sentence(const char* sentence)
     {
         int id = minmea_sentence_id(sentence, true);
+        // printf("ID GPS print : %d\n",id);
         switch(id)
         {
             case MINMEA_INVALID:
@@ -210,7 +211,7 @@ namespace
                     }
                     else
                     {
-                        printf("error pos : %i", pos);
+                        // printf("error pos : %i\n", pos);
                         state = SCAN_FIRST_CHAR;
                     }
                 break;
@@ -219,7 +220,7 @@ namespace
                     
                     if (minmea_check((const char*) buffer, true))
                     {
-                        //printf("Found sentence : %s\n", buffer);
+                        // printf("Found sentence : %s\n", buffer);
                         process_sentence((const char*) buffer);
                     }
                     else

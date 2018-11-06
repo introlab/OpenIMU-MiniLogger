@@ -61,6 +61,7 @@ namespace sdcard
         int gps_cnt = 0;
         int power_cnt = 0;
         int baro_cnt = 0;
+        int pulse_cnt = 0;
 
         while(1)
         {
@@ -79,15 +80,15 @@ namespace sdcard
                 //Should sync file
                 sdcard->syncFile();
 
-                printf("Timestamp %li i: %i g: %i p: %i b: %i\n", timestamp.data, 
-                    imu_cnt, gps_cnt, power_cnt, baro_cnt);
+                printf("Timestamp %li i: %i g: %i p: %i b: %i hr: %i\n", timestamp.data, 
+                    imu_cnt, gps_cnt, power_cnt, baro_cnt, pulse_cnt);
 
                 //Reset counters
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;
                 baro_cnt = 0;
-
+                pulse_cnt = 0;
             }
 
             // Data from IMU
@@ -117,7 +118,7 @@ namespace sdcard
             }
 
             // Data from Barometer
-            baroDataPtr_t baroPtr;
+            baroDataPtr_t baroPtr = nullptr;
             if(xQueueReceive(sdcard->getBaroQueue(), &baroPtr, 0) == pdTRUE)
             {
                 //_logFile.write('b');
@@ -130,7 +131,7 @@ namespace sdcard
             }
             
             // Data from GPS
-            gpsDataPtr_t gpsPtr;
+            gpsDataPtr_t gpsPtr = nullptr;
             if(xQueueReceive(sdcard->getGPSQueue(), &gpsPtr, 0) == pdTRUE)
             {
                 //_logFile.write('g');
@@ -139,6 +140,17 @@ namespace sdcard
                 sdcard->logFileWrite(gpsPtr, sizeof(gpsData_t));
                 free(gpsPtr);
                 gps_cnt++;
+            }
+
+            pulseDataPtr_t pulsePtr = nullptr;
+            if(xQueueReceive(sdcard->getPulseQueue(), &pulsePtr, 0) == pdTRUE)
+            {
+                //_logFile.write('h');
+                //_logFile.write((uint8_t*)pulsePtr, sizeof(pulseData_t));
+                sdcard->logFileWrite("h",1);
+                sdcard->logFileWrite(pulsePtr, sizeof(pulseData_t));
+                free(pulsePtr);
+                pulse_cnt++;
             }
         }
 
@@ -160,6 +172,7 @@ SDCard::SDCard()
         _powerQueue(NULL), 
         _baroQueue(NULL),
         _timestampQueue(NULL),
+        _pulseQueue(NULL),
         _dataReadySemaphore(NULL), 
         _logFile(NULL), 
         _mutex(NULL)
@@ -373,6 +386,7 @@ void SDCard::startLog()
     _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
     _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
     _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
+    _pulseQueue = xQueueCreate(20, sizeof(pulseData_t*));
     unlock();
 
     //Create task
@@ -426,6 +440,10 @@ void SDCard::stopLog()
     if (_gpsQueue)
         vQueueDelete(_gpsQueue); 
     _gpsQueue = NULL;
+
+     if (_pulseQueue)
+        vQueueDelete(_pulseQueue); 
+    _pulseQueue = NULL;
 
     //Destroy semaphore
     if (_dataReadySemaphore)
@@ -570,6 +588,34 @@ bool SDCard::enqueue(gpsDataPtr_t data, bool from_isr)
         else
         {
             if (xQueueSend(_gpsQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGive(_dataReadySemaphore);
+                unlock(from_isr);
+                return true;
+            }
+        }
+    }
+    unlock(from_isr);
+    return false;
+}
+
+bool SDCard::enqueue(pulseDataPtr_t data, bool from_isr)
+{
+    lock(from_isr);
+    if (data != nullptr && _pulseQueue != nullptr)
+    {
+        if (from_isr)
+        {
+            if (xQueueSendFromISR(_pulseQueue, &data, 0) == pdTRUE)
+            {
+                xSemaphoreGiveFromISR(_dataReadySemaphore, NULL);
+                unlock(from_isr);
+                return true;
+            }
+        }
+        else
+        {
+            if (xQueueSend(_pulseQueue, &data, 0) == pdTRUE)
             {
                 xSemaphoreGive(_dataReadySemaphore);
                 unlock(from_isr);

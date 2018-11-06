@@ -52,7 +52,7 @@ Barometer::Barometer()
     : _mpl115A2(I2C_NUM_1), _baroTaskHandle(NULL)
 {
     //Create task
-    xTaskCreate(&baroTask, "BaroTask", 2048, this, 5, &_baroTaskHandle);
+    xTaskCreate(&baroTask, "BaroTask", 2048, this, 9, &_baroTaskHandle);
 
 }
 

@@ -6,20 +6,24 @@
 #include "driver/spi_master.h"
 #include "soc/gpio_struct.h"
 #include "driver/gpio.h"
-#include <stdio.h>
 #include "driver/i2c.h"
 #include <soc/efuse_reg.h>
+
 
 #include "ioexpander.h"
 #include "power.h"
 #include "spibus.h"
 #include "i2cbus.h"
+#include "i2cbusext.h"
 #include "display.h"
 #include "imu.h"
 #include "sdcard.h"
 #include "barometer.h"
+#include "pulse.h"
 #include "gps.h"
 #include "buttons.h"
+
+#include "bluetooth.h"
 
 
 namespace Actions
@@ -113,7 +117,7 @@ extern "C"
 {
     void app_main()
     {
-        esp_err_t ret;
+        // esp_err_t ret;
 
         //This needs to be called first
         //install gpio isr service
@@ -124,6 +128,9 @@ extern "C"
 
         //I2C bus configuration
         I2CBus i2cbus;
+
+        //I2C Ext bus configuration
+        I2CBusExt i2cbusext;
 
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
@@ -159,11 +166,22 @@ extern "C"
         Power *power = Power::instance();
         assert(power);
 
+        //Enable External Power, Low State to pilot the transistor
+        ioExpander.pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN14_EXTERNAL_POWER_EN,LOW);
+        
         Barometer *baro = Barometer::instance();
         assert(baro);
 
+        Pulse *pulse = Pulse::instance();
+        assert(pulse);
+
         Display *display = Display::instance();
         assert(display);
+
+        Bluetooth *bluetooth = Bluetooth::instance();
+        assert(bluetooth);
+
 
         Menu menu;
 
@@ -204,6 +222,7 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
+                // display->displayVoltage(voltage, current, true, Actions::loggingEnabled, Actions::sdcardExternal);
                 display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                 buttons->decrementBackCtn();
             }
@@ -220,6 +239,7 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
+                    // display->displayVoltage(voltage, current , true, Actions::loggingEnabled, Actions::sdcardExternal);
                     display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                     change_counter = 0;
                 }
