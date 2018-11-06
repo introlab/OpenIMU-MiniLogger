@@ -130,6 +130,16 @@ Menu::Menu()
     item->addSubmenu(subMenu);
     _currentSubMenu->addItem(item);
 
+    subMenu = new SubMenu("Add Sensor", _currentSubMenu);
+
+    item = new MenuItem("MAX30102");
+    item->addAction(Actions::LaunchMAX);
+    subMenu->addItem(item);
+
+    item = new MenuItem("Add Sensor");
+    item->addSubmenu(subMenu);
+    _currentSubMenu->addItem(item);
+
 
     subMenu = new SubMenu("SD Card", _currentSubMenu);
 

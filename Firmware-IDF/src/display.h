@@ -20,7 +20,7 @@ class Display
     void clear();
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu, bool stateLog);
-    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
+    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog, bool pulse_plugged);
 
 private:
     unsigned char _blackImage[EPD_WIDTH*EPD_HEIGHT];

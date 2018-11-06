@@ -15,6 +15,8 @@ namespace
         Pulse *pulse = reinterpret_cast<Pulse*>(pvParameters);
         assert(pulse);
 
+        pulse->set_plugged(true);
+
         uint32_t ir_buff[MAX30102_FIFO_SIZE+ALGO_BUFFER_SIZE]={0};    
         uint32_t red_buff[MAX30102_FIFO_SIZE+ALGO_BUFFER_SIZE]={0};
         uint32_t * ptr_ir=ir_buff;
@@ -36,11 +38,17 @@ namespace
             vTaskDelayUntil(&lastGeneration, 250 / portTICK_RATE_MS);
 
             // Add measured value to the IR and Red buffers and return added value number, n_elem=<MAX30102_FIFO_SIZE
-            pulse->getLedVal(ptr_ir+buf_ind , ptr_red+buf_ind ,&n_elem);
+            if (pulse->getLedVal(ptr_ir+buf_ind , ptr_red+buf_ind ,&n_elem))
+                {
+                    printf("MAX30102 disconnected, check wires and add device\n");
+                    pulse->set_plugged(false);
+                    vTaskDelete(NULL);
+                }
+
             
             // Update of buffer used index
             buf_ind+=n_elem;
-            // printf("Pulse task : n_= %d | buf_ind= %d\n", n_elem,buf_ind);
+            printf("Pulse task : n_= %d | buf_ind= %d\n", n_elem,buf_ind);
 
             if (buf_ind>ALGO_BUFFER_SIZE)
             {
@@ -98,12 +106,12 @@ Pulse* Pulse::instance()
 }
 
 Pulse::Pulse()
-    :  _max30102(I2C_NUM_0),_pulseTaskHandle(NULL){
+    :  _max30102(I2C_NUM_0),_pulseTaskHandle(NULL),_plugged(false){
     // Init here
     
     // Detect and create task only if sensor connected, if not plug the sensor and restart the device
     if (_max30102.init_config()!= ESP_OK)
-        printf("MAX30102 not connected, check and restart device to use it\n");
+        printf("MAX30102 not connected, check and try add device\n");
     else
         xTaskCreate(&pulseTask, "PulseTask", 16384, this, 5, &_pulseTaskHandle);
     
@@ -111,12 +119,35 @@ Pulse::Pulse()
 
 }
 
+void Pulse::connect()
+{
+    if (_plugged)
+        printf("Already plugged\n");
+    else
+    {
+        if (_max30102.init_config()!= ESP_OK)
+            printf("MAX30102 not connected, check and retry\n");
+        else
+            xTaskCreate(&pulseTask, "PulseTask", 16384, this, 5, &_pulseTaskHandle);
+    }
+}
+
+bool Pulse::get_plugged()
+{
+    return _plugged;
+}
+
+void Pulse::set_plugged(bool val)
+{
+    _plugged=val;
+}
+
 Pulse::~Pulse()
 {
 
 }
 
-void Pulse::getLedVal(uint32_t * pun_ir_led, uint32_t * pun_red_led,uint8_t *k)
+esp_err_t Pulse::getLedVal(uint32_t * pun_ir_led, uint32_t * pun_red_led,uint8_t *k)
 {
-     _max30102.readFIFO(pun_red_led,pun_ir_led,k);
+     return _max30102.readFIFO(pun_red_led,pun_ir_led,k);
 }

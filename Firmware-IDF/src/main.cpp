@@ -73,6 +73,19 @@ namespace Actions
         SDCard::instance()->toExternal();
     }
 
+    void LaunchMAX()
+    {
+            
+        if (loggingEnabled)
+        {
+            loggingEnabled = false;
+            SDCard::instance()->stopLog();  
+        }
+        sdcardExternal = true;
+        Pulse::instance()->connect();
+    
+    }
+
     //Same function to start and stop logging to avoid double start
     void IMUStartSD()
     {
@@ -223,7 +236,7 @@ extern "C"
             while(buttons->getBackCtn() > 0) 
             {
                 // display->displayVoltage(voltage, current, true, Actions::loggingEnabled, Actions::sdcardExternal);
-                display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
+                display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal,pulse->get_plugged());
                 buttons->decrementBackCtn();
             }
             
@@ -240,7 +253,7 @@ extern "C"
                 if (change_counter > 50)
                 {
                     // display->displayVoltage(voltage, current , true, Actions::loggingEnabled, Actions::sdcardExternal);
-                    display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
+                    display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal,pulse->get_plugged());
                     change_counter = 0;
                 }
             }

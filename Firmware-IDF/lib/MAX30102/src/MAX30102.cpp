@@ -27,25 +27,26 @@ esp_err_t MAX30102::init_config()
     ret|=writeRegister(REG_LED1_PA,0x24);   //Choose value for ~ 7mA for LED1
     ret|=writeRegister(REG_LED2_PA,0x24);   // Choose value for ~ 7mA for LED2
     ret|=writeRegister(REG_PILOT_PA,0x7f);   // Choose value for ~ 25mA for Pilot LED
+    printf("test :)");
     return ret;
 }
 
-void MAX30102::readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k)
+esp_err_t MAX30102::readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k)
 {    
     // This function have to be called every X seconds to have continued values
     // SMP_AVE / SPO2_SR < X < MAX30102_FIFO_SIZE_1LED * SMP_AVE / SPO2_SR
     
-
+    esp_err_t ret= ESP_OK;
     //read and clear status register, Interrupt no wired atm
     uint8_t status[1];
-    readRegisters(REG_INTR_STATUS_1, 1, status);
-    readRegisters(REG_INTR_STATUS_2, 1, status);
+    ret|=readRegisters(REG_INTR_STATUS_1, 1, status);
+    ret|=readRegisters(REG_INTR_STATUS_2, 1, status);
 
     // Calcul of samples number to be read from FIFO
     uint8_t wr_ptr[1];
     uint8_t rd_ptr[1];
-    readRegisters(REG_FIFO_WR_PTR,1,wr_ptr);
-    readRegisters(REG_FIFO_RD_PTR,1,rd_ptr);
+    ret|=readRegisters(REG_FIFO_WR_PTR,1,wr_ptr);
+    ret|=readRegisters(REG_FIFO_RD_PTR,1,rd_ptr);
     uint8_t toRead=16;
     toRead = ((wr_ptr[0]- rd_ptr[0]) & (MAX30102_FIFO_SIZE-1));
     *k=toRead;
@@ -54,7 +55,7 @@ void MAX30102::readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k
     if (toRead>0)
     {
         uint8_t buffer[6*toRead];
-        readRegisters(REG_FIFO_DATA, 6*toRead, buffer);
+        ret|=readRegisters(REG_FIFO_DATA, 6*toRead, buffer);
 
         for(int i=0;i<toRead;i++)
         {
@@ -64,7 +65,7 @@ void MAX30102::readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k
             pun_ir_led[i] &= 0x03FFFF; //Mask MSB [23:18]
         }
     }
-
+    return ret;
     // TO DO : 
     // - make a return when sensor disconnected
     // - Implement Interrupt Wire in MiniLogger new design to avoid polling

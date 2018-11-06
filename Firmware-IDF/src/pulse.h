@@ -14,15 +14,18 @@ class Pulse
 public:
     static Pulse* instance();
 
-    void getLedVal(uint32_t * pun_ir_led, uint32_t * pun_red_led,uint8_t *k);
-
+    esp_err_t getLedVal(uint32_t * pun_ir_led, uint32_t * pun_red_led,uint8_t *k);
+    bool get_plugged();
+    void set_plugged(bool val);
+    void connect();
     private:
     static Pulse* _instance;
     Pulse();
     virtual ~Pulse();
-
+    
     MAX30102 _max30102;
     TaskHandle_t _pulseTaskHandle;
+    bool _plugged;
 };
 
 #endif

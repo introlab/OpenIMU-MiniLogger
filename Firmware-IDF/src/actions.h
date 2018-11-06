@@ -6,6 +6,7 @@ namespace Actions
     extern void SDToESP32();
     extern void SDToExternal();
 
+    extern void LaunchMAX();
     // extern void IMUStartSerial();
     // extern void IMUStopSerial();
 

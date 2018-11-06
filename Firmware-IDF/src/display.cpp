@@ -91,7 +91,7 @@ void Display::clear()
 
 
 // display sleep screen
-void Display::displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog)
+void Display::displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog,bool pulse_plugged)
 {
     _blackPaint.Clear(1);
     _redPaint.Clear(1);
@@ -118,23 +118,22 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
     strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
     _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
 
-    std::stringstream gps_data, logstate, sdstate;
+    std::stringstream gps_data, logstate, sdstate,pulsestate;
 
     sdstate << "  SD Mode : " ;
-
     (sdLog) ?  sdstate << "USB" :  sdstate << "Log";
-
     _blackPaint.DrawStringAt(0, 25, sdstate.str().c_str(), &Font16, 0);
 
     gps_data << "  GPS data : " ;
-
     (validData) ?  gps_data << "Yes" :  gps_data << "No";
-
     _blackPaint.DrawStringAt(0, 50, gps_data.str().c_str(), &Font16, 0);
+
+    pulsestate << "  HR Plugged ? ";
+    (pulse_plugged) ?  pulsestate << "Y" :  pulsestate << "N";
+    _blackPaint.DrawStringAt(0, 140, pulsestate.str().c_str(), &Font16, 0);
+
     logstate << " Logging: ";
-
     (stateLog) ?  logstate << "ON" :  logstate << "OFF";
-
     _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);
 
 

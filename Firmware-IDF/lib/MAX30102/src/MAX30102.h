@@ -44,7 +44,7 @@ class MAX30102
     public:
     MAX30102(i2c_port_t port, uint8_t address=MAX30102_ADDR);
 
-    void readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k);
+    esp_err_t readFIFO(uint32_t * pun_red_led, uint32_t * pun_ir_led,uint8_t *k);
     esp_err_t init_config();
 
     private:
