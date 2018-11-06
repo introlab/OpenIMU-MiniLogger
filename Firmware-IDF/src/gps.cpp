@@ -196,8 +196,11 @@ namespace
                 case READ_SENTENCE:
                     //Read first char
                     len = gps->read_uart(&buffer[pos], 1);
+                    
+                    
                     if (len == 1 && pos < MAXLINELENGTH)
                     {
+                        
                         if ( buffer[pos] != '\n')
                         {
                             pos++;
@@ -210,7 +213,9 @@ namespace
                     }
                     else
                     {
-                        printf("error pos : %i", pos);
+                        //for (int i = 0; i< pos; i++)
+                        //    printf("%c %2.2x\n", buffer[i], (int) buffer[i]);
+                        printf("GPS error pos : %i len: %i \n", pos, len);
                         state = SCAN_FIRST_CHAR;
                     }
                 break;
@@ -277,7 +282,7 @@ void GPS::setup_uart()
 
 int GPS::read_uart(uint8_t *buffer, int max_size)
 {
-    int len = uart_read_bytes(_port, buffer, max_size, 20 / portTICK_RATE_MS);
+    int len = uart_read_bytes(_port, buffer, max_size, 1000 / portTICK_RATE_MS);
     return len;
 }
 
