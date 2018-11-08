@@ -3,6 +3,7 @@
 #include "fonts.h"
 #include <string>
 #include <sstream>
+#include <sys/time.h>
 
 Display* Display::_instance = NULL;
 
@@ -104,18 +105,18 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
 
     time_t now;
-    struct tm *timeinfo;
+    struct tm timeinfo;
     time(&now);
-    timeinfo = gmtime(&now);
+    localtime_r(&now, &timeinfo);
 
     char strftime_buf[64];
-    strftime(strftime_buf, sizeof(strftime_buf), "%a %b %d", timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%a %b %d", &timeinfo);
     _blackPaint.DrawStringAt(35, 80, strftime_buf, &Font20, 0);
 
-    strftime(strftime_buf, sizeof(strftime_buf), "%R", timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%R", &timeinfo);
     _blackPaint.DrawStringAt(47, 105, strftime_buf, &Font24, 0);
 
-    strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), ":%S", &timeinfo);
     _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
 
     std::stringstream gps_data, logstate, sdstate;
@@ -126,7 +127,7 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     _blackPaint.DrawStringAt(0, 25, sdstate.str().c_str(), &Font16, 0);
 
-    gps_data << "  GPS data : " ;
+    gps_data << "  GPS fix : " ;
 
     (validData) ?  gps_data << "Yes" :  gps_data << "No";
 

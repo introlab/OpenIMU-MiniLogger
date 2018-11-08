@@ -113,6 +113,8 @@ extern "C"
 {
     void app_main()
     {
+       
+
         esp_err_t ret;
 
         //This needs to be called first
@@ -177,6 +179,12 @@ extern "C"
         //Do better...
         while(1)
         {
+
+
+            setenv("TZ", "GEST+5EDT,M3.2.0/2,M11.1.0/2", 1);
+            tzset();
+
+
             bool changed = false;
             float voltage = power->read_voltage();
             float current = power->read_current();

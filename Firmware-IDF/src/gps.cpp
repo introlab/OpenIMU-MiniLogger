@@ -15,16 +15,15 @@ namespace
         struct timeval timeval_now;
         gettimeofday(&timeval_now, NULL);
 
+        printf("GPS Time: %li\n", timeval.tv_sec);
         printf("timediff: %li\n",(timeval_now.tv_sec * 1000000 + timeval_now.tv_usec) - 
             (timeval.tv_sec * 1000000 + timeval.tv_usec));
         */
-        // struct timezone timezone;
-        // timezone.tz_minuteswest = -5 * 60;
-        // timezone.tz_dsttime = 0; //DST_CAN;
-        settimeofday(&timeval, NULL);
-        //Serial.println("Got time from GPS");
 
-    
+        //printf("GPS update time %li \n", timeval.tv_sec);
+
+        //Set UTC time,  timezone is alywas ignored
+        settimeofday(&timeval, NULL);    
     }
 
     //Called from task
@@ -42,11 +41,13 @@ namespace
             break;
 
             case MINMEA_SENTENCE_RMC:
+                //printf("MINMEA_SENTENCE_RMC\n");
                 struct minmea_sentence_rmc rmc;
                 if (minmea_parse_rmc(&rmc, sentence))
                 {
                     if (rmc.valid)
                     {
+                        printf("Valid RMC\n");
                         GPS::instance()->setFix(true);
                         /*
                         struct minmea_float latitude;
@@ -58,14 +59,15 @@ namespace
                         float latitude = minmea_tocoord(&rmc.latitude);
                         float longitude = minmea_tocoord(&rmc.longitude);
                         //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
-
                     }
                     else
                     {
                         GPS::instance()->setFix(false);
                     }
+
                     //Date and time are always valid
                     setTimeFromGPS(&rmc.date, &rmc.time);
+                    
                 }
                 else
                 {
@@ -137,7 +139,7 @@ namespace
             break;
 
             case MINMEA_SENTENCE_ZDA:
-                //printf("MINMEA_SENTENCE_ZDA\n");
+                printf("MINMEA_SENTENCE_ZDA\n");
                 //Time AND Date
                 struct minmea_sentence_zda zda;
                 if (minmea_parse_zda(&zda, sentence))
