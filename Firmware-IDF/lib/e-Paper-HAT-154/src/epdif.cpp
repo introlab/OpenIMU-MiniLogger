@@ -27,7 +27,6 @@
 
 #include "epdif.h"
 #include "spibus.h"
-#include "gpio.h"
 #include <string.h>
 
 //Anonymous namespace
