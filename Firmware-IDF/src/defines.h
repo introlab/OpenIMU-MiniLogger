@@ -1,10 +1,17 @@
 #ifndef _DEFINES_H_
 #define _DEFINES_H_
 
+#include <stdint.h>
+
 /**
  * Put global definitions here
  * 
  **/
+
+//MAX30102 definitions
+#define MAX30102_FIFO_SIZE 32 
+#define PULSE_BUFFER_LENGHT 100
+
 
 typedef struct {
     float accelX;
@@ -39,8 +46,17 @@ typedef struct {
     float longitude;
     float altitude;
 } gpsData_t;
-
 typedef gpsData_t* gpsDataPtr_t;
+
+
+typedef struct {
+    uint32_t ir_led_data[PULSE_BUFFER_LENGHT];
+    uint32_t red_led_data[PULSE_BUFFER_LENGHT];
+    float spo2;
+    int heartrate;
+} pulseData_t;
+typedef pulseData_t* pulseDataPtr_t;
+
 
 #ifndef OUTPUT
 #define OUTPUT (0)

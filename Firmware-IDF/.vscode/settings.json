@@ -1,6 +1,6 @@
 {
     "terminal.integrated.env.osx": {
-        "PATH": "/Users/dominic/.platformio/penv/bin:/Users/dominic/.platformio/penv:/Applications/Flash Tool Lite.app/Contents/MacOS:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin",
+        "PATH": "/Users/dominic/.platformio/penv/bin:/Users/dominic/.platformio/penv:/Applications/Flash Tool Lite.app/Contents/MacOS:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Wireshark.app/Contents/MacOS",
         "PLATFORMIO_CALLER": "vscode"
     },
     "files.associations": {
