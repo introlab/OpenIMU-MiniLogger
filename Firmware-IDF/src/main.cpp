@@ -19,6 +19,7 @@
 #include "sdcard.h"
 #include "barometer.h"
 #include "gps.h"
+#include "pulse.h"
 #include "buttons.h"
 
 
@@ -130,6 +131,9 @@ extern "C"
         //I2C bus configuration
         I2CBus i2cbus;
 
+        //I2C Ext bus configuration
+        I2CBusExt i2cbusext;
+
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
 
@@ -166,6 +170,11 @@ extern "C"
 
         Barometer *baro = Barometer::instance();
         assert(baro);
+
+        //Pulse should be started from menu?
+        //Not yet working...
+        //Pulse *pulse = Pulse::instance();
+        //assert(pulse);
 
         Display *display = Display::instance();
         assert(display);

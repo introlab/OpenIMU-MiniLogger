@@ -116,6 +116,9 @@ typedef pulseData_t* pulseDataPtr_t;
 #define PIN_NUM_UART_TX 26 
 #define PIN_NUM_UART_RX 35
 
+//I2C definitions EXT
+#define PIN_NUM_EXTSDA 17
+#define PIN_NUM_EXTSCL 16
 
 //ADC definitions
 #define PIN_NUM_ADC_READY 33
