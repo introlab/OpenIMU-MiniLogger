@@ -47,7 +47,7 @@ namespace
                 {
                     if (rmc.valid)
                     {
-                        printf("Valid RMC\n");
+                        //printf("Valid RMC\n");
                         GPS::instance()->setFix(true);
                         /*
                         struct minmea_float latitude;
@@ -66,7 +66,9 @@ namespace
                     }
 
                     //Date and time are always valid
-                    setTimeFromGPS(&rmc.date, &rmc.time);
+                    //Not always, the GPS needs to have synced its time at least once otherwise sends 0
+                    if (rmc.date.year > 0)
+                        setTimeFromGPS(&rmc.date, &rmc.time);
                     
                 }
                 else

@@ -194,14 +194,17 @@ static esp_err_t esp_eddystone_get_inform(const uint8_t* buf, uint8_t len, esp_e
     switch(res->common.frame_type)
     {
         case EDDYSTONE_FRAME_TYPE_UID: {
+            printf("UID\n");
             ret = esp_eddystone_uid_received(buf, len, res);
             break;
         }
         case EDDYSTONE_FRAME_TYPE_URL: {
+            printf("URL\n");
             ret = esp_eddystone_url_received(buf, len, res);
             break;
         }
         case EDDYSTONE_FRAME_TYPE_TLM: {
+            printf("TLM\n");
             ret = esp_eddystone_tlm_received(buf, len, res);
             break;
         }
@@ -217,6 +220,7 @@ esp_err_t esp_eddystone_decode(const uint8_t* buf, uint8_t len, esp_eddystone_re
         return -1;
     }
     uint8_t pos=0;
+    printf("srv_data_type : %x \n", res->common.srv_data_type);
     while(res->common.srv_data_type != EDDYSTONE_SERVICE_UUID) 
     {
         pos++;

@@ -19,11 +19,11 @@ namespace bluetooth
     {
         Bluetooth *bluetooth = reinterpret_cast<Bluetooth*>(pvParameters);
         assert(bluetooth);
-        uint32_t duration = 1; // scanning duration in sec
+        uint32_t duration = 5; // scanning duration in sec
         TickType_t lastGeneration = xTaskGetTickCount();
         while(1){
-            // every 20 sec, check eddystone ble device
-            vTaskDelayUntil(&lastGeneration, 20000 / portTICK_RATE_MS);
+            // every 30 sec, check eddystone ble device
+            vTaskDelayUntil(&lastGeneration, 30000 / portTICK_RATE_MS);
             printf("Bluetooth task\n");
             esp_ble_gap_start_scanning(duration);
             
@@ -54,7 +54,7 @@ Bluetooth::Bluetooth()
     printf("\nBuetooth Init : Register callback\n");
     /*<! register the scan callback function to the gap module */
     if((status = esp_ble_gap_register_callback(esp_gap_cb)) != ESP_OK) {
-        printf("gap register error: %x", status);
+        printf("gap register error: %x\n", status);
     }
     
     //  Set scan params launch continuous scan
@@ -72,10 +72,7 @@ Bluetooth::~Bluetooth()
 
 void Bluetooth::start()
 {
-
-    
-xTaskCreatePinnedToCore(&bluetooth::receiveTask, "BLE Tag", 2048, this, 15, &_receivTaskHandle, 1);
-
+    xTaskCreatePinnedToCore(&bluetooth::receiveTask, "BLE Tag", 2048, this, 15, &_receivTaskHandle, 1);
 }
 
 void Bluetooth::esp_eddystone_show_inform(const esp_eddystone_result_t* res){
@@ -98,7 +95,7 @@ void Bluetooth::esp_eddystone_show_inform(const esp_eddystone_result_t* res){
         }
         case EDDYSTONE_FRAME_TYPE_TLM: {
             printf("Eddystone TLM inform\n");
-            printf("version: %d", res->inform.tlm.version);
+            printf("version: %d\n", res->inform.tlm.version);
             break;
         }
         default:
@@ -119,18 +116,35 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
         }
         case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT: {
             if((err = param->scan_start_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
-                printf("Scan start failed: %x", err);
+                printf("Scan start failed: %x\n", err);
             }
             else {
-                printf("Start scanning...");
+                printf("Start scanning...\n");
             }
             break;
         }
         case ESP_GAP_BLE_SCAN_RESULT_EVT: {
             esp_ble_gap_cb_param_t* scan_result = (esp_ble_gap_cb_param_t*)param;
+
+            printf("ESP_GAP_BLE_SCAN_RESULT_EVT\n");
+            
+
             switch(scan_result->scan_rst.search_evt)
             {
+
+                case ESP_GAP_SEARCH_DISC_RES_EVT: {
+                    printf("discovery event\n");
+                    break;
+                }
+
                 case ESP_GAP_SEARCH_INQ_RES_EVT: {
+
+                    //INQUIRY RESULT
+
+                    //esp_log_buffer_hex("Device address:", scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
+                    esp_log_buffer_hex("EIR: ", scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len);
+                    printf("\nRSSI of packet:%d dbm\n", scan_result->scan_rst.rssi);
+
                     esp_eddystone_result_t eddystone_res;
                     memset(&eddystone_res, 0, sizeof(eddystone_res));
                     esp_err_t ret = esp_eddystone_decode(scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len, &eddystone_res);
@@ -144,7 +158,7 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
                         // For example, just print them:
                         printf("Eddystone Found\n");
                         esp_log_buffer_hex("Device address:", scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
-                        // printf("RSSI of packet:%d dbm", scan_result->scan_rst.rssi);
+                        printf("RSSI of packet:%d dbm", scan_result->scan_rst.rssi);
                         esp_eddystone_show_inform(&eddystone_res);    
                     }
                     break;
@@ -156,10 +170,10 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
         }
         case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:{
             if((err = param->scan_stop_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
-                printf("Scan stop fail");
+                printf("Scan stop failed\n");
             }
             else {
-                printf("Scan stop succes");
+                printf("Scan stop succes\n");
             }
             break;
         }

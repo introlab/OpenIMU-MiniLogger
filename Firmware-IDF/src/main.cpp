@@ -20,6 +20,7 @@
 #include "barometer.h"
 #include "gps.h"
 #include "pulse.h"
+#include "bluetooth.h"
 #include "buttons.h"
 
 
@@ -175,6 +176,9 @@ extern "C"
         //Not yet working...
         //Pulse *pulse = Pulse::instance();
         //assert(pulse);
+
+        //Bluetooth *ble = Bluetooth::instance();
+        //assert(ble);
 
         Display *display = Display::instance();
         assert(display);
