@@ -220,9 +220,10 @@ esp_err_t esp_eddystone_decode(const uint8_t* buf, uint8_t len, esp_eddystone_re
         return -1;
     }
     uint8_t pos=0;
-    printf("srv_data_type : %x \n", res->common.srv_data_type);
+    
     while(res->common.srv_data_type != EDDYSTONE_SERVICE_UUID) 
     {
+        //printf("srv_data_type : %x \n", res->common.srv_data_type);
         pos++;
         if(pos >= len ) { 
             return -1;

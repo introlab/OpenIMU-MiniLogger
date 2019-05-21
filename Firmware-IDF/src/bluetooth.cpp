@@ -22,8 +22,8 @@ namespace bluetooth
         uint32_t duration = 5; // scanning duration in sec
         TickType_t lastGeneration = xTaskGetTickCount();
         while(1){
-            // every 30 sec, check eddystone ble device
-            vTaskDelayUntil(&lastGeneration, 30000 / portTICK_RATE_MS);
+            // every 60 sec, check eddystone ble device
+            vTaskDelayUntil(&lastGeneration, 60000 / portTICK_RATE_MS);
             printf("Bluetooth task\n");
             esp_ble_gap_start_scanning(duration);
             
@@ -126,7 +126,7 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
         case ESP_GAP_BLE_SCAN_RESULT_EVT: {
             esp_ble_gap_cb_param_t* scan_result = (esp_ble_gap_cb_param_t*)param;
 
-            printf("ESP_GAP_BLE_SCAN_RESULT_EVT\n");
+            //printf("ESP_GAP_BLE_SCAN_RESULT_EVT\n");
             
 
             switch(scan_result->scan_rst.search_evt)
@@ -142,9 +142,9 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
                     //INQUIRY RESULT
 
                     //esp_log_buffer_hex("Device address:", scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
-                    esp_log_buffer_hex("EIR: ", scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len);
-                    printf("\nRSSI of packet:%d dbm\n", scan_result->scan_rst.rssi);
-
+                    //printf("\nRSSI of packet:%d dbm\n", scan_result->scan_rst.rssi);
+                    //esp_log_buffer_hex("EIR(h): ", scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len);
+                   
                     esp_eddystone_result_t eddystone_res;
                     memset(&eddystone_res, 0, sizeof(eddystone_res));
                     esp_err_t ret = esp_eddystone_decode(scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len, &eddystone_res);
@@ -157,7 +157,7 @@ void Bluetooth::esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t*
                         // Here, we get the eddystone infomation in eddystone_res, we can use the data in res to do other things.
                         // For example, just print them:
                         printf("Eddystone Found\n");
-                        esp_log_buffer_hex("Device address:", scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
+                        //esp_log_buffer_hex("Device address:", scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
                         printf("RSSI of packet:%d dbm", scan_result->scan_rst.rssi);
                         esp_eddystone_show_inform(&eddystone_res);    
                     }

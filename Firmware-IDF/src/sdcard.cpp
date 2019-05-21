@@ -80,14 +80,15 @@ namespace sdcard
                 //Should sync file
                 sdcard->syncFile();
 
-                printf("Timestamp %li i: %i g: %i p: %i b: %i\n", timestamp.data, 
-                    imu_cnt, gps_cnt, power_cnt, baro_cnt);
+                printf("Timestamp %li i: %i g: %i p: %i b: %i h: %i\n", timestamp.data, 
+                    imu_cnt, gps_cnt, power_cnt, baro_cnt, pulse_cnt);
 
                 //Reset counters
                 imu_cnt = 0;
                 gps_cnt = 0;
                 power_cnt = 0;
                 baro_cnt = 0;
+                pulse_cnt = 0;
 
             }
 
@@ -99,8 +100,6 @@ namespace sdcard
                 //_logFile.write((uint8_t*) imuPtr, sizeof(imuData_t));
                 sdcard->logFileWrite("i", 1);
                 sdcard->logFileWrite(imuPtr, sizeof(imuData_t));
-
-                //Free memory
                 free(imuPtr);
                 imu_cnt++;
             }

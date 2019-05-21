@@ -21,6 +21,8 @@ class Display
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu, bool stateLog);
     void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
+    void test(float,float);
+
 
 private:
     unsigned char _blackImage[EPD_WIDTH*EPD_HEIGHT];
