@@ -25,14 +25,12 @@
 #include <freertos/task.h>
 #include <driver/gpio.h>
 #include <esp_log.h>
+#include "defines.h"
+#include "spibus.h"
+#include "ssd1331.h"
 
 // Module name for debuging
-static const char* TAG = "MainModule";
-
-// Alive LED pin
-#ifndef LED_PIN
-#define LED_PIN GPIO_NUM_5
-#endif
+static const char* TAG = "main";
 
 /*
  * Blink the ESP32 Thing LED to show ESP32 is alive
@@ -47,7 +45,7 @@ void blink_led(void *pvParamters)
     while(1)
     {
         vTaskDelayUntil(&lastTick, 500 / portTICK_RATE_MS);
-        gpio_set_level(LED_PIN, state);
+        gpio_set_level((gpio_num_t)LED_PIN, state);
         state = !state;
     }
 }
@@ -59,7 +57,16 @@ void hardware_setup()
 {
     // Setup alive LED
     gpio_pad_select_gpio(LED_PIN);
-    gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction((gpio_num_t)LED_PIN, GPIO_MODE_OUTPUT);
+
+    // Setup SPI bus
+    gpio_install_isr_service(0);
+    SPIBus spi_bus;
+
+    // Setup display
+    SSD1331_begin();
+    SSD1331_clear();
+    SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BLUE);
 }
 
 /*
