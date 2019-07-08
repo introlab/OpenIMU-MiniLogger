@@ -1,4 +1,3 @@
-
 #include "display.h"
 #include <string>
 #include <sstream>
@@ -24,84 +23,59 @@ Display::~Display()
 
 void Display::begin()
 {
-    _epd.Init();
+    SSD1331_begin();
+    SSD1331_clear();
 }
 
 void Display::end()
 {
-    _epd.Sleep();
+    SSD1331_shutdown();
 }
 
 void Display::showSplashScreen(uint64_t mac_adress)
 {
-    _blackPaint.Clear(1);
-    _redPaint.Clear(1);
-
-    _redPaint.DrawStringAt(10, 20, "Open IMU", &Font24, 0);
-    _redPaint.DrawStringAt(147, 26, "v0.1", &Font16, 0);
-    _blackPaint.DrawStringAt(10, 50, "System is idle", &Font16, 0);
+    SSD1331_clear();
+    SSD1331_string(0, 0, "Open IMU 0.1", 16, 1, GREEN);
+    SSD1331_string(0, 20, "System is idle", 12, 1, WHITE);
 
     std::stringstream mac_string;
-    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;  // Hex format
-    // mac_string << "MAC:" << mac_adress;  // Decimal format, some devices have bigger adress than can be display at this font
-    _blackPaint.DrawStringAt(10, 180, mac_string.str().c_str(), &Font16, 0);
+    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
 
-
-
-
-
-    //_blackPaint.DrawStringAt(10, 245, "SW2 to start...", &Font16, 0);
-
-    _epd.DisplayFrame(_blackImage, _redImage);
-
+    SSD1331_string(0, 50, mac_string.str().c_str(), 12, 1, GRAY);
 }
 
 void Display::showMenu(Menu* menu)
 {
-    _blackPaint.Clear(1);
-    _redPaint.Clear(1);
-    //menu->paint(_blackPaint, _redPaint, 5, 5);
-    menu->paint(_blackPaint, _blackPaint, 5, 5);
-    _epd.DisplayFrame(_blackImage, NULL /*_redImage */);
-
+    SSD1331_clear();
+    menu->paint(5, 5);
 }
 
 void Display::updateMenu(Menu* menu, bool stateLog)
 {
-    _blackPaint.Clear(1);
-    _redPaint.Clear(1);
-    //menu->paint(_blackPaint, _redPaint, 5, 5);
-    menu->paint(_blackPaint, _blackPaint, 5, 5);
+    SSD1331_clear();
+    menu->paint(5, 5);
     std::stringstream logstate;
     logstate << " Logging: ";
     (stateLog) ?  logstate << "ON" :  logstate << "OFF";
-    _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);
-
-
-    _epd.DisplayFrame(_blackImage, NULL /*_redImage*/);
+    SSD1331_string(0, 86, logstate.str().c_str(), 12, 1, WHITE);
 }
 
 void Display::clear()
 {
-    _blackPaint.Clear(1);
-    _redPaint.Clear(1);
-    _epd.DisplayFrame(_blackImage, _redImage);
+    SSD1331_clear();
 }
 
 
 // display sleep screen
 void Display::displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog)
 {
-    _blackPaint.Clear(1);
-    _redPaint.Clear(1);
+    SSD1331_clear();
 
     std::stringstream batt_text;
 
     batt_text << "B: " << volts << "V " << current << "A";
-
-    _blackPaint.DrawStringAt(5, 2, batt_text.str().c_str(), &Font16, 0);
-
-
+    SSD1331_string(5, 2, batt_text.str().c_str(), 12, 1, BLACK);
+/* 
     time_t now;
     struct tm *timeinfo;
     time(&now);
@@ -134,9 +108,5 @@ void Display::displayVoltage(float volts, float current,bool validData, bool sta
 
     (stateLog) ?  logstate << "ON" :  logstate << "OFF";
 
-    _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);
-
-
-    _epd.DisplayFrame(_blackImage, NULL/*_redImage */);
-
+    _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);*/
 }

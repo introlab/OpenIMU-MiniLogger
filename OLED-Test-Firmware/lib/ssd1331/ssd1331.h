@@ -16,6 +16,8 @@
 #ifndef _SSD1331_H_
 #define _SSD1331_H_
 
+#include <stdint.h>
+
 //Display defines
 #define VCCSTATE SSD1331_SWITCHCAPVCC
 #define OLED_WIDTH     96
@@ -80,9 +82,11 @@ enum Color {
 #define SET_V_VOLTAGE                   0xBE
 
 void SSD1331_begin();
+void SSD1331_shutdown();
 void SSD1331_display();
 void SSD1331_clear();
 void SSD1331_pixel(int x,int y, char color);
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short hwColor);
 void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor);
 void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor);
 void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor);

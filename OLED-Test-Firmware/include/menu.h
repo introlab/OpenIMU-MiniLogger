@@ -16,7 +16,7 @@ public:
     MenuItem(std::string text);
     virtual ~MenuItem();
 
-    virtual void paint(Paint &blackPaint, Paint &redPaint, int x0, int y0, bool isSelected);
+    virtual void paint(int x0, int y0, bool isSelected);
 
     void addSubmenu(SubMenu* subMenu);
     virtual void addAction(void (*action)());
@@ -42,7 +42,7 @@ public:
     SubMenu(std::string text, SubMenu* parentMenu);
     ~SubMenu();
 
-    void paint(Paint &blackPaint, Paint &redPaint, int x0, int y0);
+    void paint(int x0, int y0);
     void selectNextItem();
     void selectPreviousItem();
 
@@ -61,7 +61,7 @@ public:
     Menu();
     ~Menu();
 
-    void paint(Paint &blackPaint, Paint &redPaint, int x0, int y0);
+    void paint(int x0, int y0);
 
     void action();
     void previous();

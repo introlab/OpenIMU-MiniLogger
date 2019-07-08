@@ -1,6 +1,6 @@
-
 #include "menu.h"
 #include "actions.h"
+#include "ssd1331.h"
 
 MenuItem::MenuItem(std::string text)
 {
@@ -12,11 +12,11 @@ MenuItem::~MenuItem()
 
 }
 
-void MenuItem::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0, bool isSelected)
+void MenuItem::paint(int x0, int y0, bool isSelected)
 {
-    blackPaint.DrawStringAt(x0 + 3, y0, _text.c_str(), &Font16, 0);
+    SSD1331_string(x0 + 3, y0, _text.c_str(), 12, 1, WHITE);
     if(isSelected) {
-        redPaint.DrawRectangle(x0, y0 -4, x0 + 164, y0 + 18, 0);
+        SSD1331_rectangle(x0, y0 -4, x0 + 164, y0 + 18, GREEN);
     }
 }
 
@@ -65,15 +65,15 @@ SubMenu::~SubMenu()
 
 }
 
-void SubMenu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
+void SubMenu::paint(int x0, int y0)
 {
     MenuItem* item = _firstItem;
     int yOffset = 30;
 
-    redPaint.DrawStringAt(x0, y0, _text.c_str(), &Font24, 0);
+    SSD1331_string(x0, y0, _text.c_str(), 12, 1, GREEN);
 
     while(item != nullptr) {
-        item->paint(blackPaint, redPaint, x0, y0 + yOffset, item == _currentItem);
+        item->paint(x0, y0 + yOffset, item == _currentItem);
         yOffset += 25;
         item = item->_nextItem;
     }
@@ -123,7 +123,6 @@ Menu::Menu()
     subMenu = new SubMenu("Shutdown", _currentSubMenu);
 
     item = new MenuItem("Confirm");
-    item->addAction(Actions::Shutdown);
     subMenu->addItem(item);
 
     item = new MenuItem("Shutdown");
@@ -134,11 +133,11 @@ Menu::Menu()
     subMenu = new SubMenu("SD Card", _currentSubMenu);
 
     item = new MenuItem("ESP 32");
-    item->addActandSubM(Actions::SDToESP32, _currentSubMenu);
+    item->addSubmenu(_currentSubMenu);
     subMenu->addItem(item);
 
     item = new MenuItem("PC");
-    item->addActandSubM(Actions::SDToExternal, _currentSubMenu);
+    item->addSubmenu(_currentSubMenu);
     subMenu->addItem(item);
 
     item = new MenuItem("SD Card");
@@ -148,7 +147,7 @@ Menu::Menu()
     subMenu = new SubMenu("Start/Stop ", _currentSubMenu);
 
     item = new MenuItem("Confirm");
-    item->addActandSubM(Actions::IMUStartSD, _currentSubMenu);
+    item->addSubmenu(_currentSubMenu);
     subMenu->addItem(item);
 
     item = new MenuItem("Start/Stop Log");
@@ -162,9 +161,9 @@ Menu::~Menu()
 
 }
 
-void Menu::paint(Paint &blackPaint, Paint &redPaint, int x0, int y0)
+void Menu::paint(int x0, int y0)
 {
-    _currentSubMenu->paint(blackPaint, redPaint, x0, y0);
+    _currentSubMenu->paint(x0, y0);
 }
 
 void Menu::action()

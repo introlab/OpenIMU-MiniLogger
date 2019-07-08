@@ -1,6 +1,7 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
+#include "ssd1331.h"
 #include "menu.h"
 
 class Display
@@ -21,12 +22,6 @@ class Display
     void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
 
 private:
-    unsigned char _blackImage[EPD_WIDTH*EPD_HEIGHT];
-    unsigned char _redImage[EPD_WIDTH*EPD_HEIGHT];
-
-    Epd _epd;
-    Paint _blackPaint{_blackImage, EPD_WIDTH, EPD_HEIGHT};
-    Paint _redPaint{_redImage, EPD_WIDTH, EPD_HEIGHT};
 
     static Display* _instance;
      Display();

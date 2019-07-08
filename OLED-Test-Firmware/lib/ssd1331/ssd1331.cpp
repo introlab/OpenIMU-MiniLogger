@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "spibus.h"
+#include "../include/spibus.h"
 #include "ssd1331.h"
 
 // Module name for debuging
@@ -123,13 +123,18 @@ void SSD1331_begin()
 void SSD1331_clear()
 {
     int i, j;
-    for(i = 0; i < OLED_WIDTH; i++)
+    for(i = 0; i < OLED_HEIGHT; i++)
     {
         for(j = 0; j < OLED_WIDTH; j++)
         {
-            SSD1331_draw_point(i, j, 0);
+            SSD1331_draw_point(j, i, 0);
         }
     }
+}
+
+void SSD1331_shutdown()
+{
+    command(DISPLAY_OFF);
 }
 
 void SSD1331_draw_point(int x, int y, unsigned short hwColor) {
@@ -152,6 +157,21 @@ void SSD1331_draw_point(int x, int y, unsigned short hwColor) {
     buffer[0] = (hwColor & 0xFF00) >> 8;
     buffer[1] = hwColor & 0xFF;
     SPIWrite(buffer, 2);
+}
+
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short hwColor)
+{
+    unsigned char x, y;
+
+    for (x = x1; x <= x2; x++) {
+        SSD1331_draw_point(x, y1, hwColor);
+        SSD1331_draw_point(x, y2, hwColor);
+    }
+
+    for (y = y1; y <= y2; y++) {
+        SSD1331_draw_point(x1, y, hwColor);
+        SSD1331_draw_point(x2, y, hwColor);
+    }
 }
 
 void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor)

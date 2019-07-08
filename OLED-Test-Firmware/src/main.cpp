@@ -28,6 +28,8 @@
 #include "defines.h"
 #include "spibus.h"
 #include "ssd1331.h"
+#include "menu.h"
+#include "display.h"
 
 // Module name for debuging
 static const char* TAG = "main";
@@ -64,13 +66,6 @@ void hardware_setup()
     // Setup SPI bus
     gpio_install_isr_service(0);
     SPIBus spi_bus;
-
-    vTaskDelay(500 / portTICK_RATE_MS);
-
-    // Setup display
-    SSD1331_begin();
-    SSD1331_clear();
-    SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BLUE);
 }
 
 /*
@@ -89,20 +84,13 @@ extern "C"
         xTaskCreate(&blink_led, "Blink", 2048, NULL, 1, &blink_led_task);
         ESP_LOGI(TAG, "Ready and blinking");
 
-        while (1)
-        {
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GRAY);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, WHITE);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, RED);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, PINK);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, YELLOW);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GOLDEN);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BROWN);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BLUE);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, CYAN);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GREEN);
-            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, PURPLE);
-        }
-        
+        Display* display = Display::instance();
+        display->begin();
+        display->showSplashScreen(1024);
+
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        Menu menu;
+
+        display->showMenu(&menu);
     }
 }
