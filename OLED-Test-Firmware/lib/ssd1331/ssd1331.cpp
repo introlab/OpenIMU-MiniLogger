@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <string.h>
 #include "spibus.h"
 #include "ssd1331.h"
 
@@ -34,44 +33,30 @@ void command(uint8_t cmd) {
 }
 
 void SPIWrite(uint8_t *buffer, int bufferLength) {
-    spi_transaction_t trans;
-    memset(&trans, 0, sizeof(spi_transaction_t));
+    spi_transaction_t trans = {};
 
     trans.tx_buffer = buffer;
-    trans.length = bufferLength;
+    trans.length = 8 * bufferLength;
 
     esp_err_t ret = SPIBus::spi_device_transmit(_spi_handle, &trans);
     assert(ret == ESP_OK);
 }
 
-void SSD1331_cs_active(spi_transaction_t* trans)
-{
-    gpio_set_level((gpio_num_t)OLED_CS, 0);
-}
-
-void SSD131_cs_inactive(spi_transaction_t* trans)
-{
-    gpio_set_level((gpio_num_t)OLED_CS, 1);
-}
-
 void SSD1331_beginSPI()
 {
-    spi_device_interface_config_t config;
-    memset(&config, 0, sizeof(spi_device_interface_config_t));
+    spi_device_interface_config_t config = {};
 
     config.command_bits = 0;
     config.address_bits = 0;
     config.dummy_bits = 0;
     config.mode = 0;
     config.duty_cycle_pos = 128; // 50%
-    config.cs_ena_pretrans = 0;
-    config.cs_ena_posttrans = 0;
-    config.clock_speed_hz = 10000000;
-    config.spics_io_num = -1;
+    config.cs_ena_pretrans = 1;
+    config.cs_ena_posttrans = 2;
+    config.clock_speed_hz = 80000000;
+    config.spics_io_num = OLED_CS;
     config.flags = 0;
     config.queue_size = 1;
-    config.pre_cb = SSD1331_cs_active;
-    config.post_cb = SSD131_cs_inactive;
 
     esp_err_t ret = spi_bus_add_device(HSPI_HOST, &config, &_spi_handle);
     assert(ret == ESP_OK);
@@ -85,9 +70,6 @@ void SSD1331_begin()
 
     gpio_pad_select_gpio(OLED_DC);
     gpio_set_direction((gpio_num_t)OLED_DC, GPIO_MODE_OUTPUT);
-
-    gpio_pad_select_gpio(OLED_CS);
-    gpio_set_direction((gpio_num_t)OLED_CS, GPIO_MODE_OUTPUT);
     
     SSD1331_beginSPI();
 
@@ -96,6 +78,7 @@ void SSD1331_begin()
     gpio_set_level((gpio_num_t)OLED_RST, 0);
     vTaskDelay(10/portTICK_RATE_MS);
     gpio_set_level((gpio_num_t)OLED_RST, 1);
+    vTaskDelay(10/portTICK_RATE_MS);
 
     command(DISPLAY_OFF);              //Display Off
     command(SET_CONTRAST_A);           //Set contrast for color A

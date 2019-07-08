@@ -59,9 +59,13 @@ void hardware_setup()
     gpio_pad_select_gpio(LED_PIN);
     gpio_set_direction((gpio_num_t)LED_PIN, GPIO_MODE_OUTPUT);
 
+    vTaskDelay(500 / portTICK_RATE_MS);
+
     // Setup SPI bus
     gpio_install_isr_service(0);
     SPIBus spi_bus;
+
+    vTaskDelay(500 / portTICK_RATE_MS);
 
     // Setup display
     SSD1331_begin();
@@ -84,5 +88,21 @@ extern "C"
         TaskHandle_t blink_led_task;
         xTaskCreate(&blink_led, "Blink", 2048, NULL, 1, &blink_led_task);
         ESP_LOGI(TAG, "Ready and blinking");
+
+        while (1)
+        {
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GRAY);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, WHITE);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, RED);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, PINK);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, YELLOW);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GOLDEN);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BROWN);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, BLUE);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, CYAN);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, GREEN);
+            SSD1331_mono_bitmap(0, 0, waveshare_logo, 96, 64, PURPLE);
+        }
+        
     }
 }

@@ -1,5 +1,9 @@
-#include "spibus.h"
+#include "esp_log.h"
 #include <string.h>
+#include "spibus.h"
+
+// Module name for debuging
+static const char* TAG = "spibus";
 
 SemaphoreHandle_t SPIBus::_mutex = NULL;
 
@@ -16,10 +20,9 @@ SPIBus::SPIBus(spi_host_device_t dev)
     //Needed for adequate SPI pin configuration
     gpio_set_direction((gpio_num_t)PIN_NUM_MISO, GPIO_MODE_INPUT);
 
-
     //Initialize the SPI bus data structure, no DMA for now
     esp_err_t ret = spi_bus_initialize(dev, &_buscfg, 0);
-    printf("spi_bus_initialize ret: %i\n", ret);
+    ESP_LOGI(TAG, "spi_bus_initialize ret: %i", ret);
     assert(ret == ESP_OK);
 
     SPIBus::_mutex = xSemaphoreCreateMutex();
