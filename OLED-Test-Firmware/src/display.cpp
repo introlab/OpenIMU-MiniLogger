@@ -47,17 +47,22 @@ void Display::showSplashScreen(uint64_t mac_adress)
 void Display::showMenu(Menu* menu)
 {
     SSD1331_clear();
-    menu->paint(5, 5);
+    menu->paint(0, 0);
 }
 
 void Display::updateMenu(Menu* menu, bool stateLog)
 {
     SSD1331_clear();
-    menu->paint(5, 5);
+    menu->paint(0, 0);
     std::stringstream logstate;
     logstate << " Logging: ";
     (stateLog) ?  logstate << "ON" :  logstate << "OFF";
     SSD1331_string(0, 86, logstate.str().c_str(), 12, 1, WHITE);
+}
+
+void Display::updateMenuSelection(Menu* menu, bool stateLog)
+{
+    menu->paintSelection(0, 0);
 }
 
 void Display::clear()

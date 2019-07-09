@@ -92,5 +92,35 @@ extern "C"
         Menu menu;
 
         display->showMenu(&menu);
+
+        while(1) {
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.next();
+            display->updateMenuSelection(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.next();
+            display->updateMenuSelection(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.previous();
+            display->updateMenuSelection(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.action();
+            display->updateMenu(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.next();
+            display->updateMenuSelection(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.action();
+            display->updateMenu(&menu, true);
+
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            menu.previous();
+            display->updateMenuSelection(&menu, true);
+        }
     }
 }

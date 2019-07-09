@@ -38,6 +38,37 @@ enum Color {
     GREEN     = RGB(  0,255,  0), // green
     PURPLE    = RGB(160, 32,240), // purple
 };
+
+enum ColorCMD {
+    BLACK_CMD,
+    GRAY_CMD,
+    WHITE_CMD,
+    RED_CMD,
+    PINK_CMD,
+    YELLOW_CMD,
+    GOLDEN_CMD,
+    BROWN_CMD,
+    BLUE_CMD,
+    CYAN_CMD,
+    GREEN_CMD,
+    PURPLE_CMD,
+};
+
+static const unsigned char color_cmd[12][3] =  {
+    {0, 0, 0},
+    {192, 192, 192},
+    {255, 255, 255},
+    {255,  0,  0},
+    {255,192,203},
+    {255,255,  0},
+    {255,215,  0},
+    {128, 42, 42},
+    {  0,  0,255},
+    {  0,255,255},
+    {  0,255,  0},
+    {160, 32,240},
+};
+
 #define DRAW_LINE                       0x21
 #define DRAW_RECTANGLE                  0x22
 #define COPY_WINDOW                     0x23
@@ -86,7 +117,7 @@ void SSD1331_shutdown();
 void SSD1331_display();
 void SSD1331_clear();
 void SSD1331_pixel(int x,int y, char color);
-void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short hwColor);
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor);
 void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor);
 void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor);
 void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor);

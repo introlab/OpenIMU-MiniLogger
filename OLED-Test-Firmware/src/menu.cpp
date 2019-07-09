@@ -14,9 +14,19 @@ MenuItem::~MenuItem()
 
 void MenuItem::paint(int x0, int y0, bool isSelected)
 {
-    SSD1331_string(x0 + 3, y0, _text.c_str(), 12, 1, WHITE);
+    SSD1331_string(x0 + 3, y0 + 2, _text.c_str(), 12, 1, WHITE);
     if(isSelected) {
-        SSD1331_rectangle(x0, y0 -4, x0 + 164, y0 + 18, GREEN);
+        SSD1331_rectangle(x0, y0, x0 + 95, y0 + 15, GREEN_CMD);
+    }
+}
+
+void MenuItem::paintSelection(int x0, int y0, bool clear, bool isSelected)
+{
+    if(isSelected) {
+        SSD1331_rectangle(x0, y0, x0 + 95, y0 + 15, GREEN_CMD);
+    }
+    else if(clear) {
+        SSD1331_rectangle(x0, y0, x0 + 95, y0 + 15, BLACK_CMD);
     }
 }
 
@@ -68,13 +78,33 @@ SubMenu::~SubMenu()
 void SubMenu::paint(int x0, int y0)
 {
     MenuItem* item = _firstItem;
-    int yOffset = 30;
+    int yOffset = 18;
 
-    SSD1331_string(x0, y0, _text.c_str(), 12, 1, GREEN);
+    SSD1331_string(x0, y0, _text.c_str(), 16, 1, GREEN);
 
     while(item != nullptr) {
         item->paint(x0, y0 + yOffset, item == _currentItem);
-        yOffset += 25;
+        yOffset += 15;
+        item = item->_nextItem;
+    }
+}
+
+void SubMenu::paintSelection(int x0, int y0)
+{
+    MenuItem* item = _firstItem;
+    int yOffset = 18;
+
+    while(item != nullptr) {
+        item->paintSelection(x0, y0 + yOffset, true);
+        yOffset += 15;
+        item = item->_nextItem;
+    }
+    
+    yOffset = 18;
+    item = _firstItem;
+    while(item != nullptr) {
+        item->paintSelection(x0, y0 + yOffset, false, item == _currentItem);
+        yOffset += 15;
         item = item->_nextItem;
     }
 }
@@ -164,6 +194,11 @@ Menu::~Menu()
 void Menu::paint(int x0, int y0)
 {
     _currentSubMenu->paint(x0, y0);
+}
+
+void Menu::paintSelection(int x0, int y0)
+{
+    _currentSubMenu->paintSelection(x0, y0);
 }
 
 void Menu::action()

@@ -17,6 +17,7 @@ public:
     virtual ~MenuItem();
 
     virtual void paint(int x0, int y0, bool isSelected);
+    virtual void paintSelection(int x0, int y0, bool clear, bool isSelected = false);
 
     void addSubmenu(SubMenu* subMenu);
     virtual void addAction(void (*action)());
@@ -43,6 +44,8 @@ public:
     ~SubMenu();
 
     void paint(int x0, int y0);
+    void paintSelection(int x0, int y0);
+
     void selectNextItem();
     void selectPreviousItem();
 
@@ -62,6 +65,7 @@ public:
     ~Menu();
 
     void paint(int x0, int y0);
+    void paintSelection(int x0, int y0);
 
     void action();
     void previous();

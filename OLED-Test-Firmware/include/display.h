@@ -19,6 +19,7 @@ class Display
     void clear();
     void showMenu(Menu* menu);
     void updateMenu(Menu* menu, bool stateLog);
+    void updateMenuSelection(Menu* menu, bool stateLog);
     void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
 
 private:
