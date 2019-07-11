@@ -117,7 +117,7 @@ void SSD1331_shutdown();
 void SSD1331_display();
 void SSD1331_clear();
 void SSD1331_pixel(int x,int y, char color);
-void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor);
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor, uint8_t fillCmd = DISABLE_FILL);
 void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short cmdColor);
 void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor);
 void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor);

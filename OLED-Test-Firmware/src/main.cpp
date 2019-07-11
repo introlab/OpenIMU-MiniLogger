@@ -27,10 +27,9 @@
 #include <esp_log.h>
 #include "defines.h"
 #include "spibus.h"
-#include "ssd1331.h"
 #include "menu.h"
 #include "display.h"
-#include "icons.h"
+#include "widget/battery.h"
 
 // Module name for debuging
 static const char* TAG = "main";
@@ -85,18 +84,45 @@ extern "C"
         xTaskCreate(&blink_led, "Blink", 2048, NULL, 1, &blink_led_task);
         ESP_LOGI(TAG, "Ready and blinking");
 
+        // Test the display
         Display* display = Display::instance();
         display->begin();
 
-        display->clear();
-        SSD1331_string(6, 0, "09/03/09 12:12", 12, 1, WHITE);
-        SSD1331_mono_bitmap(7, 19, battery_icon, BATTERY_ICON_WIDTH, BATTERY_ICON_HEIGHT, WHITE);
-        SSD1331_mono_bitmap(29, 18, gps_icon, GPS_ICON_WIDTH, GPS_ICON_HEIGHT, RED);
-        SSD1331_line(27, 17, 42, 45, RED_CMD);
-        SSD1331_line(27, 45, 42, 17, RED_CMD);
-        SSD1331_mono_bitmap(50, 23, logging_icon, LOGGING_ICON_WIDTH, LOGGING_ICON_HEIGHT, WHITE);
-        SSD1331_mono_bitmap(73, 20, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, WHITE);
-        SSD1331_rectangle(48, 16, 71, 47, GREEN_CMD);
-        SSD1331_string(6, 51, "Start/Stop Log", 12, 1, GREEN);
+        Widget::Battery batteryWidget;
+        batteryWidget.paint();
+
+        while(1)
+        {
+            batteryWidget.select();
+            batteryWidget.updateValue(4.2);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(4.0);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.8);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.6);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.4);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.2);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+
+            batteryWidget.unselect();
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            SSD1331_rectangle(0, 51, OLED_WIDTH-1, OLED_HEIGHT-1, BLACK_CMD, ENABLE_FILL);
+            vTaskDelay(10 / portTICK_RATE_MS);
+            batteryWidget.updateValue(4.2);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(4.0);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.8);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.6);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.4);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            batteryWidget.updateValue(3.2);
+            vTaskDelay(2000 / portTICK_RATE_MS);
+        }
     }
 }

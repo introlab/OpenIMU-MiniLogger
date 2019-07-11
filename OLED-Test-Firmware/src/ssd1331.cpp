@@ -122,11 +122,7 @@ void SSD1331_begin()
 
 void SSD1331_clear()
 {
-    command(CLEAR_WINDOW);
-    command(0);
-    command(0);
-    command(OLED_WIDTH - 1);
-    command(OLED_HEIGHT - 1);
+    SSD1331_rectangle(0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, BLACK_CMD, ENABLE_FILL);
 }
 
 void SSD1331_shutdown()
@@ -156,10 +152,10 @@ void SSD1331_draw_point(int x, int y, unsigned short hwColor) {
     SPIWrite(buffer, 2);
 }
 
-void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor)
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor, uint8_t fillCmd)
 {
     command(FILL_WINDOW);
-    command(DISABLE_FILL);
+    command(fillCmd);
 
     command(DRAW_RECTANGLE);
     command(x1);
