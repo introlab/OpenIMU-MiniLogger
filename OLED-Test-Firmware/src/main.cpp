@@ -47,7 +47,7 @@ void blink_led(void *pvParamters)
     uint8_t state = 0;
     while(1)
     {
-        vTaskDelayUntil(&lastTick, 500 / portTICK_RATE_MS);
+        vTaskDelayUntil(&lastTick, 1000);
         gpio_set_level((gpio_num_t)LED_PIN, state);
         state = !state;
     }
@@ -96,7 +96,7 @@ extern "C"
         SSD1331_line(27, 45, 42, 17, RED_CMD);
         SSD1331_mono_bitmap(50, 23, logging_icon, LOGGING_ICON_WIDTH, LOGGING_ICON_HEIGHT, WHITE);
         SSD1331_mono_bitmap(73, 20, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, WHITE);
-        SSD1331_rectangle(48, 16, 71, 49, GREEN_CMD);
+        SSD1331_rectangle(48, 16, 71, 47, GREEN_CMD);
         SSD1331_string(6, 51, "Start/Stop Log", 12, 1, GREEN);
     }
 }
