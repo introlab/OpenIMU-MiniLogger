@@ -172,6 +172,19 @@ void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor)
     SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
 }
 
+void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short cmdColor)
+{
+    command(DRAW_LINE);
+    command(x1);
+    command(y1);
+    command(x2);
+    command(y2);
+
+    gpio_set_level((gpio_num_t)OLED_DC, 0);
+    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
+    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
+}
+
 void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor)
 {
     unsigned char i, j;

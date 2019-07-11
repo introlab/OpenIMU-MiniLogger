@@ -30,6 +30,7 @@
 #include "ssd1331.h"
 #include "menu.h"
 #include "display.h"
+#include "icons.h"
 
 // Module name for debuging
 static const char* TAG = "main";
@@ -86,41 +87,16 @@ extern "C"
 
         Display* display = Display::instance();
         display->begin();
-        display->showSplashScreen(1024);
 
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        Menu menu;
-
-        display->showMenu(&menu);
-
-        while(1) {
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.next();
-            display->updateMenuSelection(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.next();
-            display->updateMenuSelection(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.previous();
-            display->updateMenuSelection(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.action();
-            display->updateMenu(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.next();
-            display->updateMenuSelection(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.action();
-            display->updateMenu(&menu, true);
-
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            menu.previous();
-            display->updateMenuSelection(&menu, true);
-        }
+        display->clear();
+        SSD1331_string(6, 0, "09/03/09 12:12", 12, 1, WHITE);
+        SSD1331_mono_bitmap(7, 19, battery_icon, BATTERY_ICON_WIDTH, BATTERY_ICON_HEIGHT, WHITE);
+        SSD1331_mono_bitmap(29, 18, gps_icon, GPS_ICON_WIDTH, GPS_ICON_HEIGHT, RED);
+        SSD1331_line(27, 17, 42, 45, RED_CMD);
+        SSD1331_line(27, 45, 42, 17, RED_CMD);
+        SSD1331_mono_bitmap(50, 23, logging_icon, LOGGING_ICON_WIDTH, LOGGING_ICON_HEIGHT, WHITE);
+        SSD1331_mono_bitmap(73, 20, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, WHITE);
+        SSD1331_rectangle(48, 16, 71, 49, GREEN_CMD);
+        SSD1331_string(6, 51, "Start/Stop Log", 12, 1, GREEN);
     }
 }
