@@ -1,8 +1,8 @@
 /*****************************************************************************
 *
 * File                : ssd1331.c
-* Hardware Environment: Arduino UNO
-* Build Environment   : Arduino
+* Hardware Environment: Raspberry Pi
+* Build Environment   : GCC
 * Version             : V1.0.7
 * Author              : Yehui
 *
@@ -15,22 +15,18 @@
 
 #include <esp_log.h>
 #include <driver/gpio.h>
-#include <stdio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "spibus.h"
 #include "ssd1331.h"
+
+unsigned char buffer[OLED_WIDTH * OLED_HEIGHT * 2];
 
 // Module name for debuging
 static const char* TAG = "ssd131";
 
 // SPI device handle
 static spi_device_handle_t _spi_handle = NULL;
-
-void command(uint8_t cmd) {
-    gpio_set_level((gpio_num_t)OLED_DC, 0);
-    SPIWrite(&cmd, 1);
-}
 
 void SPIWrite(uint8_t *buffer, int bufferLength) {
     spi_transaction_t trans = {};
@@ -40,6 +36,11 @@ void SPIWrite(uint8_t *buffer, int bufferLength) {
 
     esp_err_t ret = SPIBus::spi_device_transmit(_spi_handle, &trans);
     assert(ret == ESP_OK);
+}
+
+void command(uint8_t cmd) {
+    gpio_set_level((gpio_num_t)OLED_DC, 0);
+    SPIWrite(&cmd, 1);
 }
 
 void SSD1331_beginSPI()
@@ -120,10 +121,12 @@ void SSD1331_begin()
     command(NORMAL_BRIGHTNESS_DISPLAY_ON);    //set display on
 }
 
-void SSD1331_clear()
-{
-    SSD1331_rectangle(0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, BLACK_CMD, ENABLE_FILL);
-    vTaskDelay(10 / portTICK_RATE_MS);
+void SSD1331_clear() {
+    int i;
+    for(i = 0; i < sizeof(buffer); i++)
+    {
+        buffer[i] = 0;
+    }
 }
 
 void SSD1331_shutdown()
@@ -132,60 +135,67 @@ void SSD1331_shutdown()
 }
 
 void SSD1331_draw_point(int x, int y, unsigned short hwColor) {
-
-    unsigned char buffer[2];
-    
     if(x >= OLED_WIDTH || y >= OLED_HEIGHT)
     {
         return;
     }
+    buffer[x * 2 + y * OLED_WIDTH * 2] = hwColor >> 8;
+    buffer[x * 2 + y * OLED_WIDTH * 2 + 1] = hwColor;
+}
 
-    command(SET_COLUMN_ADDRESS);
-    command(x);                 //cloumn start address
-    command(OLED_WIDTH - 1);    //cloumn end address
-    command(SET_ROW_ADDRESS);
-    command(y);                 //page atart address
-    command(OLED_HEIGHT - 1);   //page end address
-    gpio_set_level((gpio_num_t)OLED_DC, 1);
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short hwColor, bool filled) {
     
-    buffer[0] = (hwColor & 0xFF00) >> 8;
-    buffer[1] = hwColor & 0xFF;
-    SPIWrite(buffer, 2);
+    // Draw border
+    SSD1331_line(x1, y1, x1, y2, hwColor);
+    SSD1331_line(x1, y1, x2, y1, hwColor);
+    SSD1331_line(x1, y2, x2, y2, hwColor);
+    SSD1331_line(x2, y1, x2, y2, hwColor);
+
+    // Fill
+    if (filled)
+    {
+        for (uint8_t x = x1+1; x < x2; x++)
+        {
+            for (uint8_t y = y1+1; y < y2; y++)
+            {
+                SSD1331_draw_point(x, y, hwColor);
+            }
+        }
+    }
 }
 
-void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor, uint8_t fillCmd)
-{
-    command(FILL_WINDOW);
-    command(fillCmd);
+void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short hwColor) {
 
-    command(DRAW_RECTANGLE);
-    command(x1);
-    command(y1);
-    command(x2);
-    command(y2);
+    if (x1 == x2)
+    {
+        for (uint8_t y = y1; y <= y2; y++)
+        {
+            SSD1331_draw_point(x1, y, hwColor);
+        }
+    }
 
-    gpio_set_level((gpio_num_t)OLED_DC, 0);
-    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
-    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
+    else if (y1 == y2)
+    {
+        for (uint8_t x = x1; x <= x2; x++)
+        {
+            SSD1331_draw_point(x, y1, hwColor);
+        }
+    }
 
-    vTaskDelay(10 / portTICK_RATE_MS);
+    else
+    {
+        float m = (float)(y2-y1) / (float)(x2-x1);
+        float b = (float)y1;
+
+        for (uint8_t x = 0; x <= x2-x1; x++)
+        {
+            uint8_t y = (uint8_t)(m * (float)x + b);
+            SSD1331_draw_point(x + x1, y, hwColor);
+        }
+    }
 }
 
-void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short cmdColor)
-{
-    command(DRAW_LINE);
-    command(x1);
-    command(y1);
-    command(x2);
-    command(y2);
-
-    gpio_set_level((gpio_num_t)OLED_DC, 0);
-    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
-    SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
-}
-
-void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor)
-{
+void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor) {
     unsigned char i, j;
     unsigned char chTemp = 0, y0 = y;
 
@@ -208,8 +218,7 @@ void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, un
     }
 }
 
-void SSD1331_char3216(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor)
-{
+void SSD1331_char3216(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor) {
     unsigned char i, j;
     unsigned char chTemp = 0, y0 = y; 
 
@@ -233,20 +242,19 @@ void SSD1331_char3216(unsigned char x, unsigned char y, unsigned char chChar, un
     }
 }
 
-static void SSD1331_char(unsigned char x, unsigned char y, char acsii, char size, char mode, unsigned short hwColor)
-{
+static void SSD1331_char(unsigned char x, unsigned char y, char acsii, char size, char mode, unsigned short hwColor) {
     unsigned char i, j, y0=y;
     char temp;
     unsigned char ch = acsii - ' ';
     for(i = 0;i<size;i++) {
         if(size == 12)
         {
-            if(mode)temp = Font1206[ch][i];
+            if(mode)temp=Font1206[ch][i];
             else temp = ~Font1206[ch][i];
         }
         else 
         {            
-            if(mode)temp = Font1608[ch][i];
+            if(mode)temp=Font1608[ch][i];
             else temp = ~Font1608[ch][i];
         }
         for(j =0;j<8;j++)
@@ -265,8 +273,7 @@ static void SSD1331_char(unsigned char x, unsigned char y, char acsii, char size
     }
 }
 
-void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor)
-{
+void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor) {
     while (*pString != '\0') {       
         if (x > (OLED_WIDTH - Size / 2)) {
             x = 0;
@@ -282,8 +289,7 @@ void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsig
     }
 }
 
-void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor)
-{
+void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor) {
     unsigned char i, j, byteWidth = (chWidth + 7) / 8;
     for(j = 0; j < chHeight; j++) {
         for(i = 0; i <chWidth; i ++) {
@@ -294,12 +300,24 @@ void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *
     }        
 }
 
-/* // this displays the whole frame buffer for the OLED.
-   // due to only 2K buffer RAM on UNO, it's not worth to use this.
+void SSD1331_bitmap24(unsigned char x, unsigned char y, unsigned char *pBmp, char chWidth, char chHeight) {
+    unsigned char i, j;
+    unsigned short hwColor;
+    unsigned int temp;
 
-void SSD1331_display()
-{
-    int txLen = 512;
+    for(j = 0; j < chHeight; j++) {
+        for(i = 0; i < chWidth; i ++) {
+            temp = *(unsigned int*)(pBmp + i * 3 + j * 3 * chWidth);
+            hwColor = RGB(((temp >> 16) & 0xFF),
+                          ((temp >> 8) & 0xFF),
+                           (temp & 0xFF));
+            SSD1331_draw_point(x + i, y + chHeight - 1 - j, hwColor);
+        }
+    }
+}
+
+void SSD1331_display() {
+    int txLen = 64;
     int remain = sizeof(buffer);
     unsigned char *pBuffer = buffer;
     command(SET_COLUMN_ADDRESS);
@@ -308,7 +326,7 @@ void SSD1331_display()
     command(SET_ROW_ADDRESS);
     command(0);         //page atart address
     command(OLED_HEIGHT - 1); //page end address
-    digitalWrite(OLED_DC, HIGH);
+    gpio_set_level((gpio_num_t)OLED_DC, 1);
     while (remain > txLen)
     {
         SPIWrite(pBuffer, txLen);
@@ -317,7 +335,6 @@ void SSD1331_display()
     }
     SPIWrite(pBuffer, remain);
 }
-*/
 
 void SSD1331_clear_screen(unsigned short hwColor) {
     unsigned short i, j;
@@ -326,6 +343,5 @@ void SSD1331_clear_screen(unsigned short hwColor) {
             SSD1331_draw_point(j, i, hwColor);
         }
     }
-    ESP_LOGI(TAG, "%#06x", hwColor);
 }
 

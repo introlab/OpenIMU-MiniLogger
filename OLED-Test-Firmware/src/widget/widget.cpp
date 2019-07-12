@@ -92,11 +92,11 @@ void AbstractWidget::paintRectangle()
 {
     if (_selected)
     {
-        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, GREEN_CMD);
+        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, GREEN);
     }
     else
     {
-        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, BLACK_CMD);
+        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, BLACK);
     }
 }
 
@@ -108,6 +108,6 @@ void AbstractWidget::paintMessage()
     std::string message = getMessage();
     uint8_t messageOffset = abs(16 - message.length()) * 3;
 
-    SSD1331_rectangle(0, WIDGET_MSG_Y_ORIGIN, OLED_WIDTH-1, OLED_HEIGHT-1, BLACK_CMD, ENABLE_FILL);
+    SSD1331_rectangle(0, WIDGET_MSG_Y_ORIGIN, OLED_WIDTH-1, OLED_HEIGHT-1, BLACK, true);
     SSD1331_string(messageOffset, WIDGET_MSG_Y_ORIGIN, message.c_str(), 12, 1, GREEN);
 }

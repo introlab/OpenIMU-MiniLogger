@@ -84,14 +84,14 @@ void GPS::paintLogo()
 {
     if (_hasFix)
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK_CMD);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK_CMD);
+        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK);
+        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK);
         SSD1331_mono_bitmap(_xorigin + 5, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
     }
     else
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, RED_CMD);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, RED_CMD);
+        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, RED);
+        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, RED);
         SSD1331_mono_bitmap(_xorigin + 5, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, RED);
     }
     

@@ -1,8 +1,8 @@
 /*****************************************************************************
 *
 * File                : ssd1331.h
-* Hardware Environment: Arduino UNO
-* Build Environment   : Arduino
+* Hardware Environment: Raspberry Pi
+* Build Environment   : GCC
 * Version             : V1.0.7
 * Author              : Yehui
 *
@@ -16,12 +16,9 @@
 #ifndef _SSD1331_H_
 #define _SSD1331_H_
 
-#include <stdint.h>
-
 //Display defines
-#define VCCSTATE SSD1331_SWITCHCAPVCC
-#define OLED_WIDTH     96
-#define OLED_HEIGHT    64
+#define OLED_WIDTH 96
+#define OLED_HEIGHT 64
 
 #define RGB(R,G,B)  (((R >> 3) << 11) | ((G >> 2) << 5) | (B >> 3))
 enum Color {
@@ -113,23 +110,22 @@ static const unsigned char color_cmd[12][3] =  {
 #define SET_V_VOLTAGE                   0xBE
 
 void SSD1331_begin();
-void SSD1331_shutdown();
 void SSD1331_display();
 void SSD1331_clear();
+void SSD1331_shutdown();
 void SSD1331_pixel(int x,int y, char color);
-void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor, uint8_t fillCmd = DISABLE_FILL);
-void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short cmdColor);
+void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short hwColor, bool filled = false);
+void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short hwColor);
 void SSD1331_mono_bitmap(unsigned char x, unsigned char y, const unsigned char *pBmp, char chWidth, char chHeight, unsigned short hwColor);
+void SSD1331_bitmap24(unsigned char x, unsigned char y, unsigned char *pBmp, char chWidth, char chHeight);
 void SSD1331_string(unsigned char x, unsigned char y, const char *pString, unsigned char Size, unsigned char Mode, unsigned short hwColor);
 void SSD1331_char1616(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor);
 void SSD1331_char3216(unsigned char x, unsigned char y, unsigned char chChar, unsigned short hwColor);
 
 void SSD1331_clear_screen(unsigned short hwColor);
 void SSD1331_draw_point(int chXpos, int chYpos, unsigned short hwColor);
-void command(uint8_t cmd);
-void SPIWrite(uint8_t *buffer, int bufferLength);
 
-static const unsigned char waveshare_logo[1024] =
+static const unsigned char waveshare_logo[1024]=
 {/*0X00,0X01,0X60,0X00,0X40,0X00,*/
     0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,
     0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,
@@ -470,7 +466,7 @@ static const unsigned char Bmp4016[96] =  //SUN
     0x0C,0x3F,0xF1,0xFF,0x8C,0x0C,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-static const unsigned char Signal816[16] = //mobie singal
+static const unsigned char Signal816[16] = //mobie signal
 {
     0xFE,0x02,0x92,0x0A,0x54,0x2A,0x38,0xAA,0x12,0xAA,0x12,0xAA,0x12,0xAA,0x12,0xAA
 };

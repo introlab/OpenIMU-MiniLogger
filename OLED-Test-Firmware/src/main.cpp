@@ -113,19 +113,25 @@ extern "C"
         {
             logWidget.unselect();
             sdWidget.select();
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
             sdWidget.setStatus(true);
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
             sdWidget.unselect();
             logWidget.select();
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
             logWidget.unselect();
             sdWidget.select();
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
             sdWidget.setStatus(false);
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
             sdWidget.unselect();
             logWidget.select();
+            SSD1331_display();
             vTaskDelay(2000 / portTICK_RATE_MS);
 
 

@@ -112,12 +112,12 @@ void SD::paintLogo()
 {
     if (_isExternal)
     {
-        SSD1331_rectangle(_xorigin + 2, _yorigin + 4, _xorigin + 2 + SD_ICON_WIDTH, _yorigin + 4 + SD_ICON_HEIGHT, BLACK_CMD, ENABLE_FILL);
+        SSD1331_rectangle(_xorigin + 2, _yorigin + 4, _xorigin + 2 + SD_ICON_WIDTH, _yorigin + 4 + SD_ICON_HEIGHT, BLACK, true);
         SSD1331_mono_bitmap(_xorigin + 4, _yorigin + 4, usb_icon, USB_ICON_WIDTH, USB_ICON_HEIGHT, WHITE);
     }
     else
     {
-        SSD1331_rectangle(_xorigin + 4, _yorigin + 4, _xorigin + 4 + USB_ICON_WIDTH, _yorigin + 4 + USB_ICON_HEIGHT, BLACK_CMD, ENABLE_FILL);
+        SSD1331_rectangle(_xorigin + 4, _yorigin + 4, _xorigin + 4 + USB_ICON_WIDTH, _yorigin + 4 + USB_ICON_HEIGHT, BLACK, true);
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 4, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, BLUE);
     }
     

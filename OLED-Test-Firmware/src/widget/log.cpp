@@ -78,8 +78,8 @@ void Log::paintLogo()
 {
     if (_isLogging)
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK_CMD);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK_CMD);
+        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK);
+        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK);
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 6, icon, ICON_WIDTH, ICON_HEIGHT, BLUE);
     }
     else
