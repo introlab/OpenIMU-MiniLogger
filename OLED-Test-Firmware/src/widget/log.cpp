@@ -23,7 +23,7 @@
 #include "ssd1331.h"
 
 #define X_ORIGIN 48
-#define Y_ORIGIN 14
+#define Y_ORIGIN 16
 
 #define ICON_WIDTH 18
 #define ICON_HEIGHT 21

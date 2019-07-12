@@ -22,6 +22,9 @@
 
 #include "homescreen.h"
 #include "ssd1331.h"
+#include <sstream>
+#include <iomanip>
+#include <cmath>
 
 /**
  * Construct an Homescreen object
@@ -89,20 +92,50 @@ void Homescreen::action()
 
 /**
  * Paint the homescreen to the screen buffer
- * The function do not clear the buffer before painting
  */
 void Homescreen::paint()
 {
-    SSD1331_clear();
-    
-    time_t now;
-    struct tm *timeInfo;
-    time(&now);
-    timeInfo = gmtime(&now);
 
-    char strftimeBuf[64];
-    strftime(strftimeBuf, sizeof(strftimeBuf), "%x %H:%M", timeInfo);
-    SSD1331_string(5, 0, strftimeBuf, 12, 1, WHITE);
+    SSD1331_clear();
+
+    if(_isLogging)  // Show current log time in top bar
+    {
+        time_t now;
+        time(&now);
+        double elapsed = difftime(now, _logStart);
+
+        std::stringstream topStream;
+        topStream << std::setfill('0');
+        topStream << std::setw(2);
+        topStream <<  floor(elapsed / 3600) << ":";
+        topStream << std::setfill('0');
+        topStream << std::setw(2);
+        topStream << floor(fmod(elapsed, 3600)/60) << ":";
+        topStream << std::setfill('0');
+        topStream << std::setw(2);
+        topStream << floor(fmod(elapsed, 60)) << " / ";
+
+        topStream << std::setfill('0');
+        topStream << std::setw(2);
+        topStream <<  floor(_logCapacity / 3600) << ":";
+        topStream << std::setfill('0');
+        topStream << std::setw(2);
+        topStream << floor(fmod(_logCapacity, 3600)/60);
+
+        SSD1331_string(0, 0, topStream.str().c_str(), 12, 1, WHITE);
+    }
+    
+    else    // Show current date / time in top bar
+    {
+        time_t now;
+        struct tm *timeInfo;
+        time(&now);
+        timeInfo = gmtime(&now);
+
+        char strftimeBuf[64];
+        strftime(strftimeBuf, sizeof(strftimeBuf), "%x %H:%M", timeInfo);
+        SSD1331_string(5, 0, strftimeBuf, 12, 1, WHITE);
+    }
     
     for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
     {
@@ -127,4 +160,25 @@ void Homescreen::setVisible(bool isVisible)
     }
 
     if (_isVisible) paint();
+}
+
+/**
+ * Place the homescreen in log state where it displays elapsed time
+ * 
+ * @param double logCapacity : the maximum log duration at start of log in seconds
+ */
+void Homescreen::startLog(double logCapacity)
+{
+    _isLogging = true;
+    _logCapacity = logCapacity;
+
+    time(&_logStart);
+}
+
+/**
+ * Cancel the homescreen log state
+ */
+void Homescreen::stopLog()
+{
+    _isLogging = false;
 }

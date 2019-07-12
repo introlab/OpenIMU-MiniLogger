@@ -93,16 +93,16 @@ extern "C"
         display->begin();
 
         Widget::Battery batteryWidget;
-        batteryWidget.updateValue(3.9, 0.0);
+        batteryWidget.updateValue(5.0, 0.0, true);
 
         Widget::GPS gpsWidget;
-        gpsWidget.setStatus(true);
+        gpsWidget.setStatus(false);
 
         Widget::Log logWidget(nullptr);
-        logWidget.setStatus(true);
+        logWidget.setStatus(false);
 
         Widget::SD sdWidget(nullptr);
-        sdWidget.setStatus(true);
+        sdWidget.setStatus(false);
 
         Homescreen home;
         home.addWidget(&batteryWidget);
@@ -112,9 +112,29 @@ extern "C"
 
         home.setVisible(true);
 
+        vTaskDelay(3000 / portTICK_RATE_MS);
+
+        home.next();
+        vTaskDelay(1200);
+
+        home.next();
+        vTaskDelay(1200);
+
+        home.startLog(12543);
+        logWidget.setStatus(true);
+
+        vTaskDelay(1200);
+        home.previous();
+
+        vTaskDelay(1200);
+        home.previous();
+
         while(1)
         {
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            vTaskDelay(500);
+            home.setVisible(true);
+
+            /*vTaskDelay(1000 / portTICK_RATE_MS);
             home.next();
 
             vTaskDelay(1000 / portTICK_RATE_MS);
@@ -136,7 +156,7 @@ extern "C"
             home.previous();
 
             vTaskDelay(1000 / portTICK_RATE_MS);
-            home.previous();
+            home.previous();*/
         }
     }
 }

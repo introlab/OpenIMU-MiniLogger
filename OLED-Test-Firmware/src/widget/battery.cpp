@@ -24,7 +24,7 @@
 #include <sstream>
 
 #define X_ORIGIN 0
-#define Y_ORIGIN 14
+#define Y_ORIGIN 16
 
 #define ICON_WIDTH 10
 #define ICON_HEIGHT 25
@@ -76,10 +76,11 @@ Battery::Battery() : AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr) { }
  * @param float voltage: current battery voltage in volt
  * @param float current: current battery current in ampere
  */
-void Battery::updateValue(float voltage, float current)
+void Battery::updateValue(float voltage, float current, bool isCharging)
 {
     _voltage = voltage;
     _current = current;
+    _isCharging = isCharging;
 
     if (_visible) paint(true);
 }
@@ -130,7 +131,15 @@ void Battery::paintLogo()
 std::string Battery::getMessage()
 {
     std::stringstream msgStream;
-    msgStream << _voltage << " V  " << _current << " A";
+
+    if (_isCharging)
+    {
+        msgStream << "Charging " << _current << " A";
+    }
+    else
+    {
+        msgStream << _voltage << " V  " << _current << " A";
+    }
 
     return msgStream.str();
 }

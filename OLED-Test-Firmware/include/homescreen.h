@@ -39,6 +39,9 @@ public:
 
     void setVisible(bool isVisible);
 
+    void startLog(double logCapacity);
+    void stopLog();
+
 private:
     void paint();
 
@@ -46,4 +49,8 @@ private:
     std::list<Widget::AbstractWidget*>::iterator _currentWidget;
 
     bool _isVisible = false;
+
+    time_t _logStart;
+    double _logCapacity;
+    bool _isLogging = false;
 };

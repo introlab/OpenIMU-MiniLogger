@@ -30,7 +30,7 @@ class Battery : public AbstractWidget
 {
 public:
     Battery();
-    void updateValue(float voltage, float current = 0.0);
+    void updateValue(float voltage, float current = 0.0, bool isCharging = false);
 
 private:
     void paintLogo();
@@ -38,6 +38,7 @@ private:
 
     float _voltage = 0.0;
     float _current = 0.0;
+    bool _isCharging = false;
 };
 
 }
