@@ -123,6 +123,7 @@ void SSD1331_begin()
 void SSD1331_clear()
 {
     SSD1331_rectangle(0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, BLACK_CMD, ENABLE_FILL);
+    vTaskDelay(10 / portTICK_RATE_MS);
 }
 
 void SSD1331_shutdown()
@@ -134,7 +135,7 @@ void SSD1331_draw_point(int x, int y, unsigned short hwColor) {
 
     unsigned char buffer[2];
     
-    if(x >= OLED_WIDTH - 1 || y >= OLED_HEIGHT - 1)
+    if(x >= OLED_WIDTH || y >= OLED_HEIGHT)
     {
         return;
     }
@@ -166,6 +167,8 @@ void SSD1331_rectangle(int x1, int y1, int x2, int y2, unsigned short cmdColor, 
     gpio_set_level((gpio_num_t)OLED_DC, 0);
     SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
     SPIWrite((uint8_t*)color_cmd[cmdColor], 3);
+
+    vTaskDelay(10 / portTICK_RATE_MS);
 }
 
 void SSD1331_line(int x1, int y1, int x2, int y2, unsigned short cmdColor)

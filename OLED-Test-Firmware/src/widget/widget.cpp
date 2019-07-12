@@ -78,7 +78,11 @@ void AbstractWidget::paint()
 {
     paintLogo();
     paintRectangle();
-    paintMessage();
+
+    if (_selected)
+    {
+        paintMessage();
+    }
 }
 
 /**

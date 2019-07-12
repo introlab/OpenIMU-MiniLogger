@@ -1,12 +1,8 @@
 /*
- * Homescreen icons for Open Imu
- * 
- * Export as 1bpp in GIMP
- * Convert with https://littlevgl.com/image-to-c-array
- * 
+ * Widget to toggle SD card connection on Open IMU homescreen
  * author: Cedric Godin
  * 
- * Copyright 2018 IntRoLab
+ * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -23,100 +19,19 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include "widget/sd.h"
+#include "ssd1331.h"
 
-#define GPS_ICON_WIDTH 13
-#define GPS_ICON_HEIGHT 26
-
-const unsigned char gps_icon[] = {
-  0x0f, 0x80, 
-  0x30, 0x60, 
-  0x60, 0x30, 
-  0x4f, 0x90, 
-  0x90, 0x48, 
-  0x90, 0x48, 
-  0x90, 0x48, 
-  0x90, 0x48, 
-  0x90, 0x48, 
-  0x4d, 0x90, 
-  0x42, 0x10, 
-  0x40, 0x10, 
-  0x20, 0x10, 
-  0x20, 0x20, 
-  0x30, 0x20, 
-  0x10, 0x40, 
-  0x10, 0x40, 
-  0x08, 0x80, 
-  0x0c, 0x80, 
-  0x05, 0x80, 
-  0x37, 0x60, 
-  0x43, 0x10, 
-  0x82, 0x08, 
-  0x80, 0x08, 
-  0x60, 0x30, 
-  0x1f, 0xc0
-};
-
-#define BATTERY_ICON_WIDTH 10
-#define BATTERY_ICON_HEIGHT 25
-
-const unsigned char battery_icon[] = {
-  0x3f, 0x00, 
-  0x21, 0x00, 
-  0xff, 0xc0, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0x80, 0x40, 
-  0xff, 0xc0
-};
-
-#define LOGGING_ICON_WIDTH 18
-#define LOGGING_ICON_HEIGHT 21
-
-const unsigned char logging_icon[] {
-  0x00, 0x70, 0x00, 
-  0x00, 0x50, 0x00, 
-  0x00, 0x50, 0x00, 
-  0x00, 0x50, 0x00, 
-  0x01, 0xdc, 0x00, 
-  0x01, 0x04, 0x00, 
-  0x00, 0x88, 0x00, 
-  0x00, 0x88, 0x00, 
-  0x00, 0x50, 0x00, 
-  0x1f, 0x77, 0xc0, 
-  0x10, 0x20, 0x40, 
-  0xff, 0xfe, 0x40, 
-  0x80, 0x01, 0x40, 
-  0x80, 0x01, 0x40, 
-  0x40, 0x01, 0x40, 
-  0x40, 0x01, 0xc0, 
-  0x40, 0x00, 0xc0, 
-  0x20, 0x00, 0xc0, 
-  0x20, 0x00, 0xc0, 
-  0x20, 0x00, 0x40, 
-  0x3f, 0xff, 0xc0
-};
+#define X_ORIGIN 73
+#define Y_ORIGIN 12
 
 #define SD_ICON_WIDTH 18
 #define SD_ICON_HEIGHT 24
+
+#define USB_ICON_WIDTH 15
+#define USB_ICON_HEIGHT 25
+
+using namespace Widget;
 
 const unsigned char sd_icon[] {
   0x0f, 0xff, 0xc0, 
@@ -145,9 +60,6 @@ const unsigned char sd_icon[] {
   0xff, 0xff, 0xc0
 };
 
-#define USB_ICON_WIDTH 15
-#define USB_ICON_HEIGHT 25
-
 const unsigned char usb_icon[] {
   0x01, 0x00, 
   0x01, 0x00, 
@@ -175,3 +87,56 @@ const unsigned char usb_icon[] {
   0x07, 0xc0, 
   0x03, 0x80
 };
+
+/**
+ * Construct a log widget
+ */
+SD::SD() : AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr) { }
+
+void SD::setStatus(bool isExternal)
+{
+    _isExternal = isExternal;
+
+    paintLogo();
+    if (_selected)
+    {
+        paintMessage();
+    }
+}
+
+/**
+ * Paint the log widget icon to the screen
+ * Icon shows current log status
+ */
+void SD::paintLogo()
+{
+    if (_isExternal)
+    {
+        SSD1331_rectangle(_xorigin + 2, _yorigin + 4, _xorigin + 2 + SD_ICON_WIDTH, _yorigin + 4 + SD_ICON_HEIGHT, BLACK_CMD, ENABLE_FILL);
+        SSD1331_mono_bitmap(_xorigin + 4, _yorigin + 4, usb_icon, USB_ICON_WIDTH, USB_ICON_HEIGHT, WHITE);
+    }
+    else
+    {
+        SSD1331_rectangle(_xorigin + 4, _yorigin + 4, _xorigin + 4 + USB_ICON_WIDTH, _yorigin + 4 + USB_ICON_HEIGHT, BLACK_CMD, ENABLE_FILL);
+        SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 4, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, BLUE);
+    }
+    
+}
+
+/**
+ * Return the message that should be displayed when the widget is selected
+ * 
+ * @return string message: a string indicating the action performed on click
+ */
+std::string SD::getMessage()
+{
+    if (_isExternal)
+    {
+        return "Disconnect USB";
+    }
+    else
+    {
+        return "Connect USB";
+    }
+    
+}
