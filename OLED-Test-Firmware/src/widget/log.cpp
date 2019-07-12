@@ -23,7 +23,7 @@
 #include "ssd1331.h"
 
 #define X_ORIGIN 48
-#define Y_ORIGIN 12
+#define Y_ORIGIN 14
 
 #define ICON_WIDTH 18
 #define ICON_HEIGHT 21
@@ -56,18 +56,15 @@ const unsigned char icon[] = {
 
 /**
  * Construct a log widget
+ * 
+ * @param void (*)() toggleLog : function to toggle logging on and off
  */
-Log::Log() : AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr) { }
+Log::Log(void (*toggleLog)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleLog) { }
 
 void Log::setStatus(bool isLogging)
 {
     _isLogging = isLogging;
-
-    paintLogo();
-    if (_selected)
-    {
-        paintMessage();
-    }
+    if (_visible) paint(true);
 }
 
 /**
@@ -78,8 +75,6 @@ void Log::paintLogo()
 {
     if (_isLogging)
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK);
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 6, icon, ICON_WIDTH, ICON_HEIGHT, BLUE);
     }
     else

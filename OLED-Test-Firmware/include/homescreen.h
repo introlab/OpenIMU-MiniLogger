@@ -1,5 +1,6 @@
 /*
- * Widget to toggle SD card connection on Open IMU homescreen
+ * Homescreen class for Open IMU
+ * Displays the widgets and move between them using previous, next and action methods
  * author: Cedric Godin
  * 
  * Copyright 2019 IntRoLab
@@ -21,22 +22,28 @@
 
 #pragma once
 
+#include <list>
+
 #include "widget/widget.h"
 
-namespace Widget
-{
-
-class SD : public AbstractWidget
+class Homescreen
 {
 public:
-    SD(void (*toggleExternal)());
-    void setStatus(bool isExternal);
+    Homescreen();
+
+    void addWidget(Widget::AbstractWidget* widget);
+
+    void previous();
+    void next();
+    void action();
+
+    void setVisible(bool isVisible);
 
 private:
-    void paintLogo();
-    std::string getMessage();
+    void paint();
 
-    bool _isExternal;
+    std::list<Widget::AbstractWidget*> _widgets;
+    std::list<Widget::AbstractWidget*>::iterator _currentWidget;
+
+    bool _isVisible = false;
 };
-
-}

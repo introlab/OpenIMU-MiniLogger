@@ -24,7 +24,7 @@
 #include <sstream>
 
 #define X_ORIGIN 0
-#define Y_ORIGIN 12
+#define Y_ORIGIN 14
 
 #define ICON_WIDTH 10
 #define ICON_HEIGHT 25
@@ -80,68 +80,45 @@ void Battery::updateValue(float voltage, float current)
 {
     _voltage = voltage;
     _current = current;
-    paintLogo();
 
-    if(_selected)
-    {
-        paintMessage();
-    }
+    if (_visible) paint(true);
 }
 
 /**
- * Pain the battery logo to the screen
+ * Paint the battery logo to the screen
  * Logo adjust according to current battery voltage
  */
 void Battery::paintLogo()
 {
     if (_voltage > BATT_LEVEL_LOW)
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK);
         SSD1331_mono_bitmap(_xorigin + 7, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
+    }
+    else
+    {
+        SSD1331_mono_bitmap(_xorigin + 7, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, RED);
+        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, RED);
+        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, RED);
     }
 
     if (_voltage > BATT_LEVEL_1)
     {
         SSD1331_rectangle(_xorigin + 9, _yorigin + 23, _xorigin + 14, _yorigin + 26, WHITE, true);
     }
-    else
-    {
-        SSD1331_rectangle(_xorigin + 9, _yorigin + 23, _xorigin + 14, _yorigin + 26, BLACK, true);
-    }
 
     if (_voltage > BATT_LEVEL_2)
     {
         SSD1331_rectangle(_xorigin + 9, _yorigin + 18, _xorigin + 14, _yorigin + 21, WHITE, true);
-    }
-    else
-    {
-        SSD1331_rectangle(_xorigin + 9, _yorigin + 18, _xorigin + 14, _yorigin + 21, BLACK, true);
     }
 
     if (_voltage > BATT_LEVEL_3)
     {
         SSD1331_rectangle(_xorigin + 9, _yorigin + 13, _xorigin + 14, _yorigin + 16, WHITE, true);
     }
-    else
-    {
-        SSD1331_rectangle(_xorigin + 9, _yorigin + 13, _xorigin + 14, _yorigin + 16, BLACK, true);
-    }
 
     if (_voltage > BATT_LEVEL_4)
     {
         SSD1331_rectangle(_xorigin + 9, _yorigin + 8, _xorigin + 14, _yorigin + 11, WHITE, true);
-    }
-    else
-    {
-        SSD1331_rectangle(_xorigin + 9, _yorigin + 8, _xorigin + 14, _yorigin + 11, BLACK, true);
-    } 
-
-    if (_voltage <= BATT_LEVEL_LOW)
-    {
-        SSD1331_mono_bitmap(_xorigin + 7, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, RED);
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, RED);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, RED);
     }
 }
 

@@ -33,6 +33,7 @@
 #include "widget/gps.h"
 #include "widget/log.h"
 #include "widget/sd.h"
+#include "homescreen.h"
 
 // Module name for debuging
 static const char* TAG = "main";
@@ -87,117 +88,55 @@ extern "C"
         xTaskCreate(&blink_led, "Blink", 2048, NULL, 1, &blink_led_task);
         ESP_LOGI(TAG, "Ready and blinking");
 
-        // Test the display
+        // Boot up display
         Display* display = Display::instance();
         display->begin();
-        display->clear();
 
         Widget::Battery batteryWidget;
-        batteryWidget.paint();
         batteryWidget.updateValue(3.9, 0.0);
 
         Widget::GPS gpsWidget;
-        gpsWidget.paint();
         gpsWidget.setStatus(true);
 
-        Widget::Log logWidget;
-        logWidget.paint();
-        logWidget.setStatus(false);
+        Widget::Log logWidget(nullptr);
+        logWidget.setStatus(true);
 
-        Widget::SD sdWidget;
-        sdWidget.paint();
+        Widget::SD sdWidget(nullptr);
+        sdWidget.setStatus(true);
 
-        bool logging = true;
+        Homescreen home;
+        home.addWidget(&batteryWidget);
+        home.addWidget(&gpsWidget);
+        home.addWidget(&logWidget);
+        home.addWidget(&sdWidget);
+
+        home.setVisible(true);
 
         while(1)
         {
-            logWidget.unselect();
-            sdWidget.select();
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            sdWidget.setStatus(true);
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            sdWidget.unselect();
-            logWidget.select();
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            logWidget.unselect();
-            sdWidget.select();
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            sdWidget.setStatus(false);
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            sdWidget.unselect();
-            logWidget.select();
-            SSD1331_display();
-            vTaskDelay(2000 / portTICK_RATE_MS);
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.next();
 
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.next();
 
-            /*batteryWidget.select();
-            gpsWidget.unselect();
-            logWidget.unselect();
             vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(4.2);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(4.0);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            gpsWidget.setStatus(false);
-            batteryWidget.updateValue(3.8);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.6);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.4);
-            gpsWidget.setStatus(true);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.2);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            logWidget.setStatus(true);
 
-            batteryWidget.unselect();
-            gpsWidget.select();
-            logWidget.unselect();
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.next();
 
-            batteryWidget.unselect();
-            gpsWidget.unselect();
-            logWidget.select();
             vTaskDelay(1000 / portTICK_RATE_MS);
-            logging = !logging;
-            logWidget.setStatus(logging);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            logWidget.setStatus(false);
 
-            batteryWidget.unselect();
-            gpsWidget.select();
-            logWidget.unselect();
             vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(4.2);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(4.0);
-            gpsWidget.setStatus(false);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.8);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.6);
-            gpsWidget.setStatus(true);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.4);
-            vTaskDelay(1000 / portTICK_RATE_MS);
-            batteryWidget.updateValue(3.2);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.previous();
 
-            batteryWidget.unselect();
-            gpsWidget.unselect();
-            logWidget.select();
             vTaskDelay(1000 / portTICK_RATE_MS);
-            logging = !logging;
-            logWidget.setStatus(logging);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.previous();
 
-            batteryWidget.unselect();
-            gpsWidget.select();
-            logWidget.unselect();
-            vTaskDelay(500 / portTICK_RATE_MS);*/
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            home.previous();
         }
     }
 }

@@ -23,7 +23,7 @@
 #include "ssd1331.h"
 
 #define X_ORIGIN 24
-#define Y_ORIGIN 12
+#define Y_ORIGIN 14
 
 #define ICON_WIDTH 13
 #define ICON_HEIGHT 26
@@ -68,12 +68,7 @@ GPS::GPS() : AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr) { }
 void GPS::setStatus(bool hasFix)
 {
     _hasFix = hasFix;
-
-    paintLogo();
-    if (_selected)
-    {
-        paintMessage();
-    }
+    if (_visible) paint(true);
 }
 
 /**
@@ -84,8 +79,6 @@ void GPS::paintLogo()
 {
     if (_hasFix)
     {
-        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, BLACK);
-        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, BLACK);
         SSD1331_mono_bitmap(_xorigin + 5, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
     }
     else

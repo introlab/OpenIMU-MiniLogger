@@ -34,7 +34,10 @@ using namespace Widget;
  * @param uint_8t yorigin: topmost pixel of the widget when printed with its selection rectangle
  * @param void (*action)(): action function to perform
  */
-AbstractWidget::AbstractWidget(uint8_t xorigin, uint8_t yorigin, void (*action)()) : _xorigin{xorigin}, _yorigin{yorigin}, _action{action} { }
+AbstractWidget::AbstractWidget(
+    uint8_t xorigin,
+    uint8_t yorigin,
+    void (*action)()) : _xorigin{xorigin}, _yorigin{yorigin}, _action{action} { }
 
 /**
  * Mark this widget as selected and update the selection rectangle
@@ -42,8 +45,6 @@ AbstractWidget::AbstractWidget(uint8_t xorigin, uint8_t yorigin, void (*action)(
 void AbstractWidget::select()
 {
     _selected = true;
-    paintRectangle();
-    paintMessage();
 }
 
 /**
@@ -52,7 +53,6 @@ void AbstractWidget::select()
 void AbstractWidget::unselect()
 {
     _selected = false;
-    paintRectangle();
 }
 
 /**
@@ -61,28 +61,41 @@ void AbstractWidget::unselect()
  */
 void AbstractWidget::performAction()
 {
-    if (_action != nullptr)
-    {
-        _action();
-        paint();
-    }
-
-    paintLogo();
-    paintMessage();
+    if (_action != nullptr) _action();
 }
 
 /**
  * Paint the widget to the screen
+ * Clear the occupied screen portion and write the display buffer is only the widget has to be displayed
+ * 
+ * @param bool meOnly : if only the widget has to be redrawn
  */
-void AbstractWidget::paint()
+void AbstractWidget::paint(bool meOnly)
 {
+    if (meOnly)
+    {
+        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT -1 , BLACK, true);
+        if (_selected) SSD1331_rectangle(0, WIDGET_MSG_Y_ORIGIN, OLED_WIDTH - 1, OLED_HEIGHT - 1, BLACK, true);
+    }
+    
     paintLogo();
-    paintRectangle();
-
     if (_selected)
     {
+        paintRectangle();
         paintMessage();
     }
+
+    if (meOnly) SSD1331_display();
+}
+
+/**
+ * Tells the widget if it should paint itself to the screen
+ * 
+ * @param bool isVisible : if the widget should be displayed
+ */
+void AbstractWidget::setVisible(bool isVisible)
+{
+    _visible = isVisible;
 }
 
 /**
@@ -90,14 +103,7 @@ void AbstractWidget::paint()
  */
 void AbstractWidget::paintRectangle()
 {
-    if (_selected)
-    {
-        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, GREEN);
-    }
-    else
-    {
-        SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, BLACK);
-    }
+    SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT, GREEN);
 }
 
 /**
@@ -108,6 +114,5 @@ void AbstractWidget::paintMessage()
     std::string message = getMessage();
     uint8_t messageOffset = abs(16 - message.length()) * 3;
 
-    SSD1331_rectangle(0, WIDGET_MSG_Y_ORIGIN, OLED_WIDTH-1, OLED_HEIGHT-1, BLACK, true);
     SSD1331_string(messageOffset, WIDGET_MSG_Y_ORIGIN, message.c_str(), 12, 1, GREEN);
 }

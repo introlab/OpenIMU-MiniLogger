@@ -29,7 +29,7 @@ namespace Widget
 class Log : public AbstractWidget
 {
 public:
-    Log();
+    Log(void (*toggleLog)());
     void setStatus(bool isLogging);
 
 private:

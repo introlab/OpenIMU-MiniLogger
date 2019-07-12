@@ -38,12 +38,16 @@ public:
     void select();
     void unselect();
     void performAction();
-    void paint();
+    void paint(bool meOnly = false);
+    void setVisible(bool isVisible);
 
 protected:
     uint8_t _xorigin;
     uint8_t _yorigin;
+
     bool _selected = false;
+    bool _visible = false;
+
     void (*_action)();
 
     virtual std::string getMessage() = 0;

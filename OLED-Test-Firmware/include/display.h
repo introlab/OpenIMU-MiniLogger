@@ -24,6 +24,7 @@
 
 #include "ssd1331.h"
 #include "menu.h"
+#include "homescreen.h"
 
 class Display
 {

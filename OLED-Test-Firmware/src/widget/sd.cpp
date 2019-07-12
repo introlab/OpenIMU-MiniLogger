@@ -23,7 +23,7 @@
 #include "ssd1331.h"
 
 #define X_ORIGIN 73
-#define Y_ORIGIN 12
+#define Y_ORIGIN 14
 
 #define SD_ICON_WIDTH 18
 #define SD_ICON_HEIGHT 24
@@ -89,35 +89,30 @@ const unsigned char usb_icon[] {
 };
 
 /**
- * Construct a log widget
+ * Construct a SD card widget
+ * 
+ * @param void (*)() toggleExternal : function to toggle SD card between ESP32 and USB storage
  */
-SD::SD() : AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr) { }
+SD::SD(void (*toggleExternal)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleExternal) { }
 
 void SD::setStatus(bool isExternal)
 {
     _isExternal = isExternal;
-
-    paintLogo();
-    if (_selected)
-    {
-        paintMessage();
-    }
+    if (_visible) paint(true);
 }
 
 /**
- * Paint the log widget icon to the screen
- * Icon shows current log status
+ * Paint the SD card widget icon to the screen
+ * Icon shows current SD connection
  */
 void SD::paintLogo()
 {
     if (_isExternal)
     {
-        SSD1331_rectangle(_xorigin + 2, _yorigin + 4, _xorigin + 2 + SD_ICON_WIDTH, _yorigin + 4 + SD_ICON_HEIGHT, BLACK, true);
         SSD1331_mono_bitmap(_xorigin + 4, _yorigin + 4, usb_icon, USB_ICON_WIDTH, USB_ICON_HEIGHT, WHITE);
     }
     else
     {
-        SSD1331_rectangle(_xorigin + 4, _yorigin + 4, _xorigin + 4 + USB_ICON_WIDTH, _yorigin + 4 + USB_ICON_HEIGHT, BLACK, true);
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 4, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, BLUE);
     }
     
