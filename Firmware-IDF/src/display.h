@@ -27,7 +27,12 @@
 
 class Display
 {
-    public:
+public:
+    enum Brigthness {
+        NORMAL = NORMAL_BRIGHTNESS_DISPLAY_ON,
+        DIM = DIM_MODE_DISPLAY_ON,
+        SLEEP = DISPLAY_OFF
+    };
 
     //Singleton pattern
     static Display* instance();
@@ -35,10 +40,10 @@ class Display
     void begin();
     void end();
 
+    void setBrightness(Brigthness brightness);
 
     void showSplashScreen(uint64_t mac_adress);
     void clear();
-    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
 
 private:
 

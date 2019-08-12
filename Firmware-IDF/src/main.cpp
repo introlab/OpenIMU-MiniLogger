@@ -275,6 +275,9 @@ extern "C"
         //Debug
         //Actions::IMUStartSD();
         //Do better...
+        TickType_t lastBtn = xTaskGetTickCount();
+        TickType_t now;
+        bool active = true;
 
         while(1)
         {
@@ -286,25 +289,29 @@ extern "C"
            // Check buttons
             while(buttons->getActionCtn() > 0) 
             {
-                home.action();
+                if (active) home.action();
                 buttons->decrementActionCtn();
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getPreviousCtn() > 0) 
             {
-                home.previous();
+                if (active) home.previous();
                 buttons->decrementPreviousCtn();
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getNextCtn() > 0) 
             {
-                home.next();
+                if (active) home.next();
                 buttons->decrementNextCtn();
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getBackCtn() > 0) 
             {
                 buttons->decrementBackCtn();
+                lastBtn = xTaskGetTickCount();
             }
 
             // Update widgets
@@ -312,6 +319,20 @@ extern "C"
             gpsWidget.setStatus(gps->getFix());
             logWidget.setStatus(Actions::loggingEnabled);
             sdWidget.setStatus(Actions::sdcardExternal);
+
+            // Check activity
+            now = xTaskGetTickCount();
+            if (now-lastBtn > SCREEN_SLEEP_TIMER/portTICK_RATE_MS)
+            {
+                if (active) display->setBrightness(Display::Brigthness::SLEEP);
+                active = false;
+            }
+            else {
+                if (!active) display->setBrightness(Display::Brigthness::NORMAL);
+                active = true;
+            }
+
+
         } //while 
     }
 }

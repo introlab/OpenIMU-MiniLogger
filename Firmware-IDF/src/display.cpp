@@ -71,51 +71,7 @@ void Display::clear()
     SSD1331_clear();
 }
 
-
-// Paint state
-void Display::displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog)
+void Display::setBrightness(Brigthness brightness)
 {
-    /* volts: battery voltage
-    */
-
-    SSD1331_clear();
-
-    std::stringstream batt_text;
-
-    batt_text << "B: " << volts << "V " << current << "A";
-    SSD1331_string(5, 2, batt_text.str().c_str(), 12, 1, BLACK);
-/* 
-    time_t now;
-    struct tm *timeinfo;
-    time(&now);
-    timeinfo = gmtime(&now);
-
-    char strftime_buf[64];
-    strftime(strftime_buf, sizeof(strftime_buf), "%a %b %d", timeinfo);
-    _blackPaint.DrawStringAt(35, 80, strftime_buf, &Font20, 0);
-
-    strftime(strftime_buf, sizeof(strftime_buf), "%R", timeinfo);
-    _blackPaint.DrawStringAt(47, 105, strftime_buf, &Font24, 0);
-
-    strftime(strftime_buf, sizeof(strftime_buf), ":%S", timeinfo);
-    _blackPaint.DrawStringAt(131, 111, strftime_buf, &Font16, 0);
-
-    std::stringstream gps_data, logstate, sdstate;
-
-    sdstate << "  SD Mode : " ;
-
-    (sdLog) ?  sdstate << "USB" :  sdstate << "Log";
-
-    _blackPaint.DrawStringAt(0, 25, sdstate.str().c_str(), &Font16, 0);
-
-    gps_data << "  GPS data : " ;
-
-    (validData) ?  gps_data << "Yes" :  gps_data << "No";
-
-    _blackPaint.DrawStringAt(0, 50, gps_data.str().c_str(), &Font16, 0);
-    logstate << " Logging: ";
-
-    (stateLog) ?  logstate << "ON" :  logstate << "OFF";
-
-    _blackPaint.DrawStringAt(0, 170, logstate.str().c_str(), &Font20, 0);*/
+    SSD1331_command(brightness);
 }

@@ -133,5 +133,6 @@ typedef pulseData_t* pulseDataPtr_t;
 
 // System definitions
 #define PIN_NUM_ENABLE_PROGRAMMING 27
+#define SCREEN_SLEEP_TIMER 15000
 
 #endif

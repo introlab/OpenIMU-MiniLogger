@@ -16,6 +16,8 @@
 #ifndef _SSD1331_H_
 #define _SSD1331_H_
 
+#include <stdint.h>
+
 //Display defines
 #define OLED_WIDTH 96
 #define OLED_HEIGHT 64
@@ -109,6 +111,7 @@ static const unsigned char color_cmd[12][3] =  {
 
 #define SET_V_VOLTAGE                   0xBE
 
+void SSD1331_command(uint8_t cmd);
 void SSD1331_begin();
 void SSD1331_display();
 void SSD1331_clear();
