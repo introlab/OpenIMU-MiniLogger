@@ -276,6 +276,7 @@ extern "C"
         //Actions::IMUStartSD();
         //Do better...
         TickType_t lastBtn = xTaskGetTickCount();
+        TickType_t lastRefresh = xTaskGetTickCount();
         TickType_t now;
         bool active = true;
 
@@ -331,6 +332,13 @@ extern "C"
                 if (!active) display->setBrightness(Display::Brigthness::NORMAL);
                 active = true;
             }
+
+            // Update time if no change for a minute
+            if (now-lastRefresh > 60000/portTICK_RATE_MS)
+            {
+                home.setVisible(true);
+            }
+
 
 
         } //while 
