@@ -41,7 +41,7 @@ Power* Power::instance()
 }
 
 Power::Power()
-    : _ads1015(I2C_NUM_1)
+    : _ads1015(I2C_NUM_1), _last_voltage(0), _last_current(0)
 {
     _mutex = xSemaphoreCreateMutex();
     assert(_mutex != NULL);
@@ -60,13 +60,24 @@ void Power::disableExternalPower()
     IOExpander::instance().digitalWrite(EXT_PIN14_EXTERNAL_POWER_EN, LOW);
 }
 
+float Power::last_voltage()
+{
+    return _last_voltage;
+}
+
 float Power::read_voltage()
 {   
     lock();
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_VOLTAGE_CHANNEL);
     unlock();
     //printf("VOLTAGE HEX: %4.4x, %i\n", value, value);
-    return 5.0 * 0.002 * (float) value;
+    _last_voltage = 5.0 * 0.002 * (float) value;
+    return _last_voltage;
+}
+
+float Power::last_current()
+{
+    return _last_current;
 }
 
 float Power::read_current()
@@ -75,7 +86,8 @@ float Power::read_current()
     uint16_t value = _ads1015.readADC_SingleEnded(ADC_CURRENT_CHANNEL);
     unlock();
     //printf("CURRENT HEX: %4.4x, %i\n", value, value);
-    return ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
+    _last_current = ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
+    return _last_current;
 }
 
 void Power::lock()

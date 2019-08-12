@@ -1,9 +1,13 @@
 #include "spibus.h"
+#include <string.h>
 
 SemaphoreHandle_t SPIBus::_mutex = NULL;
 
 SPIBus::SPIBus(spi_host_device_t dev)
 {
+    //Init data structure...
+    memset(&_buscfg, 0, sizeof(spi_bus_config_t));
+
     _buscfg.miso_io_num = PIN_NUM_MISO;
     _buscfg.mosi_io_num = PIN_NUM_MOSI;
     _buscfg.sclk_io_num = PIN_NUM_CLK;
@@ -17,6 +21,7 @@ SPIBus::SPIBus(spi_host_device_t dev)
 
     //Initialize the SPI bus data structure, no DMA for now
     esp_err_t ret = spi_bus_initialize(dev, &_buscfg, 0);
+    ESP_ERROR_CHECK(ret);
     printf("spi_bus_initialize ret: %i\n", ret);
     assert(ret == ESP_OK);
 

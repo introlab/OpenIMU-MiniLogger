@@ -19,6 +19,8 @@
 #include "sdcard.h"
 #include "barometer.h"
 #include "gps.h"
+#include "pulse.h"
+#include "bluetooth.h"
 #include "buttons.h"
 
 
@@ -111,19 +113,82 @@ void ledBlink(void *pvParameters)
 //app_main should have a "C" signature
 extern "C"
 {
+    void test_loop()
+    {
+        //Get single instance of IOExpander...
+        IOExpander &ioExpander = IOExpander::instance();
+
+        Buttons *buttons = Buttons::instance();
+        assert(buttons);
+
+        Power *power = Power::instance();
+        assert(power);
+
+        bool state = false;
+        int count = 0;
+
+        while(1)
+        {
+            vTaskDelay(100 / portTICK_RATE_MS);
+
+            float voltage = power->last_voltage();
+            float current = power->last_current();
+
+            printf("%f %f \n", voltage, current);
+            
+
+            printf("BackCnt %i \n", buttons->getBackCtn());
+            if (buttons->getBackCtn() > 0)
+            {
+                buttons->decrementBackCtn();
+                
+
+                if (state)
+                {
+                    state = false;
+                    ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+                }
+                else
+                {
+                    state = true;
+                    ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+                }
+
+                    
+                
+
+                printf("Button Pressed \n");
+            }
+
+            printf("Counter %i \n", count++);
+
+
+
+  
+        }
+    }
+
+
     void app_main()
     {
-        esp_err_t ret;
-
         //This needs to be called first
         //install gpio isr service
         gpio_install_isr_service(0);
+
+        //Set hardcoded timezone for now, TODO move somwhere else?
+        setenv("TZ", "GEST+5EDT,M3.2.0/2,M11.1.0/2", 1);
+        tzset();
+
+        esp_err_t ret=0;
 
         //SPI bus configuration
         SPIBus spibus;
 
         //I2C bus configuration
         I2CBus i2cbus;
+
+        //I2C Ext bus configuration
+        I2CBusExt i2cbusext;
 
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
@@ -140,6 +205,9 @@ extern "C"
         ioExpander.pinMode(EXT_PIN13_BATT_READ_EN, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN13_BATT_READ_EN, HIGH);
 
+        //MOTOR VIBRATION
+        ioExpander.pinMode(EXT_PIN15_MOTOR_VIBRATE, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
@@ -147,8 +215,13 @@ extern "C"
         Buttons *buttons = Buttons::instance();
         assert(buttons);
 
+        //DL - Testing serial port fix
+        //test_loop();
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
+
+        Power *power = Power::instance();
+        assert(power);
 
         GPS*  gps = GPS::instance();
         assert(gps);
@@ -156,31 +229,37 @@ extern "C"
         IMU *imu = IMU::instance();
         assert(imu);
 
-        Power *power = Power::instance();
-        assert(power);
-
         Barometer *baro = Barometer::instance();
         assert(baro);
 
         Display *display = Display::instance();
         assert(display);
-
-        Menu menu;
-
         display->begin();
         display->clear();
-    
+
+        //Pulse should be started from menu?
+        //Not yet working...
+        //Pulse *pulse = Pulse::instance();
+        //assert(pulse);
+
+        //Bluetooth *ble = Bluetooth::instance();
+        //assert(ble);
+
+        Menu menu;
         int change_counter = 0;
 
         //Debug
         //Actions::IMUStartSD();
         //Do better...
+
         while(1)
         {
             bool changed = false;
-            float voltage = power->read_voltage();
-            float current = power->read_current();
+            //printf("%f %f \n", voltage, current);
 
+            // Sleep for 100ms
+            vTaskDelay(100 / portTICK_RATE_MS);
+           
             while(buttons->getActionCtn() > 0) 
             {
                 menu.action();
@@ -204,7 +283,6 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                 buttons->decrementBackCtn();
             }
             
@@ -220,13 +298,12 @@ extern "C"
                 // Every 5 seconds verify if no activity, then paint state
                 if (change_counter > 50)
                 {
-                    display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
+                    float voltage = power->last_voltage();
+                    float current = power->last_current();
+                    display->displayVoltage(voltage, current ,gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
                     change_counter = 0;
                 }
             }
-        
-            // Sleep for 100ms
-            vTaskDelay(100 / portTICK_RATE_MS);
-        } //while
+        } //while 
     }
 }

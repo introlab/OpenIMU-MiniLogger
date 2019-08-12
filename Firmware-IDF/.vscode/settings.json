@@ -1,11 +1,17 @@
 {
     "terminal.integrated.env.osx": {
-        "PATH": "/Users/dominic/.platformio/penv/bin:/Users/dominic/.platformio/penv:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Applications/Wireshark.app/Contents/MacOS",
+        "PATH": "/Users/dominic/.platformio/penv/bin:/Users/dominic/.platformio/penv:/Applications/Flash Tool Lite.app/Contents/MacOS:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Wireshark.app/Contents/MacOS",
         "PLATFORMIO_CALLER": "vscode"
     },
     "files.associations": {
         "initializer_list": "cpp",
         "istream": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "ctime": "cpp",
+        "time.h": "c"
+    },
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\thoma\\.platformio\\penv\\Scripts;C:\\Users\\thoma\\.platformio\\penv;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\Program Files (x86)\\Intel\\iCLS Client\\;C:\\Program Files\\Intel\\iCLS Client\\;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files\\Intel\\WiFi\\bin\\;C:\\Program Files\\Common Files\\Intel\\WirelessCommon\\;C:\\Program Files\\MATLAB\\R2017b\\runtime\\win64;C:\\Program Files\\MATLAB\\R2017b\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT\\Bin\\;C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\;C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT\\Bin;C:\\Program Files\\Oracle\\VirtualBox;C:\\Program Files\\dotnet\\;C:\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\thoma\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\thoma\\AppData\\Local\\GitHubDesktop\\bin;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\thoma\\AppData\\Local\\atom\\bin;%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\Program Files (x86)\\Intel\\iCLS Client\\;C:\\Program Files\\Intel\\iCLS Client\\;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\IPT;C:\\Program Files\\Intel\\WiFi\\bin\\;C:\\Program Files\\Common Files\\Intel\\WirelessCommon\\;C:\\Program Files\\MATLAB\\R2017b\\runtime\\win64;C:\\Program Files\\MATLAB\\R2017b\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT\\Bin\\;C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\;C:\\Program Files (x86)\\IVI Foundation\\VISA\\WinNT\\Bin;C:\\Program Files\\Oracle\\VirtualBox;C:\\Program Files\\dotnet\\;C:\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\thoma\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\thoma\\AppData\\Local\\GitHubDesktop\\bin;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\thoma\\AppData\\Local\\atom\\bin;%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;",
+        "PLATFORMIO_CALLER": "vscode"
     }
 }

@@ -31,12 +31,13 @@ union timestampSendable_t {
 namespace sdcard
 {
     void logTask(void *pvParameters);
+    void generateTimestamp(void *pvParameters);
 }
 
 class SDCard
 {
     friend void sdcard::logTask(void *pvParameters);
-
+    friend void generateTimestamp(void *pvParameters);
 public:
 
     static SDCard* instance();
@@ -63,6 +64,9 @@ public:
 
     //Data from GPS
     bool enqueue(gpsDataPtr_t data, bool from_isr = false);
+
+    //Data from Pulse
+    bool enqueue(pulseDataPtr_t data, bool from_isr = false);
     
     bool logFileWrite(const void* data, size_t size);
 
@@ -76,6 +80,7 @@ protected:
     QueueHandle_t getPowerQueue(){return _powerQueue;}
     QueueHandle_t getBaroQueue(){return _baroQueue;}
     QueueHandle_t getGPSQueue(){return _gpsQueue;}
+    QueueHandle_t getPulseQueue(){return _pulseQueue;}
 
 private:
     void setup_gpio(int pin);
@@ -91,12 +96,14 @@ private:
     sdmmc_slot_config_t _slot_config;
     sdmmc_card_t* _card;
     TaskHandle_t _logTaskHandle;
+    TaskHandle_t _timestampTask;
 
     QueueHandle_t _imuQueue; 
     QueueHandle_t _gpsQueue;
     QueueHandle_t _powerQueue;
     QueueHandle_t _baroQueue; 
     QueueHandle_t _timestampQueue; 
+    QueueHandle_t _pulseQueue;
     SemaphoreHandle_t _dataReadySemaphore; 
     FILE* _logFile;
     SemaphoreHandle_t _mutex;
