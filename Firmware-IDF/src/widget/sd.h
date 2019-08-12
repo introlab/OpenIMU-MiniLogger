@@ -1,8 +1,8 @@
 /*
- * Display module for Open IMU
+ * Widget to toggle SD card connection on Open IMU homescreen
  * author: Cedric Godin
  * 
- * Copyright 2018 IntRoLab
+ * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -19,32 +19,24 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#pragma once
 
-#include "ssd1331.h"
-#include "homescreen.h"
+#include "widget/widget.h"
 
-class Display
+namespace Widget
 {
-    public:
 
-    //Singleton pattern
-    static Display* instance();
-
-    void begin();
-    void end();
-
-
-    void showSplashScreen(uint64_t mac_adress);
-    void clear();
-    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
+class SD : public AbstractWidget
+{
+public:
+    SD(void (*toggleExternal)());
+    void setStatus(bool isExternal);
 
 private:
+    void paintLogo();
+    std::string getMessage();
 
-    static Display* _instance;
-     Display();
-    ~Display();
+    bool _isExternal;
 };
 
-#endif
+}

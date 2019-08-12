@@ -22,32 +22,18 @@
 #include "pulse.h"
 #include "bluetooth.h"
 #include "buttons.h"
+#include "widget/widget.h"
+#include "widget/battery.h"
+#include "widget/gps.h"
+#include "widget/log.h"
+#include "widget/sd.h"
+#include "homescreen.h"
 
 
 namespace Actions
 {
     bool loggingEnabled = false;
     bool sdcardExternal = false;
-
-    // Software Shutdown by the menu
-    void Shutdown()
-    {
-        if (loggingEnabled)
-        {
-            loggingEnabled = false;
-            SDCard::instance()->stopLog();  
-        }
-        uint64_t mac_adress = 0;
-        esp_efuse_mac_get_default((uint8_t*) (&mac_adress));
-
-        //Show spash screen with mac
-        Display::instance()->showSplashScreen(mac_adress);
-
-        //Shutdown
-        printf("Bye!\n");
-        IOExpander::instance().digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
-
-    }
 
     void SDToESP32()
     {
@@ -69,6 +55,19 @@ namespace Actions
         }
         sdcardExternal = true;
         SDCard::instance()->toExternal();
+    }
+
+    void ToggleSD()
+    {
+        if (sdcardExternal)
+        {
+            SDToESP32();
+        }
+        else
+        {
+            SDToExternal();
+        }
+        
     }
 
     //Same function to start and stop logging to avoid double start
@@ -193,10 +192,6 @@ extern "C"
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
 
-        //ALIVE -->HIGH, power will stay on
-        ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
-        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
-
         //LED
         ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN01_LED, HIGH);
@@ -208,6 +203,18 @@ extern "C"
         //MOTOR VIBRATION
         ioExpander.pinMode(EXT_PIN15_MOTOR_VIBRATE, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+
+        //ENABLE PROGRAMMING
+        gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
+        gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
+        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
+
+        //Display
+        Display *display = Display::instance();
+        assert(display);
+        display->begin();
+        display->showSplashScreen(0);
+        TickType_t splashTime = xTaskGetTickCount();
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
@@ -232,11 +239,6 @@ extern "C"
         Barometer *baro = Barometer::instance();
         assert(baro);
 
-        Display *display = Display::instance();
-        assert(display);
-        display->begin();
-        display->clear();
-
         //Pulse should be started from menu?
         //Not yet working...
         //Pulse *pulse = Pulse::instance();
@@ -245,8 +247,30 @@ extern "C"
         //Bluetooth *ble = Bluetooth::instance();
         //assert(ble);
 
-        Menu menu;
-        int change_counter = 0;
+        // HOMESCREEN
+
+        Widget::Battery batteryWidget;
+        batteryWidget.updateValue(5.0, 0.0, true);
+
+        Widget::GPS gpsWidget;
+        gpsWidget.setStatus(false);
+
+        Widget::Log logWidget(Actions::IMUStartSD);
+        logWidget.setStatus(false);
+
+        Widget::SD sdWidget(Actions::ToggleSD);
+        sdWidget.setStatus(false);
+
+        Homescreen home;
+        home.addWidget(&batteryWidget);
+        home.addWidget(&gpsWidget);
+        home.addWidget(&logWidget);
+        home.addWidget(&sdWidget);
+
+        // Show homescreen and disable programming
+        vTaskDelayUntil(&splashTime, 5000 / portTICK_RATE_MS);
+        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 1);
+        home.setVisible(true);
 
         //Debug
         //Actions::IMUStartSD();
@@ -254,56 +278,40 @@ extern "C"
 
         while(1)
         {
-            bool changed = false;
             //printf("%f %f \n", voltage, current);
 
             // Sleep for 100ms
             vTaskDelay(100 / portTICK_RATE_MS);
            
+           // Check buttons
             while(buttons->getActionCtn() > 0) 
             {
-                menu.action();
+                home.action();
                 buttons->decrementActionCtn();
-                changed = true;
             }
 
             while(buttons->getPreviousCtn() > 0) 
             {
-                menu.previous();
+                home.previous();
                 buttons->decrementPreviousCtn();
-                changed = true;
             }
 
             while(buttons->getNextCtn() > 0) 
             {
-                menu.next();
+                home.next();
                 buttons->decrementNextCtn();
-                changed = true;
             }
 
             while(buttons->getBackCtn() > 0) 
             {
                 buttons->decrementBackCtn();
             }
-            
-            if(changed) 
-            {
-                display->updateMenu(&menu, Actions::loggingEnabled);
-                change_counter = 0;
-            }
-            else 
-            {
-                change_counter++;
 
-                // Every 5 seconds verify if no activity, then paint state
-                if (change_counter > 50)
-                {
-                    float voltage = power->last_voltage();
-                    float current = power->last_current();
-                    display->displayVoltage(voltage, current ,gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
-                    change_counter = 0;
-                }
-            }
+            // Update widgets
+            batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
+            gpsWidget.setStatus(gps->getFix());
+            logWidget.setStatus(Actions::loggingEnabled);
+            sdWidget.setStatus(Actions::sdcardExternal);
         } //while 
     }
 }

@@ -1,8 +1,8 @@
 /*
- * Display module for Open IMU
+ * Base class for OPEN IMU homescreen widget
  * author: Cedric Godin
  * 
- * Copyright 2018 IntRoLab
+ * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -19,32 +19,41 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#pragma once
 
-#include "ssd1331.h"
-#include "homescreen.h"
+#include <stdint.h>
+#include <string>
 
-class Display
+#define WIDGET_WIDTH 23
+#define WIDGET_HEIGHT 31
+
+namespace Widget
 {
-    public:
 
-    //Singleton pattern
-    static Display* instance();
+class AbstractWidget
+{
+public:
+    AbstractWidget(uint8_t xorigin = 0, uint8_t yorigin = 0, void (*action)() = nullptr);
 
-    void begin();
-    void end();
+    void select();
+    void unselect();
+    void performAction();
+    void paint(bool meOnly = false);
+    void setVisible(bool isVisible);
 
+protected:
+    uint8_t _xorigin;
+    uint8_t _yorigin;
 
-    void showSplashScreen(uint64_t mac_adress);
-    void clear();
-    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
+    bool _selected = false;
+    bool _visible = false;
 
-private:
+    void (*_action)();
 
-    static Display* _instance;
-     Display();
-    ~Display();
+    virtual std::string getMessage() = 0;
+    void paintRectangle();
+    void paintMessage();
+    virtual void paintLogo() = 0;
 };
 
-#endif
+}
