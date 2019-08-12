@@ -57,7 +57,7 @@ void Display::showSplashScreen(uint64_t mac_adress)
 {
     SSD1331_clear();
     SSD1331_string(0, 0, "Open IMU 0.2", 16, 1, GREEN);
-    SSD1331_string(0, 20, "System is idle", 12, 1, WHITE);
+    SSD1331_string(0, 20, "IntRoLab", 12, 1, WHITE);
 
     std::stringstream mac_string;
     mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
