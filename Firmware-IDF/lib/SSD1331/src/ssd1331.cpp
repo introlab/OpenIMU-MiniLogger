@@ -119,6 +119,14 @@ void SSD1331_begin()
     SSD1331_command(SET_V_VOLTAGE);            //Set vcomH
     SSD1331_command(0x3E);                    
     SSD1331_command(DEACTIVE_SCROLLING);       //disable scrolling
+    
+    SSD1331_command(DIM_MODE_SETTING);  // Enter DIM mode configuration
+    SSD1331_command(0x00);  // Reserved (set 0x00)
+    SSD1331_command(40);  // set contrast for color A (0 to 255)
+    SSD1331_command(40);  // set contrast for color B (0 to 255)
+    SSD1331_command(40);  // set contrast for color C (0 to 255)
+    SSD1331_command(15);  // set precharge voltage (0 to 31)
+    
     SSD1331_command(NORMAL_BRIGHTNESS_DISPLAY_ON);    //set display on
 }
 

@@ -339,7 +339,12 @@ extern "C"
             now = xTaskGetTickCount();
             if (now-lastBtn > SCREEN_SLEEP_TIMER/portTICK_RATE_MS)
             {
-                if (active) display->setBrightness(Display::Brigthness::SLEEP);
+                display->setBrightness(Display::Brigthness::SLEEP);
+                active = false;
+            }
+            else if (now-lastBtn > SCREEN_DIM_TIMER/portTICK_RATE_MS)
+            {
+                if (active) display->setBrightness(Display::Brigthness::DIM);
                 active = false;
             }
             else {
