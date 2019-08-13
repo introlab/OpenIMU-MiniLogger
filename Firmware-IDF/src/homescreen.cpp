@@ -130,10 +130,10 @@ void Homescreen::paint()
         time_t now;
         struct tm *timeInfo;
         time(&now);
-        timeInfo = gmtime(&now);
+        timeInfo = localtime(&now);
 
         char strftimeBuf[64];
-        strftime(strftimeBuf, sizeof(strftimeBuf), "%x %H:%M", timeInfo);
+        strftime(strftimeBuf, sizeof(strftimeBuf), "%d/%m/%y %H:%M", timeInfo);
         SSD1331_string(5, 0, strftimeBuf, 12, 1, WHITE);
     }
     
