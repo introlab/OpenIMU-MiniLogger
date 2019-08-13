@@ -33,6 +33,7 @@
 namespace Actions
 {
     bool loggingEnabled = false;
+    bool wasLogging = false;
     bool sdcardExternal = false;
 
     void SDToESP32()
@@ -321,6 +322,16 @@ extern "C"
             logWidget.setStatus(Actions::loggingEnabled);
             sdWidget.setStatus(Actions::sdcardExternal);
 
+            if (Actions::loggingEnabled && !Actions::wasLogging)
+            {
+                home.startLog(-1);
+            }
+            else if (!Actions::loggingEnabled && Actions::wasLogging)
+            {
+                home.stopLog();
+            }
+            Actions::wasLogging = Actions::loggingEnabled;
+
             // Check activity
             now = xTaskGetTickCount();
             if (now-lastBtn > SCREEN_SLEEP_TIMER/portTICK_RATE_MS)
@@ -333,10 +344,11 @@ extern "C"
                 active = true;
             }
 
-            // Update time if no change for a minute
-            if (now-lastRefresh > 60000/portTICK_RATE_MS)
+            // Update time each second
+            if (now-lastRefresh > 1000/portTICK_RATE_MS)
             {
                 home.setVisible(true);
+                lastRefresh = now;
             }
 
 

@@ -168,16 +168,8 @@ std::string Battery::getMessage()
 {
     std::stringstream msgStream;
 
-    if (_isCharging)
-    {
-        msgStream << "Charge ";
-        msgStream << std::fixed << std::setprecision(3) << _current << " A";
-    }
-    else
-    {
-        msgStream << std::fixed << std::setprecision(2) << _voltage << " V  ";
-        msgStream << std::fixed << std::setprecision(3) << _current << " A";
-    }
+    msgStream << std::fixed << std::setprecision(2) << _voltage << " V  ";
+    msgStream << std::fixed << std::setprecision(3) << _current << " A";
 
     return msgStream.str();
 }
