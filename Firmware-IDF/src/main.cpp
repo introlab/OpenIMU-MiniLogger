@@ -269,7 +269,10 @@ extern "C"
         home.addWidget(&sdWidget);
 
         // Show homescreen and disable programming
-        vTaskDelayUntil(&splashTime, 5000 / portTICK_RATE_MS);
+        vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
+        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+        vTaskDelay(800 / portTICK_RATE_MS);
+        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
         gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 1);
         home.setVisible(true);
 
