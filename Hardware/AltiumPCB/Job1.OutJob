@@ -101,6 +101,44 @@ OutputEnabled5_OutputMedium1=0
 OutputEnabled5_OutputMedium2=0
 OutputEnabled5_OutputMedium3=4
 OutputDefault5=0
+Configuration5_Name1=OutputConfigurationParameter1
+Configuration5_Item1=Record=ExportSTEPView|ExportComponentOptions=0|ExportModelsOption=2|ExportHolesOption=0|CanSelectPrimitives=False|IncludeMechanicalPadHoles=False|IncludeElectricalPadHoles=False|IncludeFreePadHoles=False|ExportFoldedBoard=True|ExportFoldedBoardRate=0|ComponentSuffixType=0|ComponentSuffix= |ExportCopperOption=0|ExportCopperLayer=1|ExportPadAndViaBarrelsOnly=False|IgnoreBoardCopperLayerColors=False
+OutputType6=PCB 3D Print
+OutputName6=PCB 3D Print
+OutputCategory6=Documentation
+OutputDocumentPath6=
+OutputVariantName6=
+OutputEnabled6=0
+OutputEnabled6_OutputMedium1=0
+OutputEnabled6_OutputMedium2=0
+OutputEnabled6_OutputMedium3=0
+OutputDefault6=0
+PageOptions6=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=2.22|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+Configuration6_Name1=OutputConfigurationParameter1
+Configuration6_Item1=Record=Pcb3DPrintView|ResX=150|ResY=150|ViewX=21000000|ViewY=37239308|LookAtX=24214568|LookAtY=33449242|LookAtZ=0|QuatX=0|QuatY=0|QuatZ=0|QuatW=1|Zoom=2.43828376187871E-5|UnitsPercent=True|UnitsDPI=True|LockResAspect=True|ViewConfigType=.config_3d|CustomCamera=False|ViewFromTop=True|ViewConfig=
+OutputType7=PDF3D
+OutputName7=PDF3D
+OutputCategory7=Documentation
+OutputDocumentPath7=
+OutputVariantName7=
+OutputEnabled7=1
+OutputEnabled7_OutputMedium1=0
+OutputEnabled7_OutputMedium2=2
+OutputEnabled7_OutputMedium3=0
+OutputDefault7=0
+PageOptions7=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+Configuration7_Name1=OutputConfigurationParameter1
+Configuration7_Item1=Record=ExportPDF3DSetting|Version=110|Format=0|Flags=8158|Scheme=0|ViewColorR0=255|ViewColorG0=255|ViewColorB0=255|ViewLignt0=9|ViewColorR1=255|ViewColorG1=255|ViewColorB1=255|ViewLignt1=9|ViewColorR2=255|ViewColorG2=255|ViewColorB2=255|ViewLignt2=9|ViewColorR3=255|ViewColorG3=255|ViewColorB3=255|ViewLignt3=9
+OutputType8=Pick Place
+OutputName8=Generates pick and place files
+OutputCategory8=Assembly
+OutputDocumentPath8=
+OutputVariantName8=
+OutputEnabled8=0
+OutputEnabled8_OutputMedium1=0
+OutputEnabled8_OutputMedium2=0
+OutputEnabled8_OutputMedium3=5
+OutputDefault8=0
 
 [PublishSettings]
 OutputFilePath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
@@ -128,7 +166,7 @@ MarkPortsId2=1
 GenerateTOC=1
 ShowComponentParameters2=1
 GlobalBookmarks2=0
-OutputFilePath3=C:\Travail\Introlab\OpenIMU\Project Outputs for OpenIMU\
+OutputFilePath3=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\
 ReleaseManaged3=1
 OutputBasePath3=Project Outputs for OpenIMU
 OutputPathMedia3=
@@ -145,7 +183,7 @@ OpenOutput3=1
 [GeneratedFilesSettings]
 RelativeOutputPath2=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\2018-06-04\OpenIMU.PDF
 OpenOutputs2=1
-RelativeOutputPath3=C:\Travail\Introlab\OpenIMU\Project Outputs for OpenIMU\
+RelativeOutputPath3=C:\Travail\Introlab\GitIntrolab\OpenIMU-MiniLogger\Hardware\AltiumPCB\Project Outputs for OpenIMU\
 OpenOutputs3=1
 AddToProject3=1
 TimestampFolder3=0
