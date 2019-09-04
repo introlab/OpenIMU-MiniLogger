@@ -24,6 +24,8 @@ namespace
             //Fill data
             data->voltage = power->read_voltage();
             data->current = power->read_current();
+            // Update charging state
+            power->read_charging();
 
             //Send to logging thread
             if (!SDCard::instance()->enqueue(data))
@@ -45,6 +47,7 @@ Power::Power()
 {
     _mutex = xSemaphoreCreateMutex();
     assert(_mutex != NULL);
+    IOExpander::instance().pinMode(EXT_PIN10_CHARGING, INPUT);
     IOExpander::instance().pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
     disableExternalPower();
     xTaskCreate(&powerTask, "PowerTask", 2048, this, 6, &_powerTaskHandle);
@@ -88,6 +91,20 @@ float Power::read_current()
     //printf("CURRENT HEX: %4.4x, %i\n", value, value);
     _last_current = ((0.002 * (float) value) - (3.1/2.0)) / 5.0;
     return _last_current;
+}
+
+bool Power::last_charging()
+{
+    return _last_charging;
+}
+
+bool Power::read_charging()
+{
+    lock();
+    unsigned int value = IOExpander::instance().digitalRead(EXT_PIN10_CHARGING);
+    unlock();
+    _last_charging = !(bool)value;
+    return _last_charging;
 }
 
 void Power::lock()

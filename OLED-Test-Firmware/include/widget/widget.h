@@ -1,8 +1,8 @@
 /*
- * Display module for Open IMU
+ * Base class for OPEN IMU homescreen widget
  * author: Cedric Godin
  * 
- * Copyright 2018 IntRoLab
+ * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -19,59 +19,41 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "display.h"
+#pragma once
+
+#include <stdint.h>
 #include <string>
-#include <sstream>
 
-Display* Display::_instance = NULL;
+#define WIDGET_WIDTH 23
+#define WIDGET_HEIGHT 31
 
-Display* Display::instance()
-{
-    if (Display::_instance == NULL)
-        Display::_instance = new Display();
-    return Display::_instance;
-}
-
-Display::Display()
+namespace Widget
 {
 
-}
-
-Display::~Display()
+class AbstractWidget
 {
+public:
+    AbstractWidget(uint8_t xorigin = 0, uint8_t yorigin = 0, void (*action)() = nullptr);
 
-}
+    void select();
+    void unselect();
+    void performAction();
+    void paint(bool meOnly = false);
+    void setVisible(bool isVisible);
 
-void Display::begin()
-{
-    SSD1331_begin();
-    SSD1331_clear();
-}
+protected:
+    uint8_t _xorigin;
+    uint8_t _yorigin;
 
-void Display::end()
-{
-    SSD1331_shutdown();
-}
+    bool _selected = false;
+    bool _visible = false;
 
-void Display::showSplashScreen(uint64_t mac_adress)
-{
-    SSD1331_clear();
-    SSD1331_string(0, 0, "Open IMU 0.2", 16, 1, GREEN);
-    SSD1331_string(0, 20, "IntRoLab", 12, 1, WHITE);
+    void (*_action)();
 
-    std::stringstream mac_string;
-    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
+    virtual std::string getMessage() = 0;
+    void paintRectangle();
+    void paintMessage();
+    virtual void paintLogo() = 0;
+};
 
-    SSD1331_string(0, 50, mac_string.str().c_str(), 12, 1, GRAY);
-    SSD1331_display();
-}
-
-void Display::clear()
-{
-    SSD1331_clear();
-}
-
-void Display::setBrightness(Brigthness brightness)
-{
-    SSD1331_command(brightness);
 }

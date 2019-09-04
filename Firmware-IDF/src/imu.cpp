@@ -23,12 +23,27 @@ namespace
         IMU *imu = (IMU*) (pvParameters);
         assert(imu != NULL);
 
+        TickType_t lastPrint = xTaskGetTickCount();
+        TickType_t now;
+
         while(1)
         {
             xSemaphoreTake(imu->getSemaphore(), portMAX_DELAY);
             //printf("should read from task\n");
             imuDataPtr_t data = (imuDataPtr_t) malloc(sizeof(imuData_t));
             imu->readSensor(data);
+
+            //Print at 4 Hz for debug
+            /*
+            now = xTaskGetTickCount();
+            if (now - lastPrint > 250 / portTICK_RATE_MS)
+            {
+                printf("\nAccel : %.2f\t%.2f\t%.2f\n", data->accelX, data->accelY, data->accelZ);
+                printf("Mag   : %.2f\t%.2f\t%.2f\n", data->magX, data->magY, data->magZ);
+                printf("Gyro  : %.2f\t%.2f\t%.2f\n", data->gyroX, data->gyroY, data->gyroZ);
+                lastPrint = now;
+            }
+            */
 
             //Send to queue, delete if not working
             if (!SDCard::instance()->enqueue(data))

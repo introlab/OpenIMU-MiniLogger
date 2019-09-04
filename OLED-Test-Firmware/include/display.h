@@ -19,59 +19,36 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "display.h"
-#include <string>
-#include <sstream>
+#ifndef _DISPLAY_H_
+#define _DISPLAY_H_
 
-Display* Display::_instance = NULL;
+#include "ssd1331.h"
+#include "menu.h"
+#include "homescreen.h"
 
-Display* Display::instance()
+class Display
 {
-    if (Display::_instance == NULL)
-        Display::_instance = new Display();
-    return Display::_instance;
-}
+    public:
 
-Display::Display()
-{
+    //Singleton pattern
+    static Display* instance();
 
-}
+    void begin();
+    void end();
 
-Display::~Display()
-{
 
-}
+    void showSplashScreen(uint64_t mac_adress);
+    void clear();
+    void showMenu(Menu* menu);
+    void updateMenu(Menu* menu, bool stateLog);
+    void updateMenuSelection(Menu* menu, bool stateLog);
+    void displayVoltage(float volts, float current,bool validData, bool stateLog, bool sdLog);
 
-void Display::begin()
-{
-    SSD1331_begin();
-    SSD1331_clear();
-}
+private:
 
-void Display::end()
-{
-    SSD1331_shutdown();
-}
+    static Display* _instance;
+     Display();
+    ~Display();
+};
 
-void Display::showSplashScreen(uint64_t mac_adress)
-{
-    SSD1331_clear();
-    SSD1331_string(0, 0, "Open IMU 0.2", 16, 1, GREEN);
-    SSD1331_string(0, 20, "IntRoLab", 12, 1, WHITE);
-
-    std::stringstream mac_string;
-    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
-
-    SSD1331_string(0, 50, mac_string.str().c_str(), 12, 1, GRAY);
-    SSD1331_display();
-}
-
-void Display::clear()
-{
-    SSD1331_clear();
-}
-
-void Display::setBrightness(Brigthness brightness)
-{
-    SSD1331_command(brightness);
-}
+#endif

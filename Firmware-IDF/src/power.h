@@ -19,6 +19,8 @@ class Power
     float last_current();
     float read_voltage();
     float read_current();
+    bool read_charging();
+    bool last_charging();
 
     private:
 
@@ -35,6 +37,7 @@ class Power
 
     float _last_voltage;
     float _last_current;
+    bool _last_charging;
 
     protected:
 
