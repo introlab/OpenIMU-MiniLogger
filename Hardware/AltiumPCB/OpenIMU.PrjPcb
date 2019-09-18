@@ -230,16 +230,16 @@ DocumentPath=Project Outputs for OpenIMU\Design Rule Check - PCB1.html
 DItemRevisionGUID=
 
 [Parameter1]
-Name=DrawnByGlobal
-Value=V-P.Rheaume@USherbrooke.ca
+Name=RevisionGlobal
+Value=1.1
 
 [Parameter2]
 Name=ProjectTitle
 Value=OpenIMU-MiniLogger
 
 [Parameter3]
-Name=RevisionGlobal
-Value=1.0
+Name=DrawnByGlobal
+Value=V-P.Rheaume@USherbrooke.ca
 
 [Configuration1]
 Name=Default Configuration
