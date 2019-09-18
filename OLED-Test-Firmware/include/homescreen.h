@@ -1,8 +1,9 @@
 /*
- * Display module for Open IMU
+ * Homescreen class for Open IMU
+ * Displays the widgets and move between them using previous, next and action methods
  * author: Cedric Godin
  * 
- * Copyright 2018 IntRoLab
+ * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -19,59 +20,37 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "display.h"
-#include <string>
-#include <sstream>
+#pragma once
 
-Display* Display::_instance = NULL;
+#include <list>
 
-Display* Display::instance()
+#include "widget/widget.h"
+
+class Homescreen
 {
-    if (Display::_instance == NULL)
-        Display::_instance = new Display();
-    return Display::_instance;
-}
+public:
+    Homescreen();
 
-Display::Display()
-{
+    void addWidget(Widget::AbstractWidget* widget);
 
-}
+    void previous();
+    void next();
+    void action();
 
-Display::~Display()
-{
+    void setVisible(bool isVisible);
 
-}
+    void startLog(double logCapacity);
+    void stopLog();
 
-void Display::begin()
-{
-    SSD1331_begin();
-    SSD1331_clear();
-}
+private:
+    void paint();
 
-void Display::end()
-{
-    SSD1331_shutdown();
-}
+    std::list<Widget::AbstractWidget*> _widgets;
+    std::list<Widget::AbstractWidget*>::iterator _currentWidget;
 
-void Display::showSplashScreen(uint64_t mac_adress)
-{
-    SSD1331_clear();
-    SSD1331_string(0, 0, "Open IMU 0.2", 16, 1, GREEN);
-    SSD1331_string(0, 20, "IntRoLab", 12, 1, WHITE);
+    bool _isVisible = false;
 
-    std::stringstream mac_string;
-    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
-
-    SSD1331_string(0, 50, mac_string.str().c_str(), 12, 1, GRAY);
-    SSD1331_display();
-}
-
-void Display::clear()
-{
-    SSD1331_clear();
-}
-
-void Display::setBrightness(Brigthness brightness)
-{
-    SSD1331_command(brightness);
-}
+    time_t _logStart;
+    double _logCapacity;
+    bool _isLogging = false;
+};

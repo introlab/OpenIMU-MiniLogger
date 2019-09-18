@@ -39,8 +39,8 @@ Buttons::Buttons()
     assert(_mutex != NULL);
 
     //Setup pins
-    IOExpander::instance().pinMode(EXT_PIN11_BUTTON0, INPUT);
-    IOExpander::instance().pullupMode(EXT_PIN11_BUTTON0, HIGH);
+    IOExpander::instance().pinMode(EXT_PIN02_BUTTON0, INPUT);
+    IOExpander::instance().pullupMode(EXT_PIN02_BUTTON0, HIGH);
     IOExpander::instance().pinMode(EXT_PIN06_BUTTON1, INPUT);
     IOExpander::instance().pullupMode(EXT_PIN06_BUTTON1, HIGH);
     IOExpander::instance().pinMode(EXT_PIN08_BUTTON2, INPUT);
@@ -148,9 +148,9 @@ void Buttons::read()
 {
     //WARNING this will be called from buttonsTask
     //Read button states
-    bool previous = IOExpander::instance().digitalRead(EXT_PIN06_BUTTON1) == 0;
+    bool next = IOExpander::instance().digitalRead(EXT_PIN06_BUTTON1) == 0;
     bool action = IOExpander::instance().digitalRead(EXT_PIN08_BUTTON2) == 0;
-    bool next = IOExpander::instance().digitalRead(EXT_PIN11_BUTTON0) == 0;
+    bool previous = IOExpander::instance().digitalRead(EXT_PIN02_BUTTON0) == 0;
     bool back = IOExpander::instance().digitalRead(EXT_PIN09_BUTTON3) == 0;
 
     lock();
