@@ -110,6 +110,8 @@ void ledBlink(void *pvParameters)
     }
 }
 
+
+
 //app_main should have a "C" signature
 extern "C"
 {
@@ -208,6 +210,8 @@ extern "C"
         //ENABLE PROGRAMMING
         gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
         gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
+
+        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
         gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
 
         //Display
@@ -228,15 +232,17 @@ extern "C"
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
 
+        IMU *imu = IMU::instance();
+        assert(imu);
+
+
         Power *power = Power::instance();
         assert(power);
 
         GPS*  gps = GPS::instance();
         assert(gps);
 
-        IMU *imu = IMU::instance();
-        assert(imu);
-
+       
         Barometer *baro = Barometer::instance();
         assert(baro);
 
@@ -271,9 +277,10 @@ extern "C"
         // Show homescreen and disable programming
         vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
         ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
-        vTaskDelay(800 / portTICK_RATE_MS);
+        vTaskDelay(400 / portTICK_RATE_MS);
         ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
-        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 1);
+        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
+        //gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
         home.setVisible(true);
 
         //Debug
@@ -358,9 +365,6 @@ extern "C"
                 home.setVisible(true);
                 lastRefresh = now;
             }
-
-
-
         } //while 
     }
 }

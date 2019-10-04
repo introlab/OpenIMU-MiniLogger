@@ -83,7 +83,7 @@ int MPU9250::begin(){
     // reset the MPU9250
     writeRegister(PWR_MGMNT_1,PWR_RESET);
     // wait for MPU-9250 to come back up
-    delay(1);
+    delay(10);
     // reset the AK8963
     writeAK8963Register(AK8963_CNTL2,AK8963_RESET);
     // select clock source to gyro
@@ -142,8 +142,8 @@ int MPU9250::begin(){
         return -13;
     }
     // check AK8963 WHO AM I register, expected value is 0x48 (decimal 72)
-    if( whoAmIAK8963() != 72 ){
-        printf("MPU9250::begin whoAmIAK8963 problem.\n");
+    if(int ret =  whoAmIAK8963() != 72 ){
+        printf("MPU9250::begin whoAmIAK8963 problem. %i\n",ret);
         return -14;
     }
     /* get the magnetometer calibration */
@@ -1029,7 +1029,7 @@ int MPU9250::writeRegister(uint8_t subAddress, uint8_t data){
         return 1;
     }
     else{
-        //printf("MPU9250::writeRegister Error reading back to I2CBus  reg: %2.2x, expected %2.2x read %2.2x\n",subAddress,  data, _buffer[0]);
+        printf("MPU9250::writeRegister Error reading back to I2CBus  reg: %2.2x, expected %2.2x read %2.2x\n",subAddress,  data, _buffer[0]);
         return -1;
     }
 }
