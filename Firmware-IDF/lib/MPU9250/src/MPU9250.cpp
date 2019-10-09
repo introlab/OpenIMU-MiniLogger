@@ -68,24 +68,32 @@ int MPU9250::begin(){
         printf("MPU9250::begin PWR_MGMNT problem.\n");
         return -1;
     }
-    // enable I2C master mode
-    if(writeRegister(USER_CTRL,I2C_MST_EN) < 0){
+
+    // reset the MPU9250
+    writeRegister(PWR_MGMNT_1,PWR_RESET);
+    // wait for MPU-9250 to come back up
+    delay(100);
+
+    // enable I2C master mode   
+    if(writeRegister(USER_CTRL,I2C_MST_EN  | 0x02) < 0){
         printf("MPU9250::begin USER_CTRL problem.\n");
-        return -2;
+        //return -2;
     }
     // set the I2C bus speed to 400 kHz
     if(writeRegister(I2C_MST_CTRL,I2C_MST_CLK) < 0){
         printf("MPU9250::begin I2C_MST_CTRL problem.\n");
         return -3;
     }
+    
+
     // set AK8963 to Power Down
     writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN);
-    // reset the MPU9250
-    writeRegister(PWR_MGMNT_1,PWR_RESET);
-    // wait for MPU-9250 to come back up
-    delay(10);
+    
+
     // reset the AK8963
     writeAK8963Register(AK8963_CNTL2,AK8963_RESET);
+    delay(200);
+
     // select clock source to gyro
     if(writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL) < 0){
         printf("MPU9250::begin PWR_MGMNT_1 problem.\n");
@@ -142,8 +150,8 @@ int MPU9250::begin(){
         return -13;
     }
     // check AK8963 WHO AM I register, expected value is 0x48 (decimal 72)
-    if(int ret =  whoAmIAK8963() != 72 ){
-        printf("MPU9250::begin whoAmIAK8963 problem. %i\n",ret);
+    if(whoAmIAK8963() != 72 ){
+        printf("MPU9250::begin whoAmIAK8963 problem. %i\n",whoAmIAK8963());
         return -14;
     }
     /* get the magnetometer calibration */
@@ -1079,27 +1087,34 @@ int MPU9250::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 int MPU9250::writeAK8963Register(uint8_t subAddress, uint8_t data){
     // set slave 0 to the AK8963 and set for write
     if (writeRegister(I2C_SLV0_ADDR,AK8963_I2C_ADDR) < 0) {
+        printf("writeAK8963Register -1 \n");
         return -1;
     }
     // set the register to the desired AK8963 sub address
     if (writeRegister(I2C_SLV0_REG,subAddress) < 0) {
+        printf("writeAK8963Register -2 \n");
         return -2;
     }
     // store the data for write
     if (writeRegister(I2C_SLV0_DO,data) < 0) {
+        printf("writeAK8963Register -3 \n");
         return -3;
     }
     // enable I2C and send 1 byte
     if (writeRegister(I2C_SLV0_CTRL,I2C_SLV0_EN | (uint8_t)1) < 0) {
+        printf("writeAK8963Register -4 \n");
         return -4;
     }
     // read the register and confirm
     if (readAK8963Registers(subAddress,1,_buffer) < 0) {
+        printf("writeAK8963Register -5 \n");
         return -5;
     }
     if(_buffer[0] == data) {
+        //printf("writeAK8963Register 1(OK) \n");
         return 1;
     } else{
+        printf("writeAK8963Register -6 \n");
         return -6;
     }
 }
@@ -1108,24 +1123,30 @@ int MPU9250::writeAK8963Register(uint8_t subAddress, uint8_t data){
 int MPU9250::readAK8963Registers(uint8_t subAddress, uint8_t count, uint8_t* dest){
     // set slave 0 to the AK8963 and set for read
     if (writeRegister(I2C_SLV0_ADDR,AK8963_I2C_ADDR | I2C_READ_FLAG) < 0) {
+        printf("readAK8963Registers -1 \n");
         return -1;
     }
     // set the register to the desired AK8963 sub address
     if (writeRegister(I2C_SLV0_REG,subAddress) < 0) {
+        printf("readAK8963Registers -2 \n");
         return -2;
     }
     // enable I2C and request the bytes
     if (writeRegister(I2C_SLV0_CTRL,I2C_SLV0_EN | count) < 0) {
+        printf("readAK8963Registers -3 \n");
         return -3;
     }
-    delay(1); // takes some time for these registers to fill
+    delay(10); // takes some time for these registers to fill
     // read the bytes off the MPU9250 EXT_SENS_DATA registers
     _status = readRegisters(EXT_SENS_DATA_00,count,dest);
     return _status;
+
+
 }
 
 /* gets the MPU9250 WHO_AM_I register value, expected to be 0x71 */
 int MPU9250::whoAmI(){
+   
     // read the WHO AM I register
     if (readRegisters(WHO_AM_I,1,_buffer) < 0) {
         return -1;
@@ -1136,10 +1157,13 @@ int MPU9250::whoAmI(){
 
 /* gets the AK8963 WHO_AM_I register value, expected to be 0x48 */
 int MPU9250::whoAmIAK8963(){
+    
     // read the WHO AM I register
     if (readAK8963Registers(AK8963_WHO_AM_I,1,_buffer) < 0) {
+        printf("whoAmIAK8963 -1\n");
         return -1;
     }
     // return the register value
+    printf("whoAmIAK8963 %i\n", _buffer[0]);
     return _buffer[0];
 }

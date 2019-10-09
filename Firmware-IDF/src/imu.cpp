@@ -60,50 +60,45 @@ namespace
 IMU::IMU()
     : _mpu9250(I2C_NUM_1, MPU9250_I2C_ADDRESS), _readIMUHandle(NULL)
 {
-    bool initialized = false;
-
-    do 
+    int ret = 0;//_mpu9250.begin(); 
+    do {
+    ret = _mpu9250.begin(); 
+    if (ret == 1)
     {
-        int ret = _mpu9250.begin();
-        if (ret)
-        {
-            _mpu9250.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
-            // setting SRD to 9 for a 100 Hz update rate
-            // FS is 1 kHz / (SRD + 1)
-            _mpu9250.setSrd(19); //50Hz
+        _mpu9250.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
+        // setting SRD to 9 for a 100 Hz update rate
+        // FS is 1 kHz / (SRD + 1)
+        _mpu9250.setSrd(19); //50Hz
 
-            //Setting Range
-            _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
-            _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
-            
-            //Does not work...
-            //_mpu9250.calibrateAccel();
-            //_mpu9250.calibrateGyro();
-            //_mpu9250.calibrateMag();
+        //Setting Range
+        _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
+        _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
+        
+        //Does not work...
+        //_mpu9250.calibrateAccel();
+        //_mpu9250.calibrateGyro();
+        //_mpu9250.calibrateMag();
 
-            // Enable FIFO
-            //_mpu9250.enableFifo(true, true, true, true);
+        // Enable FIFO
+        //_mpu9250.enableFifo(true, true, true, true);
 
-            
-            // Setup interrupt handling
-            _semaphore = xSemaphoreCreateCounting(1,0);
-            setup_interrupt_pin();
-            _mpu9250.enableDataReadyInterrupt();
+        
+        // Setup interrupt handling
+        _semaphore = xSemaphoreCreateCounting(1,0);
+        setup_interrupt_pin();
+        _mpu9250.enableDataReadyInterrupt();
 
-            printf("IMU initialized\n");
+        printf("IMU initialized\n");
 
-            //Create reading task
-            xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
-            
-            initialized = true;
-        }
-        else
-        {
-            printf("ERROR initializing IMU ret: %i\n",ret);
-        }
+        //Create reading task
+        xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
+
     }
-    while (!initialized);
-
+    else
+    {
+        printf("ERROR initializing IMU ret: %i\n",ret);
+    }
+    } while (ret != 1);
 }
 
 void IMU::readSensor(imuDataPtr_t data)
