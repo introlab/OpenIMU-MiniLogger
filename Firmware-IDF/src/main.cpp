@@ -29,6 +29,7 @@
 #include "widget/sd.h"
 #include "homescreen.h"
 
+#include <SparkFunMPU9250-DMP.h>
 
 namespace Actions
 {
@@ -192,6 +193,13 @@ extern "C"
         //I2C Ext bus configuration
         I2CBusExt i2cbusext;
 
+
+
+        MPU9250_DMP dmp;
+        dmp.begin();
+        dmp.update();
+
+
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
 
@@ -232,8 +240,8 @@ extern "C"
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
 
-        IMU *imu = IMU::instance();
-        assert(imu);
+        //IMU *imu = IMU::instance();
+        //assert(imu);
 
 
         Power *power = Power::instance();
