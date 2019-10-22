@@ -225,13 +225,9 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=
 
-[GeneratedDocument1]
-DocumentPath=Project Outputs for OpenIMU\Design Rule Check - PCB1.html
-DItemRevisionGUID=
-
 [Parameter1]
 Name=RevisionGlobal
-Value=1.1
+Value=1.2
 
 [Parameter2]
 Name=ProjectTitle
