@@ -259,7 +259,7 @@ void SDCard::setup_interrupt_pin(bool enable)
     //     gpio_isr_handler_remove((gpio_num_t)PIN_INTERRUPT_FROM_GPS_REF);
 }
 
-void SDCard::toESP32()
+int SDCard::toESP32()
 {
     printf("SD to ESP32 \n");
     unmount();
@@ -275,8 +275,11 @@ void SDCard::toESP32()
 
     // Mount SD Card
     if(mount()) {
+        printf("Mounted successfull\n");
+        return 1;
     //    listDir(SD_MMC, "/", 0);
     }
+    return -1;
 }
 
 void SDCard::toExternal()
@@ -305,16 +308,17 @@ bool SDCard::mount()
     mount_config.format_if_mount_failed = false;
     mount_config.max_files = 5;
 
-
     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &_host, &_slot_config, &mount_config, &_card);
     if (ret == ESP_OK)
     {
         //Print card info
         sdmmc_card_print_info(stdout, _card);
+        SdCardPresent=true;
         return true;
     }
 
     printf("Error mounting file system\n");
+    SdCardPresent=false;
     return false;
 }
 
@@ -332,68 +336,85 @@ void SDCard::unmount()
 void SDCard::startLog()
 {
     //Make sure we are connected to the SD card!
+    printf("Beginning logging\n");
     toESP32();
-
     //Look for latest file
     //Create it if not 
     struct stat st;
     int file_id = 0;
-    if (stat("/sdcard/latest.txt", &st) != 0)
+
+    if(SdCardPresent)
     {
-        printf("latest file not found.Creating...\n");
-        //Write first index to the file
-        FILE* f = fopen("/sdcard/latest.txt", "w");
-        fprintf(f,"%i\n",0);
-        fclose(f);
+        printf("SdCardPresent:true\n");
+
+        if (stat("/sdcard/latest.txt", &st) != 0)
+        {
+            printf("latest file not found.Creating...\n");
+            //Write first index to the file
+            FILE* f = fopen("/sdcard/latest.txt", "w");
+            printf("After trying to open file\n");
+            vTaskDelay(2000);
+            fprintf(f,"%i\n",0);
+            vTaskDelay(2000);
+            printf("After fprintf()\n");
+            fclose(f);
+            printf("After fclose\n");
+        }
+        else
+        {
+            //Read latest file
+            FILE *f = fopen("/sdcard/latest.txt", "r");
+            fscanf(f,"%i", &file_id);
+            //Increment file id
+            file_id++;
+            fclose(f);
+            printf("file ID is now : %i\n", file_id);
+
+            //Write back file id to file
+            f = fopen("/sdcard/latest.txt", "w");
+            fprintf(f,"%i\n",file_id);
+            fclose(f);
+
+        }
+
+        //Safety, if we were already logging
+        printf("Before if loop\n");
+        if (_logFile)
+            fclose(_logFile);
+
+        //Open binary file
+        char logfile_name[32];
+        printf("Before Sprintf in file\n");
+        sprintf(logfile_name, "/sdcard/%i.dat", file_id);
+        printf("Log file name %s \n", logfile_name);
+        _logFile = fopen(logfile_name,"w");
+        assert(_logFile);
+        
+        //Write header...
+        logFileWrite("h",1);
+
+        //Create queues
+        lock();
+        _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
+        _timestampQueue = xQueueCreate(20, sizeof(time_t));
+        _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
+        _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
+        _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
+        _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
+        _pulseQueue = xQueueCreate(20, sizeof(pulseData_t*));
+        unlock();
+
+        //Create task
+        xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
+        xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
+
+        //Enable interrupt
+        setup_interrupt_pin(true);
     }
     else
     {
-        //Read latest file
-        FILE *f = fopen("/sdcard/latest.txt", "r");
-        fscanf(f,"%i", &file_id);
-        //Increment file id
-        file_id++;
-        fclose(f);
-        printf("file ID is now : %i\n", file_id);
-
-        //Write back file id to file
-        f = fopen("/sdcard/latest.txt", "w");
-        fprintf(f,"%i\n",file_id);
-        fclose(f);
-
+        printf("No Sd Card found\n");
     }
-
-    //Safety, if we were already logging
-    if (_logFile)
-        fclose(_logFile);
-
-    //Open binary file
-    char logfile_name[32];
-    sprintf(logfile_name, "/sdcard/%i.dat", file_id);
-    printf("Log file name %s \n", logfile_name);
-    _logFile = fopen(logfile_name,"w");
-    assert(_logFile);
-    
-    //Write header...
-    logFileWrite("h",1);
-
-    //Create queues
-    lock();
-    _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
-    _timestampQueue = xQueueCreate(20, sizeof(time_t));
-    _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
-    _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
-    _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
-    _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
-    _pulseQueue = xQueueCreate(20, sizeof(pulseData_t*));
-    unlock();
-
-    //Create task
-    xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
-    xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
-
-    //Enable interrupt
-    setup_interrupt_pin(true);
 }
 
 void SDCard::stopLog()
@@ -664,4 +685,68 @@ void SDCard::unlock(bool from_isr)
         xSemaphoreGiveFromISR(_mutex, NULL);
     else
         assert(xSemaphoreGive(_mutex) == pdTRUE);
+}
+
+bool SDCard::GetConfigFromSd(IMUconfig_Sd *IMUSdConfig)
+{
+    toESP32();
+
+    struct stat stt;
+    char configName[20];
+
+    if (stat("/sdcard/PARAME~1/STARTI~1.TXT", &stt) != 0)
+    {
+        printf("No folder found\n");
+        return false;
+    }
+    else   
+    {
+        
+        //The ESP-32 sees the name differently from what it is when we create the file using the computer
+        FILE* f = fopen("/sdcard/PARAME~1/STARTI~1.TXT","r");
+
+        if (f==NULL)
+        {
+            printf("Can't open the directory\n");
+            return false;
+        }
+
+        fscanf(f,"%s",configName);
+        //printf("Name: %s\n",configName);
+        if (strcmp(configName,"samplerate "))
+        {
+            //printf("%s:",configName);
+            fscanf(f,"%d",&IMUSdConfig->IMUSampleRate);
+            //printf("%d\n",IMUSdConfig->IMUSampleRate);
+        }
+
+        fscanf(f,"%s",configName);
+        //("Name: %s\n",configName);
+        if (strcmp(configName,"setupaccel "))
+        {
+            //printf("%s:",configName);
+            fscanf(f,"%d",&IMUSdConfig->IMUAcellRange);
+            //printf("%d\n",IMUSdConfig->IMUAcellRange);
+        }
+
+        fscanf(f,"%s",configName);
+        //printf("Name: %s\n",configName);
+        if (strcmp(configName,"setupgyro "))
+        {
+            //printf("%s:",configName);
+            fscanf(f,"%d",&IMUSdConfig->IMUGyroRange);
+            //printf("%d\n",IMUSdConfig->IMUGyroRange);
+        }
+
+        fclose(f);
+    }
+
+    return true;
+}
+
+bool SDCard::LookforSd()
+{
+    mount();
+    unmount();
+    return SdCardPresent;
 }

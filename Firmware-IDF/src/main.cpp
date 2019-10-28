@@ -27,15 +27,17 @@
 #include "widget/gps.h"
 #include "widget/log.h"
 #include "widget/sd.h"
+#include "widget/samplerate.h"
+#include "widget/Pedometer.h"
 #include "homescreen.h"
 
-#include <SparkFunMPU9250-DMP.h>
 
 namespace Actions
 {
     bool loggingEnabled = false;
     bool wasLogging = false;
     bool sdcardExternal = false;
+    extern int SampleRateCounter = 1;
 
     void SDToESP32()
     {
@@ -76,20 +78,61 @@ namespace Actions
     void IMUStartSD()
     {
         printf("IMUStartSD\n");
-        if (loggingEnabled)
+        if (loggingEnabled )
         {
             printf("Stopping log\n");
             loggingEnabled = false;
             sdcardExternal = false;
             SDCard::instance()->stopLog();
         }
-        else
+        else if (SDCard::instance()->LookforSd())
         {
             printf("Starting log\n");
             loggingEnabled = true;
             sdcardExternal = false;
             SDCard::instance()->startLog();
         }
+        else
+        {
+            printf("No Sd Card found\n");
+        }
+        
+    }
+
+    void ChangeSampleRate()
+    {   
+        if(!loggingEnabled)
+        {
+            if(SampleRateCounter==1)
+            {
+                IMU::instance()->setSampleRate(50);
+                //printf("Change sample Rate:100Hz\n");
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==2)
+            {
+                IMU::instance()->setSampleRate(100);
+                //printf("Change sample Rate:200Hz\n");
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==3)
+            {
+                IMU::instance()->setSampleRate(200);
+                //printf("Change sample Rate:500Hz\n");
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==4)
+            {
+                IMU::instance()->setSampleRate(10);
+                //printf("Change sample Rate:50Hz\n");
+                SampleRateCounter=1;
+            }
+        }
+        else
+        {
+            printf("Can't change sample rate while logging\n");
+        }
+        
     }
 }
 
@@ -112,6 +155,13 @@ void ledBlink(void *pvParameters)
 }
 
 
+//Activate the vibrating motor for the time asked
+void VibrateMotor(int vibrate_time)
+{
+    IOExpander::instance().digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+    vTaskDelay(vibrate_time / portTICK_RATE_MS);
+    IOExpander::instance().digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+}
 
 //app_main should have a "C" signature
 extern "C"
@@ -193,13 +243,6 @@ extern "C"
         //I2C Ext bus configuration
         I2CBusExt i2cbusext;
 
-
-
-        MPU9250_DMP dmp;
-        dmp.begin();
-        dmp.update();
-
-
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
 
@@ -218,8 +261,6 @@ extern "C"
         //ENABLE PROGRAMMING
         gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
         gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
-
-        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
         gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
 
         //Display
@@ -240,17 +281,15 @@ extern "C"
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
 
-        //IMU *imu = IMU::instance();
-        //assert(imu);
-
-
         Power *power = Power::instance();
         assert(power);
 
         GPS*  gps = GPS::instance();
         assert(gps);
 
-       
+        IMU *imu = IMU::instance();
+        assert(imu);
+
         Barometer *baro = Barometer::instance();
         assert(baro);
 
@@ -261,6 +300,7 @@ extern "C"
 
         //Bluetooth *ble = Bluetooth::instance();
         //assert(ble);
+
 
         // HOMESCREEN
 
@@ -284,12 +324,26 @@ extern "C"
 
         // Show homescreen and disable programming
         vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
-        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
-        vTaskDelay(400 / portTICK_RATE_MS);
-        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
-        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+        //vTaskDelay(800 / portTICK_RATE_MS);
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+        VibrateMotor(400);
         //gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
         home.setVisible(true);
+
+
+        // CONFIG SCREEN
+
+        Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
+        sampleWidget.setStatus(2);
+        Widget::Pedometer pedometerWidget;
+        pedometerWidget.update(0,0);
+
+        Homescreen config;
+        config.addWidget(&sampleWidget);
+        config.addWidget(&pedometerWidget);
+
+        config.setVisible(false);
 
         //Debug
         //Actions::IMUStartSD();
@@ -298,6 +352,9 @@ extern "C"
         TickType_t lastRefresh = xTaskGetTickCount();
         TickType_t now;
         bool active = true;
+        bool configscreen = false;
+        Actions::SampleRateCounter = IMU::instance()->getSampleRate();
+        
 
         while(1)
         {
@@ -306,30 +363,83 @@ extern "C"
             // Sleep for 100ms
             vTaskDelay(100 / portTICK_RATE_MS);
            
+           
            // Check buttons
             while(buttons->getActionCtn() > 0) 
             {
-                if (active) home.action();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.action();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.action();
+                    }
+                }
                 buttons->decrementActionCtn();
                 lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getPreviousCtn() > 0) 
             {
-                if (active) home.previous();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.previous();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.previous();
+                    }
+                }
                 buttons->decrementPreviousCtn();
                 lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getNextCtn() > 0) 
             {
-                if (active) home.next();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.next();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.next();
+                    }
+                }
                 buttons->decrementNextCtn();
                 lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getBackCtn() > 0) 
             {
+                if (active && !configscreen)
+                {  
+                    config.replaceSelection();
+                    home.setVisible(false);
+                    config.setVisible(true);
+                    configscreen = true;
+
+                    VibrateMotor(300);
+                }
+
+                else if (active && configscreen)
+                {  
+                    home.replaceSelection();
+                    config.setVisible(false);
+                    home.setVisible(true);
+                    configscreen = false;
+
+                    VibrateMotor(300);
+                }
                 buttons->decrementBackCtn();
                 lastBtn = xTaskGetTickCount();
             }
@@ -339,13 +449,18 @@ extern "C"
             gpsWidget.setStatus(gps->getFix());
             logWidget.setStatus(Actions::loggingEnabled);
             sdWidget.setStatus(Actions::sdcardExternal);
+            sampleWidget.setStatus(Actions::SampleRateCounter);
+            pedometerWidget.update(imu->getStepCount(),imu->getStepTime());
+
 
             if (Actions::loggingEnabled && !Actions::wasLogging)
             {
+                //printf("Starting Home logging\n");
                 home.startLog(-1);
             }
             else if (!Actions::loggingEnabled && Actions::wasLogging)
             {
+                //printf("Stopping Home logging\n");
                 home.stopLog();
             }
             Actions::wasLogging = Actions::loggingEnabled;
@@ -370,8 +485,18 @@ extern "C"
             // Update time each second
             if (now-lastRefresh > 1000/portTICK_RATE_MS)
             {
-                home.setVisible(true);
-                lastRefresh = now;
+                if (home.getVisible())
+                {
+                    home.setVisible(true);
+                    lastRefresh = now;
+                }
+
+                if (config.getVisible())
+                {
+                    config.setVisible(true);
+                    lastRefresh = now;
+
+                }
             }
         } //while 
     }

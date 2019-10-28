@@ -54,6 +54,8 @@ const unsigned char icon[] = {
   0x3f, 0xff, 0xc0
 };
 
+
+
 /**
  * Construct a log widget
  * 

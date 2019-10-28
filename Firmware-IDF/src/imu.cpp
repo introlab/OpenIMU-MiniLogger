@@ -1,4 +1,3 @@
-
 #include "imu.h"
 #include "sdcard.h"
 
@@ -58,22 +57,46 @@ namespace
 
 
 IMU::IMU()
-    : _mpu9250(I2C_NUM_1, MPU9250_I2C_ADDRESS), _readIMUHandle(NULL)
+    : _mpu9250(), _readIMUHandle(NULL)
 {
-    int ret = 0;//_mpu9250.begin(); 
-    do {
-    ret = _mpu9250.begin(); 
-    if (ret == 1)
-    {
-        _mpu9250.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
-        // setting SRD to 9 for a 100 Hz update rate
-        // FS is 1 kHz / (SRD + 1)
-        _mpu9250.setSrd(19); //50Hz
+    IMUconfig_Sd SdConfig={100,500,8};
 
-        //Setting Range
-        _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
-        _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_2000DPS);
-        
+    SDCard::instance()->GetConfigFromSd(&SdConfig);
+
+    printf("rate:%d\n",SdConfig.IMUSampleRate);
+    printf("Acel:%d\n",SdConfig.IMUAcellRange); 
+    printf("Gyro:%d\n",SdConfig.IMUGyroRange);
+ 
+
+    if (_mpu9250.begin() == 0)
+    {
+        //IMUconfig_Sd SdConfig={100,500,8};
+
+        if(SDCard::instance()->GetConfigFromSd(&SdConfig))
+        {
+            setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
+        }
+
+        else
+        {
+            setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
+            /*
+            _mpu9250.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_41HZ);
+            // setting SRD to 9 for a 100 Hz update rate
+            // FS is 1 kHz / (SRD + 1)
+
+            _mpu9250.setSrd(9); //100Hz
+            //Setting Range
+            _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
+            _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_1000DPS);
+            */
+        }
+
+        _mpu9250.dmpBegin(DMP_FEATURE_PEDOMETER);
+        _mpu9250.dmpSetPedometerSteps(StepCount);
+        _mpu9250.dmpSetPedometerTime(StepTime);
+
+        printf("initialisation\n");
         //Does not work...
         //_mpu9250.calibrateAccel();
         //_mpu9250.calibrateGyro();
@@ -86,36 +109,34 @@ IMU::IMU()
         // Setup interrupt handling
         _semaphore = xSemaphoreCreateCounting(1,0);
         setup_interrupt_pin();
-        _mpu9250.enableDataReadyInterrupt();
-
-        printf("IMU initialized\n");
+        _mpu9250.enableInterrupt();
+        _mpu9250.setIntLevel(INT_ACTIVE_LOW);
 
         //Create reading task
         xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
-
+        printf("IMU initialized\n");
     }
     else
     {
-        printf("ERROR initializing IMU ret: %i\n",ret);
+        printf("ERROR initializing IMU\n");
     }
-    } while (ret != 1);
 }
 
 void IMU::readSensor(imuDataPtr_t data)
 {
-    _mpu9250.readSensor();
+    _mpu9250.update();
 
     if (data)
     {
-        data->accelX = _mpu9250.getAccelX_mss() / MPU9250::G;
-        data->accelY = _mpu9250.getAccelY_mss() / MPU9250::G;
-        data->accelZ = _mpu9250.getAccelZ_mss() / MPU9250::G;
-        data->gyroX  = _mpu9250.getGyroX_rads();
-        data->gyroY  = _mpu9250.getGyroY_rads();
-        data->gyroZ  = _mpu9250.getGyroZ_rads();
-        data->magX = _mpu9250.getMagX_uT();
-        data->magY = _mpu9250.getMagY_uT();
-        data->magZ = _mpu9250.getMagZ_uT();
+        data->accelX = _mpu9250.calcAccel(_mpu9250.ax);
+        data->accelY = _mpu9250.calcAccel(_mpu9250.ay);
+        data->accelZ = _mpu9250.calcAccel(_mpu9250.az);
+        data->gyroX  = _mpu9250.calcGyro(_mpu9250.gx);
+        data->gyroY  = _mpu9250.calcGyro(_mpu9250.gy);
+        data->gyroZ  = _mpu9250.calcGyro(_mpu9250.gz);
+        data->magX = _mpu9250.calcMag(_mpu9250.mx);
+        data->magY = _mpu9250.calcMag(_mpu9250.my);
+        data->magZ = _mpu9250.calcMag(_mpu9250.mz);
 
     }
 }
@@ -148,3 +169,100 @@ void IMU::setup_interrupt_pin()
     gpio_isr_handler_add((gpio_num_t)INTERRUPT_PIN, imu_gpio_isr_handler, this);
 }
 
+void IMU::setSampleRate(int rateHz)
+{
+    if (rateHz==10)
+    {
+        _mpu9250.setLPF(5);
+        _mpu9250.setSampleRate(10);
+        _mpu9250.setCompassSampleRate(10);
+        printf("Set sample Rate:10Hz\n");
+
+        SampleRateHz=10;
+    }
+    else if (rateHz==50)
+    {
+        _mpu9250.setLPF(20);
+        _mpu9250.setSampleRate(50);
+        _mpu9250.setCompassSampleRate(50);
+        printf("Set sample Rate:50Hz\n");
+
+        SampleRateHz=50;
+    }
+    else if (rateHz==100)
+    {
+        _mpu9250.setLPF(42);
+        _mpu9250.setSampleRate(100);
+        _mpu9250.setCompassSampleRate(100);
+        printf("Set sample Rate:100Hz\n");
+
+        SampleRateHz=100;
+    }
+    else if (rateHz==200)
+    {
+        _mpu9250.setLPF(98);
+        _mpu9250.setSampleRate(200);
+        _mpu9250.setCompassSampleRate(100);
+        printf("Set sample Rate:200Hz\n");
+
+        SampleRateHz=200;
+    }
+    else
+    {
+        _mpu9250.setLPF(42);
+        _mpu9250.setSampleRate(100);
+        _mpu9250.setCompassSampleRate(100);
+        printf("Wrong rate entered,setting to 100Hz");
+
+        SampleRateHz=100;
+    }
+    
+}
+
+void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
+{
+
+    setSampleRate(rateHZ);
+
+    if(accelRange==2 || accelRange==4 || accelRange==8 || accelRange==16)
+        _mpu9250.setAccelFSR(accelRange);
+    else
+    {
+        printf("Wrong Acceleration range entered, Setting to 4G");
+        _mpu9250.setAccelFSR(4);
+    }
+
+    if(gyroRange==250 || gyroRange==500 || gyroRange==1000 || gyroRange==2000)
+        _mpu9250.setGyroFSR(gyroRange);
+    else
+    {
+        printf("Wrong Gyro range entered, Setting to 500dps");
+        _mpu9250.setGyroFSR(500);
+    }
+  
+}
+
+int IMU::getSampleRate()
+{
+    int id = 0;
+    if (SampleRateHz==10)
+        id = 1;
+    else if (SampleRateHz==50)
+        id = 2;
+    else if (SampleRateHz==100)
+        id = 3;
+    else if (SampleRateHz==200)
+        id = 4;
+
+    return id;
+}
+
+int IMU::getStepCount()
+{
+    return _mpu9250.dmpGetPedometerSteps();
+}
+    
+int IMU::getStepTime()
+{
+    return _mpu9250.dmpGetPedometerTime()/1000;
+}

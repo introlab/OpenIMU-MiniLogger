@@ -158,7 +158,7 @@ void Homescreen::setVisible(bool isVisible)
     {
         (*i)->setVisible(isVisible);
     }
-
+    //(*_widgets.begin())->select();
     if (_isVisible) paint();
 }
 
@@ -181,4 +181,19 @@ void Homescreen::startLog(double logCapacity)
 void Homescreen::stopLog()
 {
     _isLogging = false;
+}
+
+bool Homescreen::getVisible()
+{
+    return _isVisible;
+}
+
+void Homescreen::replaceSelection()
+{ 
+    for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
+    {
+        (*i)->unselect();
+    }
+    _currentWidget = _widgets.begin();
+    (*_widgets.begin())->select();
 }

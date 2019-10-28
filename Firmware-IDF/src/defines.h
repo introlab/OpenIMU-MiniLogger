@@ -57,6 +57,13 @@ typedef struct {
 } pulseData_t;
 typedef pulseData_t* pulseDataPtr_t;
 
+typedef struct {
+    int IMUSampleRate;
+    int IMUGyroRange;
+    int IMUAcellRange;
+}  IMUconfig_Sd;
+//typedef IMUconfig_Sd* IMUconfigPtr_Sd;
+
 
 #ifndef OUTPUT
 #define OUTPUT (0)
