@@ -8,7 +8,7 @@
 #define INTERRUPT_PIN 34
 #define MPU9250_I2C_ADDRESS 0x68
 
-
+                                        
 
 class IMU
 {
