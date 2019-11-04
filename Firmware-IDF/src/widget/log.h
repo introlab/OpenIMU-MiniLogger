@@ -30,13 +30,14 @@ class Log : public AbstractWidget
 {
 public:
     Log(void (*toggleLog)());
-    void setStatus(bool isLogging);
+    void setStatus(bool isLogging,bool isSDCardPresent);
 
 private:
     void paintLogo();
     std::string getMessage();
 
     bool _isLogging;
+    bool _isSDCardPresent;
 };
 
 }

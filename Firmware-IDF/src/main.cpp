@@ -28,7 +28,6 @@
 #include "widget/log.h"
 #include "widget/sd.h"
 #include "widget/samplerate.h"
-#include "widget/Pedometer.h"
 #include "homescreen.h"
 
 
@@ -52,13 +51,16 @@ namespace Actions
 
     void SDToExternal()
     {
-        if (loggingEnabled)
+        if (SDCard::instance()->getSdCardPresent())
         {
-            loggingEnabled = false;
-            SDCard::instance()->stopLog();  
+            if (loggingEnabled)
+            {
+                loggingEnabled = false;
+                SDCard::instance()->stopLog();  
+            }
+            sdcardExternal = true;
+            SDCard::instance()->toExternal();
         }
-        sdcardExternal = true;
-        SDCard::instance()->toExternal();
     }
 
     void ToggleSD()
@@ -85,7 +87,7 @@ namespace Actions
             sdcardExternal = false;
             SDCard::instance()->stopLog();
         }
-        else if (SDCard::instance()->LookforSd())
+        else if (SDCard::instance()->getSdCardPresent())
         {
             printf("Starting log\n");
             loggingEnabled = true;
@@ -153,7 +155,6 @@ void ledBlink(void *pvParameters)
         
     }
 }
-
 
 //Activate the vibrating motor for the time asked
 void VibrateMotor(int vibrate_time)
@@ -261,6 +262,8 @@ extern "C"
         //ENABLE PROGRAMMING
         gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
         gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
+        
+        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
         gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
 
         //Display
@@ -311,10 +314,10 @@ extern "C"
         gpsWidget.setStatus(false);
 
         Widget::Log logWidget(Actions::IMUStartSD);
-        logWidget.setStatus(false);
+        logWidget.setStatus(false,true);
 
         Widget::SD sdWidget(Actions::ToggleSD);
-        sdWidget.setStatus(false);
+        sdWidget.setStatus(false,true);
 
         Homescreen home;
         home.addWidget(&batteryWidget);
@@ -336,12 +339,10 @@ extern "C"
 
         Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
         sampleWidget.setStatus(2);
-        Widget::Pedometer pedometerWidget;
-        pedometerWidget.update(0,0);
+
 
         Homescreen config;
         config.addWidget(&sampleWidget);
-        config.addWidget(&pedometerWidget);
 
         config.setVisible(false);
 
@@ -354,6 +355,7 @@ extern "C"
         bool active = true;
         bool configscreen = false;
         Actions::SampleRateCounter = IMU::instance()->getSampleRate();
+
         
 
         while(1)
@@ -447,10 +449,9 @@ extern "C"
             // Update widgets
             batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
             gpsWidget.setStatus(gps->getFix());
-            logWidget.setStatus(Actions::loggingEnabled);
-            sdWidget.setStatus(Actions::sdcardExternal);
+            logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
+            sdWidget.setStatus(Actions::sdcardExternal,SDCard::instance()->getSdCardPresent());
             sampleWidget.setStatus(Actions::SampleRateCounter);
-            pedometerWidget.update(imu->getStepCount(),imu->getStepTime());
 
 
             if (Actions::loggingEnabled && !Actions::wasLogging)
