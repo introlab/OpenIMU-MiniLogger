@@ -1783,13 +1783,13 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
 int mpu_set_bypass(unsigned char bypass_on)
 {
     unsigned char tmp;
-
     if (st.chip_cfg.bypass_mode == bypass_on)
+    {
         return 0;
-
+    }
     if (bypass_on) {
         if (i2c_read(st.hw->addr, st.reg->user_ctrl, 1, &tmp))
-            return -1;
+           return -1;
         tmp &= ~BIT_AUX_IF_EN;
         if (i2c_write(st.hw->addr, st.reg->user_ctrl, 1, &tmp))
             return -1;

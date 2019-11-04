@@ -42,7 +42,7 @@ public:
 
     static SDCard* instance();
 
-    void toESP32();
+    int toESP32();
     void toExternal();
     bool mount();
     void unmount();
@@ -71,6 +71,10 @@ public:
     bool logFileWrite(const void* data, size_t size);
 
     bool syncFile();
+    //Look in the SD card for the configuration file and takes initial parameters from it
+    bool GetConfigFromSd(IMUconfig_Sd *IMUSdConfig);
+    //Tells if the SdCard is inside the PCB
+    bool LookforSd();
 
 protected:
 
@@ -90,6 +94,8 @@ private:
     virtual ~SDCard();
     void lock(bool from_isr = false);
     void unlock(bool from_isr = false);
+
+    bool SdCardPresent=false;
 
     static SDCard* _instance;
     sdmmc_host_t _host;

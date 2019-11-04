@@ -38,9 +38,12 @@ public:
     void action();
 
     void setVisible(bool isVisible);
+    bool getVisible(void);
 
     void startLog(double logCapacity);
     void stopLog();
+
+    void replaceSelection(void);
 
 private:
     void paint();

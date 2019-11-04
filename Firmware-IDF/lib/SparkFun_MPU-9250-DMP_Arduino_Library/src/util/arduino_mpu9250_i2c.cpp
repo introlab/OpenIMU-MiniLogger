@@ -27,7 +27,7 @@ Supported Platforms:
 int arduino_i2c_write(unsigned char slave_addr, unsigned char reg_addr,
                        unsigned char length, unsigned char * data)
 {
-	printf("i2c_write %2.2x %2.2x (%i) \n", slave_addr, reg_addr, length);
+	//printf("i2c_write %2.2x %2.2x (%i) \n", slave_addr, reg_addr, length);
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (slave_addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
@@ -42,7 +42,7 @@ int arduino_i2c_write(unsigned char slave_addr, unsigned char reg_addr,
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
     i2c_cmd_link_delete(cmd);
 
-	printf("I2C Write ret: %i\n", ret);
+	//printf("I2C Write ret: %i\n", ret);
 
 
 	/*
@@ -62,7 +62,7 @@ int arduino_i2c_read(unsigned char slave_addr, unsigned char reg_addr,
                        unsigned char length, unsigned char * data)
 {
 
-	printf("i2c_read %2.2x %2.2x (%i) \n", slave_addr, reg_addr, length);
+	//printf("i2c_read %2.2x %2.2x (%i) \n", slave_addr, reg_addr, length);
 
 	/*
 	Wire.beginTransmission(slave_addr);
@@ -99,13 +99,13 @@ int arduino_i2c_read(unsigned char slave_addr, unsigned char reg_addr,
     //Send command
     esp_err_t ret = I2CBus::i2c_master_cmd_begin(cmd);
 
-	printf("I2C Read ret: %i\n", ret);
+	//printf("I2C Read ret: %i\n", ret);
 
     i2c_cmd_link_delete(cmd);
 
     if (ret == ESP_OK)
     {
-        return 1;
+        return 0;
     }
     else
     {

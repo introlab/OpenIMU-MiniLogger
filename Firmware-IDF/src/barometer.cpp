@@ -32,9 +32,6 @@ namespace
             }
             else
             {
-
-                //printf("OK baro : %f %f\n", data->pressure, data->temperature);
-
                 //Send to logging thread
                 if (!SDCard::instance()->enqueue(data))
                     free(data);

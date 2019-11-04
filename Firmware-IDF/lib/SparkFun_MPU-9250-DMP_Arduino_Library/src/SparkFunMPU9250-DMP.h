@@ -27,11 +27,15 @@ Supported Platforms:
 #define AK8963_SECONDARY
 #define COMPASS_ENABLED
 
+#include "i2cbus.h"
+#include <stdio.h>
+
 // Include the Invensense MPU9250 driver and DMP keys:
 extern "C" {
 #include "util/inv_mpu.h"
 #include "util/inv_mpu_dmp_motion_driver.h"
 }
+
 
 typedef int inv_error_t;
 #define INV_SUCCESS 0
@@ -78,6 +82,7 @@ public:
 	unsigned long time;
 	float pitch, roll, yaw;
 	float heading;
+	static constexpr float G = 9.807f;
 	
 	MPU9250_DMP();
 	

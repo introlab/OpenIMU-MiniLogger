@@ -12,6 +12,8 @@ namespace Actions
     extern void IMUStartSD();
     extern void IMUStopSD();
 
+    extern void ChangeSampleRate();
+
     extern void Shutdown();
 }
 
