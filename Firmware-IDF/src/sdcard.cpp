@@ -156,6 +156,20 @@ namespace sdcard
     }
 }
 
+void checkSDtask(void *pvParameters)
+{
+    
+    TickType_t _lastTick = xTaskGetTickCount();
+
+    while(1)
+    {
+        vTaskDelayUntil(&_lastTick, 300 / portTICK_RATE_MS);
+
+        SDCard::instance()->checkSD();    
+    }
+
+}
+
 SDCard* SDCard::instance()
 {
     if (SDCard::_instance == NULL)
@@ -182,6 +196,7 @@ SDCard::SDCard()
 
     //TODO, unused for now
     IOExpander::instance().pinMode(EXT_PIN04_SD_N_CD, INPUT);
+    IOExpander::instance().pullupMode(EXT_PIN04_SD_N_CD, HIGH);
 
     //PIN EXT_PIN05_SD_SEL (select 1=ESP32, 0 = USB2640)
     //EXT_PIN03_SD_N_ENABLED (output enable 0=NO SD Card)
@@ -206,6 +221,8 @@ SDCard::SDCard()
 
     toESP32();
     //toExternal();
+
+    xTaskCreate(&checkSDtask, "IsSDPresent", 2048, this, 10, nullptr);
 }
 
 SDCard::~SDCard()
@@ -313,12 +330,10 @@ bool SDCard::mount()
     {
         //Print card info
         sdmmc_card_print_info(stdout, _card);
-        SdCardPresent=true;
         return true;
     }
 
     printf("Error mounting file system\n");
-    SdCardPresent=false;
     return false;
 }
 
@@ -336,7 +351,7 @@ void SDCard::unmount()
 void SDCard::startLog()
 {
     //Make sure we are connected to the SD card!
-    printf("Beginning logging\n");
+    //printf("Beginning logging\n");
     toESP32();
     //Look for latest file
     //Create it if not 
@@ -345,7 +360,6 @@ void SDCard::startLog()
 
     if(SdCardPresent)
     {
-        printf("SdCardPresent:true\n");
 
         if (stat("/sdcard/latest.txt", &st) != 0)
         {
@@ -378,13 +392,11 @@ void SDCard::startLog()
         }
 
         //Safety, if we were already logging
-        printf("Before if loop\n");
         if (_logFile)
             fclose(_logFile);
 
         //Open binary file
         char logfile_name[32];
-        printf("Before Sprintf in file\n");
         sprintf(logfile_name, "/sdcard/%i.dat", file_id);
         printf("Log file name %s \n", logfile_name);
         _logFile = fopen(logfile_name,"w");
@@ -744,9 +756,19 @@ bool SDCard::GetConfigFromSd(IMUconfig_Sd *IMUSdConfig)
     return true;
 }
 
-bool SDCard::LookforSd()
+void SDCard::checkSD()
 {
-    mount();
-    unmount();
+    if (IOExpander::instance().digitalRead(EXT_PIN04_SD_N_CD)==0)
+    {
+        SdCardPresent=true;
+    }
+    else if (IOExpander::instance().digitalRead(EXT_PIN04_SD_N_CD)==1)
+    {
+        SdCardPresent=false;
+    }
+}
+
+bool SDCard::getSdCardPresent()
+{
     return SdCardPresent;
 }

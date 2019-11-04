@@ -30,13 +30,14 @@ class SD : public AbstractWidget
 {
 public:
     SD(void (*toggleExternal)());
-    void setStatus(bool isExternal);
+    void setStatus(bool isExternal,bool isSDCardPresent);
 
 private:
     void paintLogo();
     std::string getMessage();
 
     bool _isExternal;
+    bool _isSDCardPresent;
 };
 
 }

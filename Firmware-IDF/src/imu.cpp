@@ -59,11 +59,11 @@ namespace
 IMU::IMU()
     : _mpu9250(), _readIMUHandle(NULL)
 {
-    IMUconfig_Sd SdConfig={100,500,8};
+    IMUconfig_Sd SdConfig={10,500,8};
 
-    SDCard::instance()->GetConfigFromSd(&SdConfig);
+    //SDCard::instance()->GetConfigFromSd(&SdConfig);
 
-    printf("rate:%d\n",SdConfig.IMUSampleRate);
+    printf("Rate:%d\n",SdConfig.IMUSampleRate);
     printf("Acel:%d\n",SdConfig.IMUAcellRange); 
     printf("Gyro:%d\n",SdConfig.IMUGyroRange);
  
@@ -71,36 +71,25 @@ IMU::IMU()
     if (_mpu9250.begin() == 0)
     {
         //IMUconfig_Sd SdConfig={100,500,8};
-
+        
         if(SDCard::instance()->GetConfigFromSd(&SdConfig))
         {
+            printf("rate:%d\n",SdConfig.IMUSampleRate);
+            printf("Acel:%d\n",SdConfig.IMUAcellRange); 
+            printf("Gyro:%d\n",SdConfig.IMUGyroRange);
             setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
         }
 
         else
         {
             setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
-            /*
-            _mpu9250.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_41HZ);
-            // setting SRD to 9 for a 100 Hz update rate
-            // FS is 1 kHz / (SRD + 1)
-
-            _mpu9250.setSrd(9); //100Hz
-            //Setting Range
-            _mpu9250.setAccelRange(MPU9250::ACCEL_RANGE_8G);
-            _mpu9250.setGyroRange(MPU9250::GYRO_RANGE_1000DPS);
-            */
         }
-
-        _mpu9250.dmpBegin(DMP_FEATURE_PEDOMETER);
-        _mpu9250.dmpSetPedometerSteps(StepCount);
-        _mpu9250.dmpSetPedometerTime(StepTime);
+        
+        //SDCard::instance()->GetConfigFromSd(&SdConfig);
+        //setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
 
         printf("initialisation\n");
-        //Does not work...
-        //_mpu9250.calibrateAccel();
-        //_mpu9250.calibrateGyro();
-        //_mpu9250.calibrateMag();
+
 
         // Enable FIFO
         //_mpu9250.enableFifo(true, true, true, true);
@@ -173,7 +162,6 @@ void IMU::setSampleRate(int rateHz)
 {
     if (rateHz==10)
     {
-        _mpu9250.setLPF(5);
         _mpu9250.setSampleRate(10);
         _mpu9250.setCompassSampleRate(10);
         printf("Set sample Rate:10Hz\n");
@@ -182,7 +170,6 @@ void IMU::setSampleRate(int rateHz)
     }
     else if (rateHz==50)
     {
-        _mpu9250.setLPF(20);
         _mpu9250.setSampleRate(50);
         _mpu9250.setCompassSampleRate(50);
         printf("Set sample Rate:50Hz\n");
@@ -191,7 +178,6 @@ void IMU::setSampleRate(int rateHz)
     }
     else if (rateHz==100)
     {
-        _mpu9250.setLPF(42);
         _mpu9250.setSampleRate(100);
         _mpu9250.setCompassSampleRate(100);
         printf("Set sample Rate:100Hz\n");
@@ -200,16 +186,14 @@ void IMU::setSampleRate(int rateHz)
     }
     else if (rateHz==200)
     {
-        _mpu9250.setLPF(98);
+        
         _mpu9250.setSampleRate(200);
         _mpu9250.setCompassSampleRate(100);
         printf("Set sample Rate:200Hz\n");
-
         SampleRateHz=200;
     }
     else
     {
-        _mpu9250.setLPF(42);
         _mpu9250.setSampleRate(100);
         _mpu9250.setCompassSampleRate(100);
         printf("Wrong rate entered,setting to 100Hz");
@@ -221,9 +205,12 @@ void IMU::setSampleRate(int rateHz)
 
 void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
 {
+    // The sample rate of the accel/gyro can be set using
+    // setSampleRate. Acceptable values range from 4Hz to 1kHz
 
     setSampleRate(rateHZ);
 
+    // Accel options are +/- 2, 4, 8, or 16 g
     if(accelRange==2 || accelRange==4 || accelRange==8 || accelRange==16)
         _mpu9250.setAccelFSR(accelRange);
     else
@@ -231,7 +218,10 @@ void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
         printf("Wrong Acceleration range entered, Setting to 4G");
         _mpu9250.setAccelFSR(4);
     }
-
+    
+    // Use setGyroFSR() and setAccelFSR() to configure the
+    // gyroscope and accelerometer full scale ranges.
+    // Gyro options are +/- 250, 500, 1000, or 2000 dps
     if(gyroRange==250 || gyroRange==500 || gyroRange==1000 || gyroRange==2000)
         _mpu9250.setGyroFSR(gyroRange);
     else

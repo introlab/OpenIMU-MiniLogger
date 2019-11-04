@@ -38,6 +38,7 @@ class SDCard
 {
     friend void sdcard::logTask(void *pvParameters);
     friend void generateTimestamp(void *pvParameters);
+
 public:
 
     static SDCard* instance();
@@ -73,8 +74,10 @@ public:
     bool syncFile();
     //Look in the SD card for the configuration file and takes initial parameters from it
     bool GetConfigFromSd(IMUconfig_Sd *IMUSdConfig);
-    //Tells if the SdCard is inside the PCB
-    bool LookforSd();
+    //Check if the SD Card is in
+    void checkSD();
+    //Return boolean telling if the SD card is present
+    bool getSdCardPresent();
 
 protected:
 
