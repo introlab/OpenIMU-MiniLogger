@@ -30,13 +30,15 @@
 #include "widget/samplerate.h"
 #include "homescreen.h"
 
+//Prototype wifi transfer
+#include "wifitransfer.h"
 
 namespace Actions
 {
     bool loggingEnabled = false;
     bool wasLogging = false;
     bool sdcardExternal = false;
-    extern int SampleRateCounter = 1;
+    int SampleRateCounter = 1;
 
     void SDToESP32()
     {
@@ -225,6 +227,14 @@ extern "C"
 
     void app_main()
     {
+        //This is required before using wifi
+        esp_err_t ret = nvs_flash_init();
+        if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+            ESP_ERROR_CHECK(nvs_flash_erase());
+            ret = nvs_flash_init();
+        }
+        ESP_ERROR_CHECK(ret);
+
         //This needs to be called first
         //install gpio isr service
         gpio_install_isr_service(0);
@@ -233,7 +243,7 @@ extern "C"
         setenv("TZ", "GEST+5EDT,M3.2.0/2,M11.1.0/2", 1);
         tzset();
 
-        esp_err_t ret=0;
+        //esp_err_t ret=0;
 
         //SPI bus configuration
         SPIBus spibus;
@@ -357,6 +367,9 @@ extern "C"
         Actions::SampleRateCounter = IMU::instance()->getSampleRate();
 
         
+        //Prototype WiFi transfer Agent
+        //WiFiTransfer *wifi = WiFiTransfer::instance();
+
 
         while(1)
         {

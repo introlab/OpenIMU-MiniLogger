@@ -712,7 +712,6 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
     toESP32();
 
     struct stat stt;
-    char configName[20];
 
     if (stat("/sdcard/PARAME~1/STARTI~1.JSO", &stt) != 0)
     {
