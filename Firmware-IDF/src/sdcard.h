@@ -73,7 +73,11 @@ public:
 
     bool syncFile();
     //Look in the SD card for the configuration file and takes initial parameters from it
-    bool GetConfigFromSd(IMUconfig_Sd *IMUSdConfig);
+    bool GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig);
+
+    bool GetOpenTeraConfigFromSd(OpenTeraConfig_Sd *OpenTeraSdConfig);
+
+
     //Check if the SD Card is in
     void checkSD();
     //Return boolean telling if the SD card is present

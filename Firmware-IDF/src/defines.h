@@ -2,6 +2,7 @@
 #define _DEFINES_H_
 
 #include <stdint.h>
+#include <string>
 
 /**
  * Put global definitions here
@@ -63,6 +64,14 @@ typedef struct {
     int IMUAcellRange;
 }  IMUconfig_Sd;
 //typedef IMUconfig_Sd* IMUconfigPtr_Sd;
+
+typedef struct {
+    std::string deviceName;
+    std::string openTeraServerName;
+    int openTeraServerPort;
+    std::string openTeraToken;
+} OpenTeraConfig_Sd;
+
 
 
 #ifndef OUTPUT

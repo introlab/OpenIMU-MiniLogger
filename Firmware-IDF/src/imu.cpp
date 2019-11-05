@@ -72,7 +72,7 @@ IMU::IMU()
     {
         //IMUconfig_Sd SdConfig={100,500,8};
         
-        if(SDCard::instance()->GetConfigFromSd(&SdConfig))
+        if(SDCard::instance()->GetIMUConfigFromSd(&SdConfig))
         {
             printf("rate:%d\n",SdConfig.IMUSampleRate);
             printf("Acel:%d\n",SdConfig.IMUAcellRange); 

@@ -1,6 +1,7 @@
 #include "sdcard.h"
 #include "ioexpander.h"
 #include <stdio.h>
+#include <cJSON.h>
 
 //Static instance
 SDCard* SDCard::_instance = NULL;
@@ -699,14 +700,21 @@ void SDCard::unlock(bool from_isr)
         assert(xSemaphoreGive(_mutex) == pdTRUE);
 }
 
-bool SDCard::GetConfigFromSd(IMUconfig_Sd *IMUSdConfig)
+bool SDCard::GetOpenTeraConfigFromSd(OpenTeraConfig_Sd *OpenTeraSdConfig)
+{
+    toESP32();
+
+    return false;
+}
+
+bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
 {
     toESP32();
 
     struct stat stt;
     char configName[20];
 
-    if (stat("/sdcard/PARAME~1/STARTI~1.TXT", &stt) != 0)
+    if (stat("/sdcard/PARAME~1/STARTI~1.JSO", &stt) != 0)
     {
         printf("No folder found\n");
         return false;
@@ -715,7 +723,7 @@ bool SDCard::GetConfigFromSd(IMUconfig_Sd *IMUSdConfig)
     {
         
         //The ESP-32 sees the name differently from what it is when we create the file using the computer
-        FILE* f = fopen("/sdcard/PARAME~1/STARTI~1.TXT","r");
+        FILE* f = fopen("/sdcard/PARAME~1/STARTI~1.JSO","r");
 
         if (f==NULL)
         {
@@ -723,34 +731,42 @@ bool SDCard::GetConfigFromSd(IMUconfig_Sd *IMUSdConfig)
             return false;
         }
 
-        fscanf(f,"%s",configName);
-        //printf("Name: %s\n",configName);
-        if (strcmp(configName,"samplerate "))
-        {
-            //printf("%s:",configName);
-            fscanf(f,"%d",&IMUSdConfig->IMUSampleRate);
-            //printf("%d\n",IMUSdConfig->IMUSampleRate);
-        }
+        //Go to end of file
+        fseek(f, 0, SEEK_END);
+        long size = ftell(f);
+        printf("JSON file size returns : %li\n", size);
 
-        fscanf(f,"%s",configName);
-        //("Name: %s\n",configName);
-        if (strcmp(configName,"setupaccel "))
-        {
-            //printf("%s:",configName);
-            fscanf(f,"%d",&IMUSdConfig->IMUAcellRange);
-            //printf("%d\n",IMUSdConfig->IMUAcellRange);
-        }
+        //Go to begin of file
+        fseek(f, 0 , SEEK_SET);
+       
+        //Allocate string with null character at the end 
+        char* json_string = (char*) malloc(size + 1);
+        memset(json_string,0, size +1);
 
-        fscanf(f,"%s",configName);
-        //printf("Name: %s\n",configName);
-        if (strcmp(configName,"setupgyro "))
-        {
-            //printf("%s:",configName);
-            fscanf(f,"%d",&IMUSdConfig->IMUGyroRange);
-            //printf("%d\n",IMUSdConfig->IMUGyroRange);
-        }
+        //Read the complete file
+        fread(json_string, 1, size, f);
+        printf("json : %s \n", json_string);
 
+        //Parse JSON
+        cJSON *root = cJSON_Parse(json_string);
+
+        //Structure is initialized with default values. Replace value if found in JSON file
+        if (cJSON_HasObjectItem(root, "samplerate"))
+            IMUSdConfig->IMUSampleRate = cJSON_GetObjectItem(root,"samplerate")->valueint;
+
+        if (cJSON_HasObjectItem(root, "setupaccel"))
+            IMUSdConfig->IMUAcellRange = cJSON_GetObjectItem(root,"setupaccel")->valueint;
+
+        if (cJSON_HasObjectItem(root, "setupgyro"))
+            IMUSdConfig->IMUGyroRange = cJSON_GetObjectItem(root,"setupgyro")->valueint;
+
+        //Free memory
+        cJSON_free(root);
+        free(json_string);
+
+        //Close file
         fclose(f);
+
     }
 
     return true;
