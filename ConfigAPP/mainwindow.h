@@ -21,6 +21,8 @@ public:
     static const QString json_label_openteraserver;
     static const QString json_label_openteraport;
     static const QString json_label_openteratoken;
+    static const QString json_label_wifi_ssid;
+    static const QString json_label_wifi_password;
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -30,12 +32,13 @@ private slots:
     void on_ExitButton_clicked();
     void on_SaveButton_clicked();
     void comboBoxchanged();
-    void saveChanges(QString path);
     void saveChangesJSON(QString path);
     void on_RegisterButton_clicked();
     void on_lineEditDeviceName_textChanged(const QString &text);
     void on_lineEditServer_textChanged(const QString &text);
     void on_lineEditPort_textChanged(const QString &text);
+    void on_lineEditWiFiSSID_textChanged(const QString &text);
+    void on_lineEditWiFiPassword_textChanged(const QString &text);
 
     //Menu
     void on_loadMenuActionClicked();

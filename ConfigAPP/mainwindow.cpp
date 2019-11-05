@@ -24,6 +24,9 @@ const QString MainWindow::json_label_devicename("devicename");
 const QString MainWindow::json_label_openteraserver("openteraserver");
 const QString MainWindow::json_label_openteraport("openteraport");
 const QString MainWindow::json_label_openteratoken("openteratoken");
+const QString MainWindow::json_label_wifi_ssid("wifissid");
+const QString MainWindow::json_label_wifi_password("wifipassword");
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), is_saved(true), m_netManager(nullptr)
@@ -73,6 +76,12 @@ MainWindow::MainWindow(QWidget *parent)
     //Port
     connect(m_ui.lineEditPort, SIGNAL(textChanged(const QString&)), this, SLOT(on_lineEditPort_textChanged(const QString &)));
     m_ui.lineEditPort->setValidator(new QIntValidator(1,65565, this));
+
+
+    //WiFi
+    connect(m_ui.lineEditWiFiSSID, SIGNAL(textChanged(const QString&)), this, SLOT(on_lineEditWiFiSSID_textChanged(const QString&)));
+    connect(m_ui.lineEditWiFiPassword, SIGNAL(textChanged(const QString&)), this, SLOT(on_lineEditWiFiPassword_textChanged(const QString&)));
+
 
     //Will enable button
     verifyServerConfiguration();
@@ -134,9 +143,6 @@ void MainWindow::on_SaveButton_clicked()
             directory.mkpath(drive +"/ParameterFolder");
         }
 
-        //DL - Replaced by JSON save file
-        //saveChanges(directory.path() + "/StartingParameter.txt");
-
         //DL - save configuration in a json document
         saveChangesJSON(directory.path() + "/StartingParameter.json");
     }
@@ -148,43 +154,23 @@ void MainWindow::comboBoxchanged()
     is_saved=false;
 }
 
-void MainWindow::saveChanges(QString path)
-{
-
-    QFile file(path);
-    qDebug() <<"inside savechange";
-
-    if (file.exists())
-    {
-        file.remove();
-    }
-
-    if(!file.open(QIODevice::WriteOnly |QIODevice::Text ))
-    {
-        QMessageBox::warning(this,"","Can't create file");
-    }
-
-    QTextStream _file(&file);
-    _file<<MainWindow::json_label_samplerate<<" "<<m_ui.SampleRatecomboBox->currentText().toInt()<<"\n";
-    _file<<MainWindow::json_label_setupaccel<<" "<<m_ui.AccelerometercomboBox->currentText().toInt()<<"\n";
-    _file<<MainWindow::json_label_setupgyro<<" "<<m_ui.GyroscopecomboBox->currentText().toInt()<<"\n";
-    _file<<MainWindow::json_label_devicename<<" "<<m_ui.lineEditDeviceName->text()<<"\n";
-    _file<<MainWindow::json_label_openteraserver<<" "<<m_ui.lineEditServer->text()<<"\n";
-    _file<<MainWindow::json_label_openteraport<<" "<<m_ui.lineEditPort->text().toInt()<<"\n";
-    _file<<MainWindow::json_label_openteratoken<<" "<<m_ui.textEditToken->toPlainText()<<"\n";
-    file.flush();
-    file.close();
-}
-
 void MainWindow::saveChangesJSON(QString path)
 {
     QJsonDocument doc;
     QJsonObject json_object;
 
     //Fill object fields
+
+    //IMU
     json_object.insert(MainWindow::json_label_samplerate, QJsonValue(m_ui.SampleRatecomboBox->currentText().toInt()));
     json_object.insert(MainWindow::json_label_setupaccel, QJsonValue(m_ui.AccelerometercomboBox->currentText().toInt()));
     json_object.insert(MainWindow::json_label_setupgyro, QJsonValue(m_ui.GyroscopecomboBox->currentText().toInt()));
+
+    //WiFi
+    json_object.insert(MainWindow::json_label_wifi_ssid, QJsonValue(m_ui.lineEditWiFiSSID->text()));
+    json_object.insert(MainWindow::json_label_wifi_password, QJsonValue(m_ui.lineEditWiFiPassword->text()));
+
+    //OpenTera
     json_object.insert(MainWindow::json_label_devicename, QJsonValue(m_ui.lineEditDeviceName->text()));
     json_object.insert(MainWindow::json_label_openteraserver, QJsonValue(m_ui.lineEditServer->text()));
     json_object.insert(MainWindow::json_label_openteraport, QJsonValue(m_ui.lineEditPort->text().toInt()));
@@ -255,6 +241,18 @@ void MainWindow::on_lineEditPort_textChanged(const QString &text)
     verifyServerConfiguration();
 }
 
+void MainWindow::on_lineEditWiFiSSID_textChanged(const QString &text)
+{
+    Q_UNUSED(text)
+    is_saved = false;
+}
+
+void MainWindow::on_lineEditWiFiPassword_textChanged(const QString &text)
+{
+    Q_UNUSED(text)
+    is_saved = false;
+}
+
 void MainWindow::on_loadMenuActionClicked()
 {
     //qDebug() << "void MainWindow::on_loadMenuActionClicked()";
@@ -273,15 +271,34 @@ void MainWindow::on_loadMenuActionClicked()
             if (!doc.isEmpty())
             {
 
-                //Restore all fields.
+                //Restore all fields if possible.
                 QJsonObject config_object = doc.object();
-                m_ui.SampleRatecomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_samplerate].toInt()));
-                m_ui.AccelerometercomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_setupaccel].toInt()));
-                m_ui.GyroscopecomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_setupgyro].toInt()));
-                m_ui.lineEditDeviceName->setText(config_object[MainWindow::json_label_devicename].toString());
-                m_ui.lineEditServer->setText(config_object[MainWindow::json_label_openteraserver].toString());
-                m_ui.lineEditPort->setText(QString::number(config_object[MainWindow::json_label_openteraport].toInt()));
-                m_ui.textEditToken->setText(config_object[MainWindow::json_label_openteratoken].toString());
+
+                //IMU
+                if (config_object.contains(MainWindow::json_label_samplerate))
+                    m_ui.SampleRatecomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_samplerate].toInt()));
+                if (config_object.contains(MainWindow::json_label_setupaccel))
+                    m_ui.AccelerometercomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_setupaccel].toInt()));
+                if (config_object.contains(MainWindow::json_label_setupgyro))
+                    m_ui.GyroscopecomboBox->setCurrentText(QString::number(config_object[MainWindow::json_label_setupgyro].toInt()));
+
+                //WiFi
+                if (config_object.contains(MainWindow::json_label_wifi_ssid))
+                    m_ui.lineEditWiFiSSID->setText(config_object[MainWindow::json_label_wifi_ssid].toString());
+                if (config_object.contains(MainWindow::json_label_wifi_password))
+                    m_ui.lineEditWiFiPassword->setText(config_object[MainWindow::json_label_wifi_password].toString());
+
+                //OpenTera
+                if (config_object.contains(MainWindow::json_label_devicename))
+                    m_ui.lineEditDeviceName->setText(config_object[MainWindow::json_label_devicename].toString());
+                if (config_object.contains(MainWindow::json_label_openteraserver))
+                    m_ui.lineEditServer->setText(config_object[MainWindow::json_label_openteraserver].toString());
+                if (config_object.contains(MainWindow::json_label_openteraport))
+                    m_ui.lineEditPort->setText(QString::number(config_object[MainWindow::json_label_openteraport].toInt()));
+                if (config_object.contains(MainWindow::json_label_openteratoken))
+                    m_ui.textEditToken->setText(config_object[MainWindow::json_label_openteratoken].toString());
+
+
                 is_saved = true;
 
                 QMessageBox::information(this, "Load JSON file", "File loaded!");
