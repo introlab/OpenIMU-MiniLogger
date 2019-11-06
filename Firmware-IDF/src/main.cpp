@@ -108,29 +108,45 @@ namespace Actions
     {   
         if(!loggingEnabled)
         {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
             if(SampleRateCounter==1)
             {
+                config.IMUSampleRate = 50;
                 IMU::instance()->setSampleRate(50);
-                //printf("Change sample Rate:100Hz\n");
                 SampleRateCounter++;
             }
             else if(SampleRateCounter==2)
             {
+                config.IMUSampleRate = 100;
                 IMU::instance()->setSampleRate(100);
-                //printf("Change sample Rate:200Hz\n");
                 SampleRateCounter++;
             }
             else if(SampleRateCounter==3)
             {
+                config.IMUSampleRate = 200;
                 IMU::instance()->setSampleRate(200);
-                //printf("Change sample Rate:500Hz\n");
                 SampleRateCounter++;
             }
             else if(SampleRateCounter==4)
             {
+                config.IMUSampleRate = 10;
                 IMU::instance()->setSampleRate(10);
-                //printf("Change sample Rate:50Hz\n");
                 SampleRateCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!");
             }
         }
         else

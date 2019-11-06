@@ -1,5 +1,6 @@
 #include "sdcard.h"
 #include "ioexpander.h"
+#include "configmanager.h"
 #include <stdio.h>
 #include <cJSON.h>
 
@@ -354,75 +355,74 @@ void SDCard::startLog()
     //Make sure we are connected to the SD card!
     //printf("Beginning logging\n");
     toESP32();
-    //Look for latest file
-    //Create it if not 
-    struct stat st;
-    int file_id = 0;
+
+    //Safety, if we were already logging
+    if (_logFile)
+    {
+        fclose(_logFile);
+        _logFile = nullptr;
+    }
 
     if(SdCardPresent)
     {
 
-        if (stat("/sdcard/latest.txt", &st) != 0)
-        {
-            printf("latest file not found.Creating...\n");
-            //Write first index to the file
-            FILE* f = fopen("/sdcard/latest.txt", "w");
-            printf("After trying to open file\n");
-            vTaskDelay(2000);
-            fprintf(f,"%i\n",0);
-            vTaskDelay(2000);
-            printf("After fprintf()\n");
-            fclose(f);
-            printf("After fclose\n");
-        }
-        else
-        {
-            //Read latest file
-            FILE *f = fopen("/sdcard/latest.txt", "r");
-            fscanf(f,"%i", &file_id);
-            //Increment file id
-            file_id++;
-            fclose(f);
-            printf("file ID is now : %i\n", file_id);
+        time_t now;
+        struct tm *timeInfo;
+        time(&now);
+        timeInfo = localtime(&now);
 
-            //Write back file id to file
-            f = fopen("/sdcard/latest.txt", "w");
-            fprintf(f,"%i\n",file_id);
-            fclose(f);
-
-        }
-
-        //Safety, if we were already logging
-        if (_logFile)
-            fclose(_logFile);
-
-        //Open binary file
-        char logfile_name[32];
-        sprintf(logfile_name, "/sdcard/%i.dat", file_id);
-        printf("Log file name %s \n", logfile_name);
-        _logFile = fopen(logfile_name,"w");
-        assert(_logFile);
         
-        //Write header...
-        logFileWrite("h",1);
+        char directoryName[64];
+        sprintf(directoryName, "log_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i", 
+            timeInfo->tm_year + 1900, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
 
-        //Create queues
-        lock();
-        _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
-        _timestampQueue = xQueueCreate(20, sizeof(time_t));
-        _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
-        _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
-        _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
-        _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
-        _pulseQueue = xQueueCreate(20, sizeof(pulseData_t*));
-        unlock();
+        std::string fullDirectory = std::string("/sdcard/") + std::string(directoryName);
+        printf("Logging to directory : %s \n", fullDirectory.c_str());
 
-        //Create task
-        xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
-        xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
+        int mk_ret = mkdir(fullDirectory.c_str(), 0775);
+      
+        if (mk_ret == ESP_OK)
+        {
+            //Open binary file
+            char fileName[64];
+            sprintf(fileName, "record_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i.mdat", 
+            timeInfo->tm_year + 1900, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
 
-        //Enable interrupt
-        setup_interrupt_pin(true);
+            std::string logfile_name = fullDirectory + "/" + std::string(fileName);
+
+            printf("Opening log file :  %s \n", logfile_name.c_str());
+
+            _logFile = fopen(logfile_name.c_str(),"w");
+            assert(_logFile);
+            
+            //Write header...
+            logFileWrite("h",1);
+
+            //Embed configuration into file
+            logFileWrite("c",1);
+            std::string config = ConfigManager::instance()->json_configuration();
+            int config_size = config.size();
+            logFileWrite(&config_size, sizeof(int));
+            logFileWrite(config.c_str(), config.size());
+
+            //Create queues
+            lock();
+            _dataReadySemaphore = xSemaphoreCreateCounting(128, 0);
+            _timestampQueue = xQueueCreate(20, sizeof(time_t));
+            _imuQueue = xQueueCreate(20, sizeof(imuData_t*));
+            _powerQueue = xQueueCreate(20, sizeof(powerData_t*));
+            _baroQueue = xQueueCreate(20, sizeof(baroData_t*));
+            _gpsQueue = xQueueCreate(20, sizeof(gpsData_t*));
+            _pulseQueue = xQueueCreate(20, sizeof(pulseData_t*));
+            unlock();
+
+            //Create task
+            xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
+            xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
+
+            //Enable interrupt
+            setup_interrupt_pin(true);
+        }
     }
     else
     {

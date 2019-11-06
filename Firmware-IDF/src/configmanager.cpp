@@ -10,7 +10,6 @@ ConfigManager* ConfigManager::instance()
     return ConfigManager::_instance;
 }
 
-
 ConfigManager::ConfigManager()
 {
     //Make a valid default configuration
@@ -18,7 +17,7 @@ ConfigManager::ConfigManager()
     _openTeraConfig = {"MiniLogger", "localhost", 4040, ""};
     _wifiConfig={"wifissid", "wifipassword"};
 
-    load_configuration("/sdcard/ParameterFolder/StartingParameter.json");
+    load_configuration();
 }
 
 IMUconfig_Sd ConfigManager::getIMUConfig()
@@ -27,16 +26,31 @@ IMUconfig_Sd ConfigManager::getIMUConfig()
     return _imuConfig;
 }
 
+void ConfigManager::setIMUConfig(const IMUconfig_Sd &config)
+{
+    _imuConfig = config;
+}
+
 OpenTeraConfig_Sd ConfigManager::getOpenTeraConfig()
 {
     //Return a copy of the configuration
     return _openTeraConfig;
 }
 
+void ConfigManager::setOpenTeraConfig(const OpenTeraConfig_Sd &config)
+{
+    _openTeraConfig = config;
+}
+
 WiFiConfig_Sd ConfigManager::getWiFiConfig()
 {
     //Return a copy of the configuration
     return _wifiConfig;
+}
+
+void ConfigManager::setWiFiConfig(const WiFiConfig_Sd &config)
+{
+    _wifiConfig = config;
 }
 
 std::string ConfigManager::json_configuration()

@@ -36,9 +36,15 @@ class ConfigManager {
 
     IMUconfig_Sd getIMUConfig();
 
+    void setIMUConfig(const IMUconfig_Sd &config);
+
     OpenTeraConfig_Sd getOpenTeraConfig();
 
+    void setOpenTeraConfig(const OpenTeraConfig_Sd &config);
+
     WiFiConfig_Sd getWiFiConfig();
+
+    void setWiFiConfig(const WiFiConfig_Sd &config);
 
     private:
 

@@ -24,6 +24,9 @@ class IMU
     void setSampleRate(int rateHz);
     //Set all the parameter for the IMU
     void setIMUParameter(int rateHZ,int accelRange, int gyroRange);
+
+    void setIMUParameter(const IMUconfig_Sd &config);
+
     //Return 1,2,3,4 depending on the sample rate of the IMU
     int getSampleRate();
     //Return the number of step and the time form when it started taking data.

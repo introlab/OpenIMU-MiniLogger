@@ -1,4 +1,5 @@
 #include "imu.h"
+#include "configmanager.h"
 #include "sdcard.h"
 
 IMU* IMU::_instance = NULL;
@@ -59,32 +60,12 @@ namespace
 IMU::IMU()
     : _mpu9250(), _readIMUHandle(NULL)
 {
-    IMUconfig_Sd SdConfig={10,500,8};
-
-    //SDCard::instance()->GetConfigFromSd(&SdConfig);
-
-    printf("Rate:%d\n",SdConfig.IMUSampleRate);
-    printf("Acel:%d\n",SdConfig.IMUAcellRange); 
-    printf("Gyro:%d\n",SdConfig.IMUGyroRange);
- 
-
     if (_mpu9250.begin() == 0)
     {
         //IMUconfig_Sd SdConfig={100,500,8};
-        
-        if(SDCard::instance()->GetIMUConfigFromSd(&SdConfig))
-        {
-            printf("rate:%d\n",SdConfig.IMUSampleRate);
-            printf("Acel:%d\n",SdConfig.IMUAcellRange); 
-            printf("Gyro:%d\n",SdConfig.IMUGyroRange);
-            setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
-        }
 
-        else
-        {
-            setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
-        }
-        
+        setIMUParameter(ConfigManager::instance()->getIMUConfig());
+               
         //SDCard::instance()->GetConfigFromSd(&SdConfig);
         //setIMUParameter(SdConfig.IMUSampleRate,SdConfig.IMUAcellRange,SdConfig.IMUGyroRange);
 
@@ -212,7 +193,10 @@ void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
 
     // Accel options are +/- 2, 4, 8, or 16 g
     if(accelRange==2 || accelRange==4 || accelRange==8 || accelRange==16)
+    {
+        printf("Setting accelRange: %i\n", accelRange);
         _mpu9250.setAccelFSR(accelRange);
+    }   
     else
     {
         printf("Wrong Acceleration range entered, Setting to 4G");
@@ -223,13 +207,21 @@ void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
     // gyroscope and accelerometer full scale ranges.
     // Gyro options are +/- 250, 500, 1000, or 2000 dps
     if(gyroRange==250 || gyroRange==500 || gyroRange==1000 || gyroRange==2000)
+    {
+        printf("Setting gyroRange: %i\n", gyroRange);
         _mpu9250.setGyroFSR(gyroRange);
+    }
     else
     {
         printf("Wrong Gyro range entered, Setting to 500dps");
         _mpu9250.setGyroFSR(500);
     }
   
+}
+
+void IMU::setIMUParameter(const IMUconfig_Sd &config)
+{
+    setIMUParameter(config.IMUSampleRate, config.IMUAcellRange, config.IMUGyroRange);
 }
 
 int IMU::getSampleRate()
