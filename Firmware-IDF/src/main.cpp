@@ -243,6 +243,22 @@ extern "C"
         setenv("TZ", "GEST+5EDT,M3.2.0/2,M11.1.0/2", 1);
         tzset();
 
+        //Set time to JAN 1 2019
+        struct tm tm;
+        tm.tm_year = 2019 - 1900;
+        tm.tm_mon = 0;
+        tm.tm_mday = 1;
+        tm.tm_hour = 1;
+        tm.tm_min = 0;
+        tm.tm_sec = 0;
+        time_t t = mktime(&tm);
+
+        printf("Setting time: %s", asctime(&tm));
+        struct timeval my_time;
+        my_time.tv_sec = t;
+        my_time.tv_usec = 0;
+        settimeofday(&my_time, NULL);
+
         //esp_err_t ret=0;
 
         //SPI bus configuration
