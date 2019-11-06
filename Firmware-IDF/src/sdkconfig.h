@@ -19,8 +19,8 @@
 #define CONFIG_FREERTOS_MAX_TASK_NAME_LEN 16
 #define CONFIG_MQTT_TRANSPORT_SSL 1
 #define CONFIG_BLE_SMP_ENABLE 1
-//#define CONFIG_FATFS_LFN_NONE 1
-// DL - Modified for FATFS long file names
+/*define CONFIG_FATFS_LFN_NONE 1
+    DL - Modified for FATFS long file names */
 #define CONFIG_FATFS_LFN_HEAP 1
 #define CONFIG_FATFS_MAX_LFN 64
 
