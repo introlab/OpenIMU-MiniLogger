@@ -72,6 +72,10 @@ typedef struct {
     std::string openTeraToken;
 } OpenTeraConfig_Sd;
 
+typedef struct {
+    std::string ssid;
+    std::string password;
+} WiFiConfig_Sd;
 
 
 #ifndef OUTPUT

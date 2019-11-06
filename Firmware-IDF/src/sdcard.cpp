@@ -735,7 +735,7 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
         //Go to end of file
         fseek(f, 0, SEEK_END);
         long size = ftell(f);
-        printf("JSON file size returns : %li\n", size);
+        //printf("JSON file size returns : %li\n", size);
 
         //Go to begin of file
         fseek(f, 0 , SEEK_SET);
@@ -746,7 +746,7 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
 
         //Read the complete file
         fread(json_string, 1, size, f);
-        printf("json : %s \n", json_string);
+        //printf("json : %s \n", json_string);
 
         //Parse JSON
         cJSON *root = cJSON_Parse(json_string);
