@@ -38,9 +38,13 @@ public:
     void action();
 
     void setVisible(bool isVisible);
+    bool getVisible(void);
 
     void startLog(double logCapacity);
     void stopLog();
+
+    void replaceSelection(void);
+    void setLogID(int id);
 
 private:
     void paint();
@@ -53,4 +57,5 @@ private:
     time_t _logStart;
     double _logCapacity;
     bool _isLogging = false;
+    int _logid=0;
 };

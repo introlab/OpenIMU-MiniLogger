@@ -88,6 +88,14 @@ const unsigned char usb_icon[] {
   0x03, 0x80
 };
 
+const unsigned char noSD_icon[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0xFC, 
+0x66, 0xFC, 0x66, 0x1C, 0x66, 0x18, 0x66, 0x18, 
+0x66, 0x18, 0x66, 0x18, 0x66, 0x38, 0x7E, 0x30, 
+0x7E, 0x30, 0x66, 0x20, 0x66, 0x60, 0x66, 0x60, 
+0x66, 0x60, 0x66, 0xE0, 0x66, 0xC0, 0x66, 0xC0, 
+0x66, 0xFC, 0x66, 0xFC, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00};
+
 /**
  * Construct a SD card widget
  * 
@@ -95,9 +103,10 @@ const unsigned char usb_icon[] {
  */
 SD::SD(void (*toggleExternal)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleExternal) { }
 
-void SD::setStatus(bool isExternal)
+void SD::setStatus(bool isExternal,bool isSDCardPresent)
 {
     _isExternal = isExternal;
+    _isSDCardPresent = isSDCardPresent;
     if (_visible) paint(true);
 }
 
@@ -107,15 +116,20 @@ void SD::setStatus(bool isExternal)
  */
 void SD::paintLogo()
 {
-    if (_isExternal)
+    if (_isExternal && _isSDCardPresent)
     {
         SSD1331_mono_bitmap(_xorigin + 4, _yorigin + 4, usb_icon, USB_ICON_WIDTH, USB_ICON_HEIGHT, WHITE);
     }
-    else
+    else if(!_isExternal && _isSDCardPresent)
     {
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 4, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, BLUE);
     }
+    else if (!_isSDCardPresent)
+    {
+        SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 4, sd_icon, SD_ICON_WIDTH, SD_ICON_HEIGHT, RED);
+    }
     
+
 }
 
 /**
@@ -125,13 +139,18 @@ void SD::paintLogo()
  */
 std::string SD::getMessage()
 {
-    if (_isExternal)
+    
+    if (_isExternal && _isSDCardPresent)
     {
-        return "Disconnect USB";
+        return "Disconnect USB";  
+    }
+    else if(!_isExternal && _isSDCardPresent)
+    {
+        return "Connect USB";
     }
     else
     {
-        return "Connect USB";
+        return "No SD Card";
     }
     
 }

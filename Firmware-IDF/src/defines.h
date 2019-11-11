@@ -2,6 +2,7 @@
 #define _DEFINES_H_
 
 #include <stdint.h>
+#include <string>
 
 /**
  * Put global definitions here
@@ -56,6 +57,25 @@ typedef struct {
     int heartrate;
 } pulseData_t;
 typedef pulseData_t* pulseDataPtr_t;
+
+typedef struct {
+    int IMUSampleRate;
+    int IMUGyroRange;
+    int IMUAcellRange;
+}  IMUconfig_Sd;
+//typedef IMUconfig_Sd* IMUconfigPtr_Sd;
+
+typedef struct {
+    std::string deviceName;
+    std::string openTeraServerName;
+    int openTeraServerPort;
+    std::string openTeraToken;
+} OpenTeraConfig_Sd;
+
+typedef struct {
+    std::string ssid;
+    std::string password;
+} WiFiConfig_Sd;
 
 
 #ifndef OUTPUT

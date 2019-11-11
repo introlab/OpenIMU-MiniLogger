@@ -56,8 +56,8 @@ namespace
                         struct minmea_float course;
                         struct minmea_float variation;
                         */
-                        float latitude = minmea_tocoord(&rmc.latitude);
-                        float longitude = minmea_tocoord(&rmc.longitude);
+                        //float latitude = minmea_tocoord(&rmc.latitude);
+                        //float longitude = minmea_tocoord(&rmc.longitude);
                         //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
                     }
                     else
@@ -95,7 +95,7 @@ namespace
                         int dgps_age;
                     };
                     */
-                    int sat = gga.satellites_tracked;
+                    //int sat = gga.satellites_tracked;
                     float latitude = minmea_tocoord(&gga.latitude);
                     float longitude = minmea_tocoord(&gga.longitude);
                     float altitude = minmea_tofloat(&gga.altitude);

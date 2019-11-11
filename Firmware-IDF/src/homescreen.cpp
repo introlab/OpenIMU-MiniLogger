@@ -113,15 +113,15 @@ void Homescreen::paint()
         topStream << floor(fmod(elapsed, 3600)/60) << ":";
         topStream << std::setfill('0');
         topStream << std::setw(2);
-        topStream << floor(fmod(elapsed, 60)) << " / ";
-
+        topStream << floor(fmod(elapsed, 60));
+    
         topStream << std::setfill('0');
         topStream << std::setw(2);
-        topStream <<  floor(_logCapacity / 3600) << ":";
-        topStream << std::setfill('0');
-        topStream << std::setw(2);
-        topStream << floor(fmod(_logCapacity, 3600)/60);
-
+        topStream << "   ID:" << floor(_logid);
+        //topStream << std::setfill('0');
+        //topStream << std::setw(2);
+        //topStream << floor(fmod(_logCapacity, 3600)/60);
+        
         SSD1331_string(0, 0, topStream.str().c_str(), 12, 1, WHITE);
     }
     
@@ -158,7 +158,7 @@ void Homescreen::setVisible(bool isVisible)
     {
         (*i)->setVisible(isVisible);
     }
-
+    //(*_widgets.begin())->select();
     if (_isVisible) paint();
 }
 
@@ -181,4 +181,24 @@ void Homescreen::startLog(double logCapacity)
 void Homescreen::stopLog()
 {
     _isLogging = false;
+}
+
+bool Homescreen::getVisible()
+{
+    return _isVisible;
+}
+
+void Homescreen::replaceSelection()
+{ 
+    for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
+    {
+        (*i)->unselect();
+    }
+    _currentWidget = _widgets.begin();
+    (*_widgets.begin())->select();
+}
+
+void Homescreen::setLogID(int id)
+{
+    _logid = id;
 }

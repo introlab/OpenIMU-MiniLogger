@@ -54,6 +54,8 @@ const unsigned char icon[] = {
   0x3f, 0xff, 0xc0
 };
 
+
+
 /**
  * Construct a log widget
  * 
@@ -61,9 +63,11 @@ const unsigned char icon[] = {
  */
 Log::Log(void (*toggleLog)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleLog) { }
 
-void Log::setStatus(bool isLogging)
+void Log::setStatus(bool isLogging,bool isSDCardPresent)
 {
     _isLogging = isLogging;
+    _isSDCardPresent = isSDCardPresent;
+
     if (_visible) paint(true);
 }
 
@@ -73,15 +77,21 @@ void Log::setStatus(bool isLogging)
  */
 void Log::paintLogo()
 {
-    if (_isLogging)
+    if (_isLogging && _isSDCardPresent)
     {
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 6, icon, ICON_WIDTH, ICON_HEIGHT, BLUE);
     }
-    else
+    else if (!_isLogging && _isSDCardPresent)
     {
         SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, WHITE);
         SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, WHITE);
         SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 6, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
+    }
+    else if (!_isSDCardPresent)
+    {
+        SSD1331_line(_xorigin + 1, _yorigin + 1, _xorigin + WIDGET_WIDTH - 2, _yorigin + WIDGET_HEIGHT - 2, RED);
+        SSD1331_line(_xorigin + 1, _yorigin + WIDGET_HEIGHT - 2, _xorigin + WIDGET_WIDTH - 2, _yorigin + 1, RED);
+        SSD1331_mono_bitmap(_xorigin + 2, _yorigin + 6, icon, ICON_WIDTH, ICON_HEIGHT, RED);
     }
     
 }
@@ -93,13 +103,17 @@ void Log::paintLogo()
  */
 std::string Log::getMessage()
 {
-    if (_isLogging)
+    if (_isLogging && _isSDCardPresent)
     {
-        return "Stop log";
+        return "Stop Log";  
+    }
+    else if(!_isLogging && _isSDCardPresent)
+    {
+        return "Start Log";
     }
     else
     {
-        return "Start log";
+        return "No SD Card";
     }
     
 }

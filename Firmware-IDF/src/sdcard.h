@@ -38,17 +38,19 @@ class SDCard
 {
     friend void sdcard::logTask(void *pvParameters);
     friend void generateTimestamp(void *pvParameters);
+
 public:
 
     static SDCard* instance();
 
-    void toESP32();
+    int toESP32();
     void toExternal();
     bool mount();
     void unmount();
 
     void startLog();
     void stopLog();
+    int getlogID();
 
     //Data from timestamp (ISR from GPS pulse)
     bool enqueue(timestampSendable_t data, bool from_isr = false);
@@ -71,6 +73,16 @@ public:
     bool logFileWrite(const void* data, size_t size);
 
     bool syncFile();
+    //Look in the SD card for the configuration file and takes initial parameters from it
+    bool GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig);
+
+    bool GetOpenTeraConfigFromSd(OpenTeraConfig_Sd *OpenTeraSdConfig);
+
+
+    //Check if the SD Card is in
+    void checkSD();
+    //Return boolean telling if the SD card is present
+    bool getSdCardPresent();
 
 protected:
 
@@ -90,6 +102,8 @@ private:
     virtual ~SDCard();
     void lock(bool from_isr = false);
     void unlock(bool from_isr = false);
+
+    bool SdCardPresent=false;
 
     static SDCard* _instance;
     sdmmc_host_t _host;
