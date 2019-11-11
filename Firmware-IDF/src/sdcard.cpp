@@ -3,6 +3,7 @@
 #include "configmanager.h"
 #include <stdio.h>
 #include <cJSON.h>
+#include <dirent.h>
 
 //Static instance
 SDCard* SDCard::_instance = NULL;
@@ -371,7 +372,8 @@ void SDCard::startLog()
         time(&now);
         timeInfo = localtime(&now);
 
-        
+        printf("Log ID: %d\n",getlogID());
+
         char directoryName[64];
         sprintf(directoryName, "log_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i", 
             timeInfo->tm_year + 1900, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
@@ -788,4 +790,19 @@ void SDCard::checkSD()
 bool SDCard::getSdCardPresent()
 {
     return SdCardPresent;
+}
+
+int SDCard::getlogID()
+{
+    DIR* dir;
+    dir=opendir("/sdcard");
+    struct dirent* ent = NULL;
+    int NblogFolder = 0;
+    
+    while ((ent = readdir(dir)) != NULL)
+    {
+        NblogFolder++;
+    }
+    closedir(dir);
+    return (NblogFolder-2);
 }

@@ -28,6 +28,8 @@
 #include "widget/log.h"
 #include "widget/sd.h"
 #include "widget/samplerate.h"
+#include "widget/gyrorange.h"
+#include "widget/accelrange.h"
 #include "homescreen.h"
 #include "configmanager.h"
 
@@ -40,6 +42,8 @@ namespace Actions
     bool wasLogging = false;
     bool sdcardExternal = false;
     int SampleRateCounter = 1;
+    int GyroRangeCounter = 1;
+    int AccelRangeCounter = 1;
 
     void SDToESP32()
     {
@@ -142,16 +146,120 @@ namespace Actions
             //Save config
             if (ConfigManager::instance()->save_configuration())
             {
-                printf("Configuration saved!");
+                printf("Configuration saved!\n");
             }
             else
             {
-                printf("Error! Configuration not saved!");
+                printf("Error! Configuration not saved!\n");
             }
         }
         else
         {
             printf("Can't change sample rate while logging\n");
+        }
+        
+    }
+
+    void ChangeGyroRange()
+    {   
+        if(!loggingEnabled)
+        {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
+            if(GyroRangeCounter==1)
+            {
+                config.IMUGyroRange = 500;
+                IMU::instance()->setGyroRange(500);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==2)
+            {
+                config.IMUGyroRange = 1000;
+                IMU::instance()->setGyroRange(1000);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==3)
+            {
+                config.IMUGyroRange = 2000;
+                IMU::instance()->setGyroRange(2000);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==4)
+            {
+                config.IMUGyroRange = 250;
+                IMU::instance()->setGyroRange(250);
+                GyroRangeCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!\n");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!\n");
+            }
+        }
+        else
+        {
+            printf("Can't change gyroscope range while logging\n");
+        }
+        
+    }
+
+    void ChangeAccelRange()
+    {   
+        if(!loggingEnabled)
+        {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
+            if(AccelRangeCounter==1)
+            {
+                config.IMUAcellRange = 4;
+                IMU::instance()->setAccelRange(4);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==2)
+            {
+                config.IMUAcellRange = 8;
+                IMU::instance()->setAccelRange(8);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==3)
+            {
+                config.IMUAcellRange = 16;
+                IMU::instance()->setAccelRange(16);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==4)
+            {
+                config.IMUAcellRange = 2;
+                IMU::instance()->setAccelRange(2);
+                AccelRangeCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!\n");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!\n");
+            }
+        }
+        else
+        {
+            printf("Can't change Accelerometer range while logging\n");
         }
         
     }
@@ -332,9 +440,17 @@ extern "C"
         Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
         sampleWidget.setStatus(2);
 
+        Widget::GyroRange gyroWidget(Actions::ChangeGyroRange);
+        gyroWidget.setStatus(2);
+
+        Widget::AccelRange accelWidget(Actions::ChangeAccelRange);
+        accelWidget.setStatus(2);
+
 
         Homescreen config;
         config.addWidget(&sampleWidget);
+        config.addWidget(&gyroWidget);
+        config.addWidget(&accelWidget);
 
         config.setVisible(false);
 
@@ -346,7 +462,10 @@ extern "C"
         TickType_t now;
         bool active = true;
         bool configscreen = false;
+
         Actions::SampleRateCounter = IMU::instance()->getSampleRate();
+        Actions::GyroRangeCounter = IMU::instance()->getGyroRange();
+        Actions::AccelRangeCounter = IMU::instance()->getAccelRange();
 
         
         //Prototype WiFi transfer Agent
@@ -447,16 +566,17 @@ extern "C"
             logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
             sdWidget.setStatus(Actions::sdcardExternal,SDCard::instance()->getSdCardPresent());
             sampleWidget.setStatus(Actions::SampleRateCounter);
+            gyroWidget.setStatus(Actions::GyroRangeCounter);
+            accelWidget.setStatus(Actions::AccelRangeCounter);
 
 
             if (Actions::loggingEnabled && !Actions::wasLogging)
             {
-                //printf("Starting Home logging\n");
                 home.startLog(-1);
+                home.setLogID(SDCard::instance()->getlogID());
             }
             else if (!Actions::loggingEnabled && Actions::wasLogging)
             {
-                //printf("Stopping Home logging\n");
                 home.stopLog();
             }
             Actions::wasLogging = Actions::loggingEnabled;

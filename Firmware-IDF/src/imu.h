@@ -22,6 +22,8 @@ class IMU
 
     //Set the Frequency of the sample from the Module and only use the return when initialising the IMU for the sampleRate configuration.
     void setSampleRate(int rateHz);
+    void setGyroRange(int Gyrorange);
+    void setAccelRange(int Accelrange);
     //Set all the parameter for the IMU
     void setIMUParameter(int rateHZ,int accelRange, int gyroRange);
 
@@ -29,6 +31,8 @@ class IMU
 
     //Return 1,2,3,4 depending on the sample rate of the IMU
     int getSampleRate();
+    int getGyroRange();
+    int getAccelRange();
     //Return the number of step and the time form when it started taking data.
     int getStepCount();
     int getStepTime();
@@ -38,6 +42,9 @@ class IMU
     IMU();
 
     int SampleRateHz=10;
+    int GyroRangeDPS=250;
+    int AccelRangeG=2;
+
     int StepCount=0;
     int StepTime=0;
 

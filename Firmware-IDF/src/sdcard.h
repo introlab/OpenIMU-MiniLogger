@@ -50,6 +50,7 @@ public:
 
     void startLog();
     void stopLog();
+    int getlogID();
 
     //Data from timestamp (ISR from GPS pulse)
     bool enqueue(timestampSendable_t data, bool from_isr = false);

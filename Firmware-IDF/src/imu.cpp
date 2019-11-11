@@ -146,7 +146,6 @@ void IMU::setSampleRate(int rateHz)
         _mpu9250.setSampleRate(10);
         _mpu9250.setCompassSampleRate(10);
         printf("Set sample Rate:10Hz\n");
-
         SampleRateHz=10;
     }
     else if (rateHz==50)
@@ -184,6 +183,36 @@ void IMU::setSampleRate(int rateHz)
     
 }
 
+void IMU::setGyroRange(int Gyrorange)
+{
+    if (Gyrorange==250 || Gyrorange == 500 || Gyrorange == 1000 || Gyrorange == 2000)
+    {
+        _mpu9250.setGyroFSR(Gyrorange);
+        printf("Set Gyroscope range: %d\n",Gyrorange);
+        GyroRangeDPS=Gyrorange;
+    }
+    else 
+    {
+        printf("Wrong range entered, setting to 500 dps\n");
+        _mpu9250.setGyroFSR(500);
+    }
+}
+
+void IMU::setAccelRange(int Accelrange)
+{
+    if (Accelrange==2 || Accelrange == 4 || Accelrange == 8 || Accelrange == 16)
+    {
+        _mpu9250.setAccelFSR(Accelrange);
+        printf("Set Accelerometer range: %d\n",Accelrange);
+        AccelRangeG=Accelrange;
+    }
+    else 
+    {
+        printf("Wrong range entered, setting to 4 g\n");
+        _mpu9250.setAccelFSR(4);
+    }
+}
+
 void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
 {
     // The sample rate of the accel/gyro can be set using
@@ -192,30 +221,12 @@ void IMU::setIMUParameter(int rateHZ,int accelRange, int gyroRange)
     setSampleRate(rateHZ);
 
     // Accel options are +/- 2, 4, 8, or 16 g
-    if(accelRange==2 || accelRange==4 || accelRange==8 || accelRange==16)
-    {
-        printf("Setting accelRange: %i\n", accelRange);
-        _mpu9250.setAccelFSR(accelRange);
-    }   
-    else
-    {
-        printf("Wrong Acceleration range entered, Setting to 4G");
-        _mpu9250.setAccelFSR(4);
-    }
+    setAccelRange(accelRange);
     
     // Use setGyroFSR() and setAccelFSR() to configure the
     // gyroscope and accelerometer full scale ranges.
     // Gyro options are +/- 250, 500, 1000, or 2000 dps
-    if(gyroRange==250 || gyroRange==500 || gyroRange==1000 || gyroRange==2000)
-    {
-        printf("Setting gyroRange: %i\n", gyroRange);
-        _mpu9250.setGyroFSR(gyroRange);
-    }
-    else
-    {
-        printf("Wrong Gyro range entered, Setting to 500dps");
-        _mpu9250.setGyroFSR(500);
-    }
+    setGyroRange(gyroRange);
   
 }
 
@@ -238,6 +249,37 @@ int IMU::getSampleRate()
 
     return id;
 }
+
+int IMU::getGyroRange()
+{
+    int id = 0;
+    if (GyroRangeDPS==250)
+        id = 1;
+    else if (GyroRangeDPS==500)
+        id = 2;
+    else if (GyroRangeDPS==1000)
+        id = 3;
+    else if (GyroRangeDPS==2000)
+        id = 4;
+
+    return id;
+}
+
+int IMU::getAccelRange()
+{
+    int id = 0;
+    if (AccelRangeG==2)
+        id = 1;
+    else if (AccelRangeG==4)
+        id = 2;
+    else if (AccelRangeG==8)
+        id = 3;
+    else if (AccelRangeG==16)
+        id = 4;
+
+    return id;
+}
+
 
 int IMU::getStepCount()
 {
