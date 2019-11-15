@@ -24,20 +24,18 @@
 
 #include "widget/widget.h"
 
-
-
 namespace Widget
 {
 
-class AccelRange : public AbstractWidget
+class SDFreeSpace : public AbstractWidget
 {
 public:
-    AccelRange(void (*toggleChangeAccelRange)());
-    void setStatus(int AccelRange);
+    SDFreeSpace();
+    void setStatus(float freeSpace);
 
 private:
     void paintLogo();
-    int _rangeG=4;
+    float _freeSpace=0;
     std::string getMessage();
 
 };

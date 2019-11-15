@@ -20,7 +20,6 @@
 
 
 
-
 #define PIN_INTERRUPT_FROM_GPS_REF 32
 
 union timestampSendable_t {
@@ -83,6 +82,8 @@ public:
     void checkSD();
     //Return boolean telling if the SD card is present
     bool getSdCardPresent();
+    //Tells the space left on the Sd Card
+    float getSDfreespace();
 
 protected:
 
