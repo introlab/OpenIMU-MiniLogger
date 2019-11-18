@@ -30,6 +30,7 @@
 #include "widget/samplerate.h"
 #include "widget/gyrorange.h"
 #include "widget/accelrange.h"
+#include "widget/SDfreespace.h"
 #include "homescreen.h"
 #include "configmanager.h"
 
@@ -107,7 +108,7 @@ namespace Actions
         }
         
     }
-
+    //Fonction to Change the sample rate of the IMU
     void ChangeSampleRate()
     {   
         if(!loggingEnabled)
@@ -160,6 +161,7 @@ namespace Actions
         
     }
 
+    //Fonction to Change the Gyroscope Range of the IMU
     void ChangeGyroRange()
     {   
         if(!loggingEnabled)
@@ -212,6 +214,7 @@ namespace Actions
         
     }
 
+    //Fonction to Change the Accelerometer Range of the IMU
     void ChangeAccelRange()
     {   
         if(!loggingEnabled)
@@ -449,11 +452,15 @@ extern "C"
         Widget::AccelRange accelWidget(Actions::ChangeAccelRange);
         accelWidget.setStatus(2);
 
+        Widget::SDFreeSpace sdfreespaceWidget;
+        sdfreespaceWidget.setStatus(16.0);
+
 
         Homescreen config;
         config.addWidget(&sampleWidget);
         config.addWidget(&gyroWidget);
         config.addWidget(&accelWidget);
+        config.addWidget(&sdfreespaceWidget);
 
         config.setVisible(false);
 
@@ -562,7 +569,7 @@ extern "C"
                 lastBtn = xTaskGetTickCount();
             }
 
-            // Update widgets
+        
             batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
             gpsWidget.setStatus(gps->getFix());
             logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
@@ -570,6 +577,7 @@ extern "C"
             sampleWidget.setStatus(Actions::SampleRateCounter);
             gyroWidget.setStatus(Actions::GyroRangeCounter);
             accelWidget.setStatus(Actions::AccelRangeCounter);
+            sdfreespaceWidget.setStatus(SDCard::instance()->getSDfreespace());
 
 
             if (Actions::loggingEnabled && !Actions::wasLogging)
