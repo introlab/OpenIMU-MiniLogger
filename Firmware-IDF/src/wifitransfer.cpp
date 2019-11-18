@@ -21,45 +21,36 @@ WiFiTransfer* WiFiTransfer::_instance = NULL;
 namespace 
 {
     static EventGroupHandle_t s_wifi_event_group;
-    static int s_retry_num = 0;
+
 
     static const char *TAG = "WiFiTransfer";
-    static const char *EXAMPLE_ESP_WIFI_SSID = "test";
-    static const char *EXAMPLE_ESP_WIFI_PASS = "test";
+    static const char *EXAMPLE_ESP_WIFI_SSID = "ssid";
+    static const char *EXAMPLE_ESP_WIFI_PASS = "password";
 
     /* The event group allows multiple bits for each event, but we only care about one event 
     * - are we connected to the AP with an IP? */
     const int WIFI_CONNECTED_BIT = BIT0;
 
-    static void event_handler2(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) 
-    {
-        
-
-    }
-
     static esp_err_t event_handler(void *ctx, system_event_t *event)
     {   
         switch(event->event_id) {
             case SYSTEM_EVENT_STA_START:
+                ESP_LOGI(TAG,"SYSTEM_EVENT_STA_START...\n");
                 esp_wifi_connect();
             break;
 
             case SYSTEM_EVENT_STA_GOT_IP:
                 ESP_LOGI(TAG, "got ip:%s",ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-                s_retry_num = 0;
                 xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
                 break;
 
 
             case SYSTEM_EVENT_STA_DISCONNECTED:
             {
-                if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
-                    esp_wifi_connect();
-                    xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-                    s_retry_num++;
-                    ESP_LOGI(TAG,"retry to connect to the AP");
-                }
-                ESP_LOGI(TAG,"connect to the AP fail\n");
+                 ESP_LOGI(TAG,"SYSTEM_EVENT_STA_DISCONNECTED...\n");
+                //Try to connect
+                esp_wifi_connect();
+                xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
                 break;
             }
 
@@ -110,7 +101,6 @@ WiFiTransfer::WiFiTransfer()
 void WiFiTransfer::initialize_wifi()
 {
     printf("WiFiTransfer::initialize_wifi() \n");
-
     s_wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
@@ -120,19 +110,13 @@ void WiFiTransfer::initialize_wifi()
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
-    //TODO, THIS IS A PATCH TO AVOID BROWNOUT WHEN ENABLING WIFI
-    //uint32_t brown_reg_temp = READ_PERI_REG(RTC_CNTL_BROWN_OUT_REG); //save WatchDog register
-    //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    //sleep(1);
-    //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, brown_reg_temp); //put back brownout detector register
-
-    //FOR IDF 4.0, we are using 3.3 right now
-    //ESP_ERROR_CHECK( esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL) );
-    //ESP_ERROR_CHECK( esp_event_handler_register(IP_EVENT, SYSTEM_EVENT_STA_GOT_IP, &event_handler, NULL) );
+    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
     
     wifi_config_t wifi_config;
 
+    //Required to initialize the structure properly
+    memset(&wifi_config, 0, sizeof(wifi_config_t));
     strcpy((char*) wifi_config.sta.ssid, EXAMPLE_ESP_WIFI_SSID);
     strcpy((char*) wifi_config.sta.password, EXAMPLE_ESP_WIFI_PASS);
 

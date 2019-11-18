@@ -304,6 +304,8 @@ extern "C"
         }
         ESP_ERROR_CHECK(ret);
 
+
+
         //This needs to be called first
         //install gpio isr service
         gpio_install_isr_service(0);
@@ -364,7 +366,7 @@ extern "C"
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
-   
+
         // SDCard must be started before configuration
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
@@ -405,8 +407,10 @@ extern "C"
         //assert(ble);
 
 
-        // HOMESCREEN
+        //Prototype WiFi transfer Agent
+        WiFiTransfer *wifi = WiFiTransfer::instance();
 
+        // HOMESCREEN
         Widget::Battery batteryWidget;
         batteryWidget.updateValue(5.0, 0.0, true);
 
@@ -436,7 +440,6 @@ extern "C"
 
 
         // CONFIG SCREEN
-
         Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
         sampleWidget.setStatus(2);
 
@@ -468,8 +471,7 @@ extern "C"
         Actions::AccelRangeCounter = IMU::instance()->getAccelRange();
 
         
-        //Prototype WiFi transfer Agent
-        //WiFiTransfer *wifi = WiFiTransfer::instance();
+
 
 
         while(1)
