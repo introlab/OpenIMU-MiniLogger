@@ -12,6 +12,9 @@
 #include "lwip/sys.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
+#include "configmanager.h"
+
+
 
 WiFiTransfer* WiFiTransfer::_instance = NULL;
 
@@ -24,8 +27,7 @@ namespace
 
 
     static const char *TAG = "WiFiTransfer";
-    static const char *EXAMPLE_ESP_WIFI_SSID = "ssid";
-    static const char *EXAMPLE_ESP_WIFI_PASS = "password";
+
 
     /* The event group allows multiple bits for each event, but we only care about one event 
     * - are we connected to the AP with an IP? */
@@ -117,8 +119,9 @@ void WiFiTransfer::initialize_wifi()
 
     //Required to initialize the structure properly
     memset(&wifi_config, 0, sizeof(wifi_config_t));
-    strcpy((char*) wifi_config.sta.ssid, EXAMPLE_ESP_WIFI_SSID);
-    strcpy((char*) wifi_config.sta.password, EXAMPLE_ESP_WIFI_PASS);
+
+    strcpy((char*) wifi_config.sta.ssid, ConfigManager::instance()->getWiFiConfig().ssid.c_str());
+    strcpy((char*) wifi_config.sta.password, ConfigManager::instance()->getWiFiConfig().password.c_str());
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );

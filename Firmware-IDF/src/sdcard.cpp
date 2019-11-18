@@ -812,27 +812,24 @@ int SDCard::getlogID()
 float SDCard::getSDfreespace()
 {
     FATFS *fs;
-    DWORD fre_clust, fre_sect, tot_sect;
-    float freespaceGB;
-    uint32_t *tot, *free;
+    DWORD fre_clust;
+    float freespaceGB = 0.0;
+    
  
     /* Get volume information and free clusters of drive 0 */
     if(f_getfree("/sdcard", &fre_clust, &fs) == FR_OK)
     {
         /* Get total sectors and free sectors */
-        tot_sect = (fs->n_fatent - 2) * fs->csize;
-        fre_sect = fre_clust * fs->csize;
+        //DWORD tot_sect = (fs->n_fatent - 2) * fs->csize;
+        DWORD fre_sect = fre_clust * fs->csize;
  
-        *tot = tot_sect / 2;
-        *free = fre_sect / 2;
-        freespaceGB=(*free/1000000.0)-0.1;
-        printf("FreeSpace: %.2f\n",freespaceGB);
-        
- 
+        //uint32_t tot = tot_sect / 2;
+        uint32_t free = fre_sect / 2;
+        freespaceGB=(free/1000000.0)-0.1;
+        //printf("FreeSpace: %.2f\n",freespaceGB);
         /* Print the free space (assuming 512 bytes/sector) */
         //printf("%d KB total drive space. %.2f GB available.\n", *tot, freespaceGB);
- 
-        return freespaceGB;
     }
-    return 0;
+
+    return freespaceGB;
 }
