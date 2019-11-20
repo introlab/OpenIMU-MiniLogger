@@ -1,4 +1,5 @@
 #include "i2cbus.h"
+#include <string.h>
 
 SemaphoreHandle_t I2CBus::_mutex = NULL;
 i2c_port_t I2CBus::_port = I2C_NUM_1;
@@ -7,6 +8,9 @@ i2c_config_t I2CBus::_buscfg;
 I2CBus::I2CBus(i2c_port_t dev)
 {
     _port = dev;
+
+    memset(&_buscfg, 0, sizeof(i2c_config_t));
+
     _buscfg.mode = I2C_MODE_MASTER;
     _buscfg.sda_io_num = (gpio_num_t) PIN_NUM_SDA;
     _buscfg.sda_pullup_en = GPIO_PULLUP_ENABLE;

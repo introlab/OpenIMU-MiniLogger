@@ -19,33 +19,31 @@
 #include "sdcard.h"
 #include "barometer.h"
 #include "gps.h"
+#include "pulse.h"
+#include "bluetooth.h"
 #include "buttons.h"
+#include "widget/widget.h"
+#include "widget/battery.h"
+#include "widget/gps.h"
+#include "widget/log.h"
+#include "widget/sd.h"
+#include "widget/samplerate.h"
+#include "widget/gyrorange.h"
+#include "widget/accelrange.h"
+#include "homescreen.h"
+#include "configmanager.h"
 
+//Prototype wifi transfer
+#include "wifitransfer.h"
 
 namespace Actions
 {
     bool loggingEnabled = false;
+    bool wasLogging = false;
     bool sdcardExternal = false;
-
-    // Software Shutdown by the menu
-    void Shutdown()
-    {
-        if (loggingEnabled)
-        {
-            loggingEnabled = false;
-            SDCard::instance()->stopLog();  
-        }
-        uint64_t mac_adress = 0;
-        esp_efuse_mac_get_default((uint8_t*) (&mac_adress));
-
-        //Show spash screen with mac
-        Display::instance()->showSplashScreen(mac_adress);
-
-        //Shutdown
-        printf("Bye!\n");
-        IOExpander::instance().digitalWrite(EXT_PIN12_KEEP_ALIVE, LOW);
-
-    }
+    int SampleRateCounter = 1;
+    int GyroRangeCounter = 1;
+    int AccelRangeCounter = 1;
 
     void SDToESP32()
     {
@@ -60,33 +58,210 @@ namespace Actions
 
     void SDToExternal()
     {
-        if (loggingEnabled)
+        if (SDCard::instance()->getSdCardPresent())
         {
-            loggingEnabled = false;
-            SDCard::instance()->stopLog();  
+            if (loggingEnabled)
+            {
+                loggingEnabled = false;
+                SDCard::instance()->stopLog();  
+            }
+            sdcardExternal = true;
+            SDCard::instance()->toExternal();
         }
-        sdcardExternal = true;
-        SDCard::instance()->toExternal();
+    }
+
+    void ToggleSD()
+    {
+        if (sdcardExternal)
+        {
+            SDToESP32();
+        }
+        else
+        {
+            SDToExternal();
+        }
+        
     }
 
     //Same function to start and stop logging to avoid double start
     void IMUStartSD()
     {
         printf("IMUStartSD\n");
-        if (loggingEnabled)
+        if (loggingEnabled )
         {
             printf("Stopping log\n");
             loggingEnabled = false;
             sdcardExternal = false;
             SDCard::instance()->stopLog();
         }
-        else
+        else if (SDCard::instance()->getSdCardPresent())
         {
             printf("Starting log\n");
             loggingEnabled = true;
             sdcardExternal = false;
             SDCard::instance()->startLog();
         }
+        else
+        {
+            printf("No Sd Card found\n");
+        }
+        
+    }
+
+    void ChangeSampleRate()
+    {   
+        if(!loggingEnabled)
+        {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
+            if(SampleRateCounter==1)
+            {
+                config.IMUSampleRate = 50;
+                IMU::instance()->setSampleRate(50);
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==2)
+            {
+                config.IMUSampleRate = 100;
+                IMU::instance()->setSampleRate(100);
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==3)
+            {
+                config.IMUSampleRate = 200;
+                IMU::instance()->setSampleRate(200);
+                SampleRateCounter++;
+            }
+            else if(SampleRateCounter==4)
+            {
+                config.IMUSampleRate = 10;
+                IMU::instance()->setSampleRate(10);
+                SampleRateCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!\n");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!\n");
+            }
+        }
+        else
+        {
+            printf("Can't change sample rate while logging\n");
+        }
+        
+    }
+
+    void ChangeGyroRange()
+    {   
+        if(!loggingEnabled)
+        {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
+            if(GyroRangeCounter==1)
+            {
+                config.IMUGyroRange = 500;
+                IMU::instance()->setGyroRange(500);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==2)
+            {
+                config.IMUGyroRange = 1000;
+                IMU::instance()->setGyroRange(1000);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==3)
+            {
+                config.IMUGyroRange = 2000;
+                IMU::instance()->setGyroRange(2000);
+                GyroRangeCounter++;
+            }
+            else if(GyroRangeCounter==4)
+            {
+                config.IMUGyroRange = 250;
+                IMU::instance()->setGyroRange(250);
+                GyroRangeCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!\n");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!\n");
+            }
+        }
+        else
+        {
+            printf("Can't change gyroscope range while logging\n");
+        }
+        
+    }
+
+    void ChangeAccelRange()
+    {   
+        if(!loggingEnabled)
+        {
+            //Get actual configuration
+            IMUconfig_Sd config = ConfigManager::instance()->getIMUConfig();
+
+            if(AccelRangeCounter==1)
+            {
+                config.IMUAcellRange = 4;
+                IMU::instance()->setAccelRange(4);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==2)
+            {
+                config.IMUAcellRange = 8;
+                IMU::instance()->setAccelRange(8);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==3)
+            {
+                config.IMUAcellRange = 16;
+                IMU::instance()->setAccelRange(16);
+                AccelRangeCounter++;
+            }
+            else if(AccelRangeCounter==4)
+            {
+                config.IMUAcellRange = 2;
+                IMU::instance()->setAccelRange(2);
+                AccelRangeCounter=1;
+            }
+
+            //Update configuration
+            ConfigManager::instance()->setIMUConfig(config);
+
+            //Save config
+            if (ConfigManager::instance()->save_configuration())
+            {
+                printf("Configuration saved!\n");
+            }
+            else
+            {
+                printf("Error! Configuration not saved!\n");
+            }
+        }
+        else
+        {
+            printf("Can't change Accelerometer range while logging\n");
+        }
+        
     }
 }
 
@@ -108,16 +283,52 @@ void ledBlink(void *pvParameters)
     }
 }
 
+//Activate the vibrating motor for the time asked
+void VibrateMotor(int vibrate_time)
+{
+    IOExpander::instance().digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+    vTaskDelay(vibrate_time / portTICK_RATE_MS);
+    IOExpander::instance().digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+}
+
 //app_main should have a "C" signature
 extern "C"
 {
     void app_main()
     {
-        esp_err_t ret;
+        //This is required before using wifi
+        esp_err_t ret = nvs_flash_init();
+        if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+            ESP_ERROR_CHECK(nvs_flash_erase());
+            ret = nvs_flash_init();
+        }
+        ESP_ERROR_CHECK(ret);
 
         //This needs to be called first
         //install gpio isr service
         gpio_install_isr_service(0);
+
+        //Set hardcoded timezone for now, TODO move somwhere else?
+        setenv("TZ", "GEST+5EDT,M3.2.0/2,M11.1.0/2", 1);
+        tzset();
+
+        //Set time to JAN 1 2019
+        struct tm tm;
+        tm.tm_year = 2019 - 1900;
+        tm.tm_mon = 0;
+        tm.tm_mday = 1;
+        tm.tm_hour = 1;
+        tm.tm_min = 0;
+        tm.tm_sec = 0;
+        time_t t = mktime(&tm);
+
+        printf("Setting time: %s", asctime(&tm));
+        struct timeval my_time;
+        my_time.tv_sec = t;
+        my_time.tv_usec = 0;
+        settimeofday(&my_time, NULL);
+
+        //esp_err_t ret=0;
 
         //SPI bus configuration
         SPIBus spibus;
@@ -125,12 +336,11 @@ extern "C"
         //I2C bus configuration
         I2CBus i2cbus;
 
+        //I2C Ext bus configuration
+        I2CBusExt i2cbusext;
+
         //Get single instance of IOExpander...
         IOExpander &ioExpander = IOExpander::instance();
-
-        //ALIVE -->HIGH, power will stay on
-        ioExpander.pinMode(EXT_PIN12_KEEP_ALIVE, OUTPUT);
-        ioExpander.digitalWrite(EXT_PIN12_KEEP_ALIVE, HIGH);
 
         //LED
         ioExpander.pinMode(EXT_PIN01_LED, OUTPUT);
@@ -140,15 +350,42 @@ extern "C"
         ioExpander.pinMode(EXT_PIN13_BATT_READ_EN, OUTPUT);
         ioExpander.digitalWrite(EXT_PIN13_BATT_READ_EN, HIGH);
 
+        //MOTOR VIBRATION
+        ioExpander.pinMode(EXT_PIN15_MOTOR_VIBRATE, OUTPUT);
+        ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+
+        //ENABLE PROGRAMMING
+        gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
+        gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
+        
+        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
+        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
+
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
+   
+        // SDCard must be started before configuration
+        SDCard *sdcard = SDCard::instance();
+        assert(sdcard);
+
+        // Configuration will read configuration from sdcard...
+        ConfigManager *configManager = ConfigManager::instance();
+        assert(configManager);
+        ConfigManager::instance()->print_configuration();
+  
+        //Display
+        Display *display = Display::instance();
+        assert(display);
+        display->begin();
+        display->showSplashScreen(0);
+        TickType_t splashTime = xTaskGetTickCount();
 
         Buttons *buttons = Buttons::instance();
         assert(buttons);
-
-        SDCard *sdcard = SDCard::instance();
-        assert(sdcard);
+ 
+        Power *power = Power::instance();
+        assert(power);
 
         GPS*  gps = GPS::instance();
         assert(gps);
@@ -156,77 +393,227 @@ extern "C"
         IMU *imu = IMU::instance();
         assert(imu);
 
-        Power *power = Power::instance();
-        assert(power);
-
         Barometer *baro = Barometer::instance();
         assert(baro);
 
-        Display *display = Display::instance();
-        assert(display);
+        //Pulse should be started from menu?
+        //Not yet working...
+        //Pulse *pulse = Pulse::instance();
+        //assert(pulse);
 
-        Menu menu;
+        //Bluetooth *ble = Bluetooth::instance();
+        //assert(ble);
 
-        display->begin();
-        display->clear();
-    
-        int change_counter = 0;
+
+        // HOMESCREEN
+
+        Widget::Battery batteryWidget;
+        batteryWidget.updateValue(5.0, 0.0, true);
+
+        Widget::GPS gpsWidget;
+        gpsWidget.setStatus(false);
+
+        Widget::Log logWidget(Actions::IMUStartSD);
+        logWidget.setStatus(false,true);
+
+        Widget::SD sdWidget(Actions::ToggleSD);
+        sdWidget.setStatus(false,true);
+
+        Homescreen home;
+        home.addWidget(&batteryWidget);
+        home.addWidget(&gpsWidget);
+        home.addWidget(&logWidget);
+        home.addWidget(&sdWidget);
+
+        // Show homescreen and disable programming
+        vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+        //vTaskDelay(800 / portTICK_RATE_MS);
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+        VibrateMotor(400);
+        //gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
+        home.setVisible(true);
+
+
+        // CONFIG SCREEN
+
+        Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
+        sampleWidget.setStatus(2);
+
+        Widget::GyroRange gyroWidget(Actions::ChangeGyroRange);
+        gyroWidget.setStatus(2);
+
+        Widget::AccelRange accelWidget(Actions::ChangeAccelRange);
+        accelWidget.setStatus(2);
+
+
+        Homescreen config;
+        config.addWidget(&sampleWidget);
+        config.addWidget(&gyroWidget);
+        config.addWidget(&accelWidget);
+
+        config.setVisible(false);
 
         //Debug
         //Actions::IMUStartSD();
         //Do better...
+        TickType_t lastBtn = xTaskGetTickCount();
+        TickType_t lastRefresh = xTaskGetTickCount();
+        TickType_t now;
+        bool active = true;
+        bool configscreen = false;
+
+        Actions::SampleRateCounter = IMU::instance()->getSampleRate();
+        Actions::GyroRangeCounter = IMU::instance()->getGyroRange();
+        Actions::AccelRangeCounter = IMU::instance()->getAccelRange();
+
+        
+        //Prototype WiFi transfer Agent
+        //WiFiTransfer *wifi = WiFiTransfer::instance();
+
+
         while(1)
         {
-            bool changed = false;
-            float voltage = power->read_voltage();
-            float current = power->read_current();
+            //printf("%f %f \n", voltage, current);
 
+            // Sleep for 100ms
+            vTaskDelay(100 / portTICK_RATE_MS);
+           
+           
+           // Check buttons
             while(buttons->getActionCtn() > 0) 
             {
-                menu.action();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.action();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.action();
+                    }
+                }
                 buttons->decrementActionCtn();
-                changed = true;
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getPreviousCtn() > 0) 
             {
-                menu.previous();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.previous();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.previous();
+                    }
+                }
                 buttons->decrementPreviousCtn();
-                changed = true;
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getNextCtn() > 0) 
             {
-                menu.next();
+                if (active) 
+                {
+                    if (home.getVisible())
+                    {
+                        home.next();
+                    }
+
+                    if (config.getVisible())
+                    {
+                        config.next();
+                    }
+                }
                 buttons->decrementNextCtn();
-                changed = true;
+                lastBtn = xTaskGetTickCount();
             }
 
             while(buttons->getBackCtn() > 0) 
             {
-                display->displayVoltage(voltage, current, gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
-                buttons->decrementBackCtn();
-            }
-            
-            if(changed) 
-            {
-                display->updateMenu(&menu, Actions::loggingEnabled);
-                change_counter = 0;
-            }
-            else 
-            {
-                change_counter++;
+                if (active && !configscreen)
+                {  
+                    config.replaceSelection();
+                    home.setVisible(false);
+                    config.setVisible(true);
+                    configscreen = true;
 
-                // Every 5 seconds verify if no activity, then paint state
-                if (change_counter > 50)
+                    VibrateMotor(300);
+                }
+
+                else if (active && configscreen)
+                {  
+                    home.replaceSelection();
+                    config.setVisible(false);
+                    home.setVisible(true);
+                    configscreen = false;
+
+                    VibrateMotor(300);
+                }
+                buttons->decrementBackCtn();
+                lastBtn = xTaskGetTickCount();
+            }
+
+            // Update widgets
+            batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
+            gpsWidget.setStatus(gps->getFix());
+            logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
+            sdWidget.setStatus(Actions::sdcardExternal,SDCard::instance()->getSdCardPresent());
+            sampleWidget.setStatus(Actions::SampleRateCounter);
+            gyroWidget.setStatus(Actions::GyroRangeCounter);
+            accelWidget.setStatus(Actions::AccelRangeCounter);
+
+
+            if (Actions::loggingEnabled && !Actions::wasLogging)
+            {
+                home.startLog(-1);
+                home.setLogID(SDCard::instance()->getlogID());
+            }
+            else if (!Actions::loggingEnabled && Actions::wasLogging)
+            {
+                home.stopLog();
+            }
+            Actions::wasLogging = Actions::loggingEnabled;
+
+            // Check activity
+            now = xTaskGetTickCount();
+            if (now-lastBtn > SCREEN_SLEEP_TIMER/portTICK_RATE_MS)
+            {
+                display->setBrightness(Display::Brigthness::SLEEP);
+                active = false;
+            }
+            else if (now-lastBtn > SCREEN_DIM_TIMER/portTICK_RATE_MS)
+            {
+                if (active) display->setBrightness(Display::Brigthness::DIM);
+                active = false;
+            }
+            else {
+                if (!active) display->setBrightness(Display::Brigthness::NORMAL);
+                active = true;
+            }
+
+            // Update time each second
+            if (now-lastRefresh > 1000/portTICK_RATE_MS)
+            {
+                if (home.getVisible())
                 {
-                    display->displayVoltage(voltage, current , gps->getFix(), Actions::loggingEnabled, Actions::sdcardExternal);
-                    change_counter = 0;
+                    home.setVisible(true);
+                    lastRefresh = now;
+                }
+
+                if (config.getVisible())
+                {
+                    config.setVisible(true);
+                    lastRefresh = now;
+
                 }
             }
-        
-            // Sleep for 100ms
-            vTaskDelay(100 / portTICK_RATE_MS);
-        } //while
+        } //while 
     }
 }

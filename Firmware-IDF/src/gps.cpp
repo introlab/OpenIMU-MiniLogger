@@ -15,16 +15,15 @@ namespace
         struct timeval timeval_now;
         gettimeofday(&timeval_now, NULL);
 
+        printf("GPS Time: %li\n", timeval.tv_sec);
         printf("timediff: %li\n",(timeval_now.tv_sec * 1000000 + timeval_now.tv_usec) - 
             (timeval.tv_sec * 1000000 + timeval.tv_usec));
         */
-        // struct timezone timezone;
-        // timezone.tz_minuteswest = -5 * 60;
-        // timezone.tz_dsttime = 0; //DST_CAN;
-        settimeofday(&timeval, NULL);
-        //Serial.println("Got time from GPS");
 
-    
+        //printf("GPS update time %li \n", timeval.tv_sec);
+
+        //Set UTC time,  timezone is alywas ignored
+        settimeofday(&timeval, NULL);    
     }
 
     //Called from task
@@ -42,11 +41,13 @@ namespace
             break;
 
             case MINMEA_SENTENCE_RMC:
+                //printf("MINMEA_SENTENCE_RMC\n");
                 struct minmea_sentence_rmc rmc;
                 if (minmea_parse_rmc(&rmc, sentence))
                 {
                     if (rmc.valid)
                     {
+                        //printf("Valid RMC\n");
                         GPS::instance()->setFix(true);
                         /*
                         struct minmea_float latitude;
@@ -55,17 +56,20 @@ namespace
                         struct minmea_float course;
                         struct minmea_float variation;
                         */
-                        float latitude = minmea_tocoord(&rmc.latitude);
-                        float longitude = minmea_tocoord(&rmc.longitude);
+                        //float latitude = minmea_tocoord(&rmc.latitude);
+                        //float longitude = minmea_tocoord(&rmc.longitude);
                         //printf("RMC latitude: %f, longitude: %f \n", latitude, longitude);
-
                     }
                     else
                     {
                         GPS::instance()->setFix(false);
                     }
+
                     //Date and time are always valid
-                    setTimeFromGPS(&rmc.date, &rmc.time);
+                    //Not always, the GPS needs to have synced its time at least once otherwise sends 0
+                    if (rmc.date.year > 0)
+                        setTimeFromGPS(&rmc.date, &rmc.time);
+                    
                 }
                 else
                 {
@@ -91,7 +95,7 @@ namespace
                         int dgps_age;
                     };
                     */
-                    int sat = gga.satellites_tracked;
+                    //int sat = gga.satellites_tracked;
                     float latitude = minmea_tocoord(&gga.latitude);
                     float longitude = minmea_tocoord(&gga.longitude);
                     float altitude = minmea_tofloat(&gga.altitude);
@@ -137,7 +141,7 @@ namespace
             break;
 
             case MINMEA_SENTENCE_ZDA:
-                //printf("MINMEA_SENTENCE_ZDA\n");
+                printf("MINMEA_SENTENCE_ZDA\n");
                 //Time AND Date
                 struct minmea_sentence_zda zda;
                 if (minmea_parse_zda(&zda, sentence))
@@ -196,8 +200,11 @@ namespace
                 case READ_SENTENCE:
                     //Read first char
                     len = gps->read_uart(&buffer[pos], 1);
+                    
+                    
                     if (len == 1 && pos < MAXLINELENGTH)
                     {
+                        
                         if ( buffer[pos] != '\n')
                         {
                             pos++;
@@ -210,7 +217,9 @@ namespace
                     }
                     else
                     {
-                        printf("error pos : %i", pos);
+                        //for (int i = 0; i< pos; i++)
+                        //    printf("%c %2.2x\n", buffer[i], (int) buffer[i]);
+                        printf("GPS error pos : %i len: %i \n", pos, len);
                         state = SCAN_FIRST_CHAR;
                     }
                 break;
@@ -277,7 +286,7 @@ void GPS::setup_uart()
 
 int GPS::read_uart(uint8_t *buffer, int max_size)
 {
-    int len = uart_read_bytes(_port, buffer, max_size, 20 / portTICK_RATE_MS);
+    int len = uart_read_bytes(_port, buffer, max_size, 1000 / portTICK_RATE_MS);
     return len;
 }
 

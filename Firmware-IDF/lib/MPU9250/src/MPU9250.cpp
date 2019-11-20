@@ -341,11 +341,13 @@ int MPU9250::setSrd(uint8_t srd) {
     if(srd > 9){
         // set AK8963 to Power Down
         if(writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) < 0){
+            printf("Erreur -2\n");
             return -2;
         }
         delay(100); // long wait between AK8963 mode changes
         // set AK8963 to 16 bit resolution, 8 Hz update rate
         if(writeAK8963Register(AK8963_CNTL1,AK8963_CNT_MEAS1) < 0){
+            printf("Erreur -3\n");
             return -3;
         }
         delay(100); // long wait between AK8963 mode changes
@@ -354,11 +356,13 @@ int MPU9250::setSrd(uint8_t srd) {
     } else {
         // set AK8963 to Power Down
         if(writeAK8963Register(AK8963_CNTL1,AK8963_PWR_DOWN) < 0){
+            printf("Erreur -22\n");
             return -2;
         }
         delay(100); // long wait between AK8963 mode changes
         // set AK8963 to 16 bit resolution, 100 Hz update rate
         if(writeAK8963Register(AK8963_CNTL1,AK8963_CNT_MEAS2) < 0){
+            printf("Erreur -33\n");
             return -3;
         }
         delay(100); // long wait between AK8963 mode changes
@@ -367,9 +371,11 @@ int MPU9250::setSrd(uint8_t srd) {
     }
     /* setting the sample rate divider */
     if(writeRegister(SMPDIV,srd) < 0){ // setting the sample rate divider
+        printf("Erreur -4\n");
         return -4;
     }
     _srd = srd;
+    printf("srd changer\n");
     return 1;
 }
 
