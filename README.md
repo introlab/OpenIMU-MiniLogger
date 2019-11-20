@@ -2,7 +2,7 @@
 OpenIMU - Open Hardware Mini Logger based on ESP32. 
 
 Please see also :
-[OpenIMU](https://github.com/introlab/OpenIMU-MiniLogger) Compatible Sofware.
+[OpenIMU](https://github.com/introlab/OpenIMU) Compatible Sofware.
 
 # Authors
 * Dominic Létourneau
@@ -26,7 +26,7 @@ Please see also :
 
 ## Starting Menu and Configuration Menu
 
-<img src="./docs/images/Starting_Menu.jpg" width="350">  <img src="./docs/images/Config_Menu2.jpg" width="293">
+<img src="./docs/images/Starting_Menu.jpg" width="350">  <img src="./docs/images/Config_Menu.jpg" width="293">
 
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :
@@ -36,13 +36,13 @@ Please see also :
   * High speed uSD Card Interface (for data logging)
   * High speed USB Mass Storage Interface
   * USB Battery Charger
-  * High capacity battery using Motorala BF5X 1500mA form factor.
+  * High capacity battery using [Motorala BF5X 1500mA](https://www.battdepot.com/ca/model/cell+phone+battery/motorola/mb525/cmo206.aspx) form factor.
   * Voltage and Current Monitor
   * [9 axis MPU9250 IMU](https://www.invensense.com/products/motion-tracking/9-axis/mpu-9250/)
   * [uBlox CAM-M8Q GPS](https://www.u-blox.com/en/product/cam-m8-series)
   * [NXP / FreeScale MPL115A2 Barometer](https://www.nxp.com/docs/en/data-sheet/MPL115A2.pdf)
   * [WaveShare 0.95" RGB OLED Display](https://www.waveshare.com/wiki/0.95inch_RGB_OLED_(B))
-  * [Grove expansion header](http://wiki.seeedstudio.com/Grove_System/) with configurable CAN, UART, I2C, Digital I/O.
+  * [JST JUMPER 08SR-3S](https://www.digikey.ca/product-detail/en/A08SR08SR30K305B/455-3020-ND/6009396/?itemSeq=309204146) connection. with configurable CAN, UART, I2C, Digital I/O.
 
 # Firmware
 * Using [PlatformIO](https://platformio.org/)
