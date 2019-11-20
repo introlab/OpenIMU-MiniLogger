@@ -3,7 +3,7 @@
 #include "configmanager.h"
 #include <stdio.h>
 #include <cJSON.h>
-#include <dirent.h>
+
 
 //Static instance
 SDCard* SDCard::_instance = NULL;
@@ -327,12 +327,14 @@ bool SDCard::mount()
     esp_vfs_fat_sdmmc_mount_config_t mount_config;
     mount_config.format_if_mount_failed = false;
     mount_config.max_files = 5;
+    
 
     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &_host, &_slot_config, &mount_config, &_card);
     if (ret == ESP_OK)
     {
         //Print card info
         sdmmc_card_print_info(stdout, _card);
+        getSDfreespace();
         return true;
     }
 
@@ -805,4 +807,29 @@ int SDCard::getlogID()
     }
     closedir(dir);
     return (NblogFolder-2);
+}
+
+float SDCard::getSDfreespace()
+{
+    FATFS *fs;
+    DWORD fre_clust;
+    float freespaceGB = 0.0;
+    
+ 
+    /* Get volume information and free clusters of drive 0 */
+    if(f_getfree("/sdcard", &fre_clust, &fs) == FR_OK)
+    {
+        /* Get total sectors and free sectors */
+        //DWORD tot_sect = (fs->n_fatent - 2) * fs->csize;
+        DWORD fre_sect = fre_clust * fs->csize;
+ 
+        //uint32_t tot = tot_sect / 2;
+        uint32_t free = fre_sect / 2;
+        freespaceGB=(free/1000000.0)-0.1;
+        //printf("FreeSpace: %.2f\n",freespaceGB);
+        /* Print the free space (assuming 512 bytes/sector) */
+        //printf("%d KB total drive space. %.2f GB available.\n", *tot, freespaceGB);
+    }
+
+    return freespaceGB;
 }

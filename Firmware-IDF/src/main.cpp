@@ -30,6 +30,7 @@
 #include "widget/samplerate.h"
 #include "widget/gyrorange.h"
 #include "widget/accelrange.h"
+#include "widget/SDfreespace.h"
 #include "homescreen.h"
 #include "configmanager.h"
 
@@ -107,7 +108,7 @@ namespace Actions
         }
         
     }
-
+    //Fonction to Change the sample rate of the IMU
     void ChangeSampleRate()
     {   
         if(!loggingEnabled)
@@ -160,6 +161,7 @@ namespace Actions
         
     }
 
+    //Fonction to Change the Gyroscope Range of the IMU
     void ChangeGyroRange()
     {   
         if(!loggingEnabled)
@@ -212,6 +214,7 @@ namespace Actions
         
     }
 
+    //Fonction to Change the Accelerometer Range of the IMU
     void ChangeAccelRange()
     {   
         if(!loggingEnabled)
@@ -304,6 +307,8 @@ extern "C"
         }
         ESP_ERROR_CHECK(ret);
 
+
+
         //This needs to be called first
         //install gpio isr service
         gpio_install_isr_service(0);
@@ -364,7 +369,7 @@ extern "C"
 
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
-   
+
         // SDCard must be started before configuration
         SDCard *sdcard = SDCard::instance();
         assert(sdcard);
@@ -405,8 +410,10 @@ extern "C"
         //assert(ble);
 
 
-        // HOMESCREEN
+        //Prototype WiFi transfer Agent
+        WiFiTransfer *wifi = WiFiTransfer::instance();
 
+        // HOMESCREEN
         Widget::Battery batteryWidget;
         batteryWidget.updateValue(5.0, 0.0, true);
 
@@ -436,7 +443,6 @@ extern "C"
 
 
         // CONFIG SCREEN
-
         Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
         sampleWidget.setStatus(2);
 
@@ -446,11 +452,15 @@ extern "C"
         Widget::AccelRange accelWidget(Actions::ChangeAccelRange);
         accelWidget.setStatus(2);
 
+        Widget::SDFreeSpace sdfreespaceWidget;
+        sdfreespaceWidget.setStatus(16.0);
+
 
         Homescreen config;
         config.addWidget(&sampleWidget);
         config.addWidget(&gyroWidget);
         config.addWidget(&accelWidget);
+        config.addWidget(&sdfreespaceWidget);
 
         config.setVisible(false);
 
@@ -468,8 +478,7 @@ extern "C"
         Actions::AccelRangeCounter = IMU::instance()->getAccelRange();
 
         
-        //Prototype WiFi transfer Agent
-        //WiFiTransfer *wifi = WiFiTransfer::instance();
+
 
 
         while(1)
@@ -560,7 +569,7 @@ extern "C"
                 lastBtn = xTaskGetTickCount();
             }
 
-            // Update widgets
+        
             batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
             gpsWidget.setStatus(gps->getFix());
             logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
@@ -568,6 +577,7 @@ extern "C"
             sampleWidget.setStatus(Actions::SampleRateCounter);
             gyroWidget.setStatus(Actions::GyroRangeCounter);
             accelWidget.setStatus(Actions::AccelRangeCounter);
+            sdfreespaceWidget.setStatus(SDCard::instance()->getSDfreespace());
 
 
             if (Actions::loggingEnabled && !Actions::wasLogging)

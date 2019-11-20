@@ -18,28 +18,55 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include <sstream>
+#include "widget/SDfreespace.h"
+#include "ssd1331.h"
 
-#pragma once
+#define X_ORIGIN 73
+#define Y_ORIGIN 16
+
+#define ICON_WIDTH 16
+#define ICON_HEIGHT 22
 
 
-#include "widget/widget.h"
+using namespace Widget;
 
 
 
-namespace Widget
+const unsigned char icon[] = {0x1F, 0xFF, 0x24, 0x95, 0x24, 0x95, 0x24, 0x95, 
+0x24, 0x95, 0x24, 0x95, 0x24, 0x95, 0x20, 0x01, 
+0x20, 0x01, 0x40, 0x01, 0x81, 0x81, 0x8D, 0xB1, 
+0xCF, 0xF1, 0x47, 0xE1, 0x5E, 0x79, 0xDE, 0x79, 
+0x87, 0xE1, 0x8F, 0xF1, 0x8D, 0xB1, 0x81, 0x81, 
+0x80, 0x01, 0xFF, 0xFF};
+
+/**
+ * Construct a SampleRate widget
+ */
+SDFreeSpace::SDFreeSpace():AbstractWidget(X_ORIGIN, Y_ORIGIN, nullptr){ }
+
+/**
+ * Paint the SampleRate widget icon to the screen
+ * Icon shows current fix status
+ */
+void SDFreeSpace::paintLogo()
+{
+        SSD1331_mono_bitmap(_xorigin + 5, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
+    
+}
+void SDFreeSpace::setStatus(float freeSpace)
+{
+    _freeSpace=freeSpace;
+}
+/**
+ * Return the message that should be displayed when the widget is selected
+ */
+std::string SDFreeSpace::getMessage()
 {
 
-class AccelRange : public AbstractWidget
-{
-public:
-    AccelRange(void (*toggleChangeAccelRange)());
-    void setStatus(int AccelRange);
+    std::stringstream msgStream;
 
-private:
-    void paintLogo();
-    int _rangeG=4;
-    std::string getMessage();
-
-};
-
+    msgStream<<"Free:"<< _freeSpace << "GB" ;
+    return msgStream.str();
+    
 }
