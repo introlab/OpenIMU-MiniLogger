@@ -31,6 +31,7 @@
 #include "widget/gyrorange.h"
 #include "widget/accelrange.h"
 #include "widget/SDfreespace.h"
+#include "widget/wifitransfer.h"
 #include "homescreen.h"
 #include "configmanager.h"
 
@@ -266,6 +267,11 @@ namespace Actions
         }
         
     }
+    
+    void WifiActions()
+    {
+        //Action of the wifi
+    }
 }
 
 void ledBlink(void *pvParameters)
@@ -426,21 +432,16 @@ extern "C"
         Widget::SD sdWidget(Actions::ToggleSD);
         sdWidget.setStatus(false,true);
 
+        Widget::Wifitransfer wifiWidget(Actions::WifiActions);
+
         Homescreen home;
         home.addWidget(&batteryWidget);
         home.addWidget(&gpsWidget);
         home.addWidget(&logWidget);
         home.addWidget(&sdWidget);
+        home.addWidget(&wifiWidget);
 
-        // Show homescreen and disable programming
-        vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
-        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
-        //vTaskDelay(800 / portTICK_RATE_MS);
-        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
-        VibrateMotor(400);
-        //gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
-        home.setVisible(true);
-
+        home.replaceSelection();
 
         // CONFIG SCREEN
         Widget::SampleRate sampleWidget(Actions::ChangeSampleRate);
@@ -455,14 +456,23 @@ extern "C"
         Widget::SDFreeSpace sdfreespaceWidget;
         sdfreespaceWidget.setStatus(16.0);
 
-
         Homescreen config;
         config.addWidget(&sampleWidget);
         config.addWidget(&gyroWidget);
         config.addWidget(&accelWidget);
         config.addWidget(&sdfreespaceWidget);
 
+        config.replaceSelection();
         config.setVisible(false);
+
+        // Show homescreen and disable programming
+        vTaskDelayUntil(&splashTime, 4200 / portTICK_RATE_MS);
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, HIGH);
+        //vTaskDelay(800 / portTICK_RATE_MS);
+        //ioExpander.digitalWrite(EXT_PIN15_MOTOR_VIBRATE, LOW);
+        VibrateMotor(400);
+        //gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
+        home.setVisible(true);
 
         //Debug
         //Actions::IMUStartSD();

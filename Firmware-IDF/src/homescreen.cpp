@@ -25,6 +25,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <stdio.h>
 
 /**
  * Construct an Homescreen object
@@ -35,48 +36,113 @@ Homescreen::Homescreen() { }
  * Add a widget to the homescreen
  * Make it selected if it is the first one to be added
  * 
+ * If the page has 4 widgets, a new page is created when adding a new widget.
+ * 
  * @param Widget::AbstractWidget* widget : A pointer to the widget to add
  */
 void Homescreen::addWidget(Widget::AbstractWidget* widget)
 {
-    _widgets.push_back(widget);
-    if (_widgets.size() == 1)
+    if(_pages.empty())
     {
-        _currentWidget = _widgets.begin();
+        std::list<Widget::AbstractWidget*> _widgets;
+        _widgets.push_back(widget);
+        _pages.push_back(_widgets);
+
+        _currentPage = _pages.begin();
+        _currentWidget = _currentPage->begin();
         (*_currentWidget)->select();
+
+        
+    }
+    else
+    {  
+        if(_currentPage->size()==4)
+        {
+            //Page Full, creating a new page
+            std::list<Widget::AbstractWidget*> _widgets;
+            _widgets.push_back(widget);
+            _pages.push_back(_widgets);
+            _currentPage++;
+        }
+        else
+        {
+            //Add widget to the list
+            _currentPage->push_back(widget);
+            //printf("Adding new widget to page:%d, size:%d\n",_pages.size(),_currentPage->size());
+        }
+
     }
 }
 
 /**
  * Make the previous widget selected
- * Do nothing if the first widget is selected
+ * If previous is used on the first widget of the page, it switch pages if there's one available. Does nothing otherwise.
+ * 
  */
 void Homescreen::previous()
 {
-    if (_currentWidget != _widgets.begin())
+
+    //If at the first widget of the page with a page available before the actual one
+    if((((std::distance(_currentWidget, _currentPage->end()))-(_currentPage->size()))==0)&&(((std::distance(_currentPage, _pages.end())-(_pages.size()))>0)))
     {
+        (*_currentWidget)->unselect();
+        _currentPage--;
+        _currentWidget = _currentPage->end();
+        _currentWidget--;
+        (*_currentWidget)->select();
+        printf("Previous Page \n");
+    }
+    //If not at the begging of the page
+    else if(((_currentPage->size())-(std::distance(_currentWidget, _currentPage->end())))>0)
+    {
+        printf("Previous widget\n");
         (*_currentWidget)->unselect();
         _currentWidget--;
         (*_currentWidget)->select();
+        
     }
+    else
+    {
+        printf("No more widget Available\n");
+    }
+    
+    //printf("Previous: Page Number:%d\n",std::distance(_currentPage,_pages.end()));
+    //printf("Previous: Widget Number: %d\n",std::distance(_currentWidget, _currentPage->end()));
 
-    if (_isVisible) paint();
+    setVisible(true);
 }
 
 /**
  * Make the next widget selected
- * Do nothing if the last widget is selected
+ * If next is used on the last widget of the page, it switch pages if there's one available. Does nothing otherwise.
  */
 void Homescreen::next()
 {
-    if (std::distance(_currentWidget, _widgets.end()) > 1)
+
+    if (((std::distance(_currentWidget,_currentPage->end()))==1) && ((std::distance(_currentPage, _pages.end()))>1))
     {
+        (*_currentWidget)->unselect();
+        _currentPage++;
+        _currentWidget = _currentPage->begin();
+        (*_currentWidget)->select();
+        //printf("Next Page \n");
+    }
+    else if ((std::distance(_currentWidget, _currentPage->end()))>1)
+    {
+        //printf("Next widget\n");
         (*_currentWidget)->unselect();
         _currentWidget++;
         (*_currentWidget)->select();
     }
+    else
+    {
+        printf("No more widget Available\n");
+    }
 
-    if (_isVisible) paint();
+    //printf("Next: Page Number:%d\n",std::distance(_currentPage,_pages.end()));
+    //printf("Next: Widget Number: %d\n",std::distance(_currentWidget, _currentPage->end()));
+
+    setVisible(true);
 }
 
 /**
@@ -134,10 +200,17 @@ void Homescreen::paint()
 
         char strftimeBuf[64];
         strftime(strftimeBuf, sizeof(strftimeBuf), "%d/%m/%y %H:%M", timeInfo);
-        SSD1331_string(5, 0, strftimeBuf, 12, 1, WHITE);
+
+        //Page string
+        std::stringstream strfpageBuf;
+        strfpageBuf<<(_pages.size()-(std::distance(_currentPage,_pages.end()))+1);
+        std::string Pagestring = strfpageBuf.str();
+
+        SSD1331_string(0, 0, strftimeBuf, 12, 1, WHITE);
+        SSD1331_string(90, 0, Pagestring.c_str(), 12, 1, GOLDEN);
     }
     
-    for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
+    for (std::list<Widget::AbstractWidget*>::iterator i = _currentPage->begin(); i != _currentPage->end(); i++)
     {
         (*i)->paint();
     }
@@ -146,19 +219,35 @@ void Homescreen::paint()
 }
 
 /**
- * Tells the homescreen if it should paint itself to the screen
+ * Tells the homescreen if it should paint itself to the screen or update 
+ * the widget if called from the next or previous function.
  * 
  * @param bool isVisible : if the homescreen should be displayed
  */
 void Homescreen::setVisible(bool isVisible)
 {
     _isVisible = isVisible;
-
-    for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
+    
+    //Set invisible the widgets that are not on the current page and set visible the ones that are.
+    for (std::list<std::list<Widget::AbstractWidget*>>::iterator k = _pages.begin(); k != _pages.end();k++)
     {
-        (*i)->setVisible(isVisible);
+        if(k!=_currentPage)
+        {
+            for (std::list<Widget::AbstractWidget*>::iterator i = k->begin(); i != k->end(); i++)
+            {
+                (*i)->setVisible(false);
+            }  
+        }
+        else
+        {
+            for (std::list<Widget::AbstractWidget*>::iterator i = k->begin(); i != k->end(); i++)
+            {
+                (*i)->setVisible(isVisible);
+            }
+        }
+          
     }
-    //(*_widgets.begin())->select();
+    
     if (_isVisible) paint();
 }
 
@@ -188,14 +277,20 @@ bool Homescreen::getVisible()
     return _isVisible;
 }
 
+//Replace the cursor of the homescreen at the beginning
 void Homescreen::replaceSelection()
 { 
-    for (std::list<Widget::AbstractWidget*>::iterator i = _widgets.begin(); i != _widgets.end(); i++)
+    for (std::list<std::list<Widget::AbstractWidget*>>::iterator k = _pages.begin(); k != _pages.end();k++)
     {
-        (*i)->unselect();
+        for (std::list<Widget::AbstractWidget*>::iterator i = k->begin(); i != k->end(); i++)
+        {
+            (*i)->unselect();
+        }   
     }
-    _currentWidget = _widgets.begin();
-    (*_widgets.begin())->select();
+    _currentPage = _pages.begin();
+    _currentWidget = _currentPage->begin();
+    (*_currentWidget)->select();
+    
 }
 
 void Homescreen::setLogID(int id)

@@ -1,6 +1,5 @@
 /*
- * Homescreen class for Open IMU
- * Displays the widgets and move between them using previous, next and action methods
+ * Widget to display current GPS status on Open IMU homesreen
  * author: Cedric Godin
  * 
  * Copyright 2019 IntRoLab
@@ -22,42 +21,22 @@
 
 #pragma once
 
-#include <list>
 
 #include "widget/widget.h"
 
-class Homescreen
+namespace Widget
+{
+
+class Wifitransfer : public AbstractWidget
 {
 public:
-    Homescreen();
-
-    void addWidget(Widget::AbstractWidget* widget);
-
-    void previous();
-    void next();
-    void action();
-
-    void setVisible(bool isVisible);
-    bool getVisible(void);
-
-    void startLog(double logCapacity);
-    void stopLog();
-
-    void replaceSelection(void);
-    void setLogID(int id);
+    Wifitransfer(void (*toggleWifi)());
+    void setStatus(int FrequencyRate);
 
 private:
-    void paint();
+    void paintLogo();
+    std::string getMessage();
 
-    std::list<Widget::AbstractWidget*>::iterator _currentWidget;
-
-    std::list<std::list<Widget::AbstractWidget*>> _pages;
-    std::list<std::list<Widget::AbstractWidget*>>::iterator _currentPage;
-
-    bool _isVisible = false;
-
-    time_t _logStart;
-    double _logCapacity;
-    bool _isLogging = false;
-    int _logid=0;
 };
+
+}
