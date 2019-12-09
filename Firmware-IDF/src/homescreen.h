@@ -45,6 +45,7 @@ public:
 
     void replaceSelection(void);
     void setLogID(int id);
+    void updateBatteryMode(bool batterylowMode);
 
 private:
     void paint();
@@ -60,4 +61,8 @@ private:
     double _logCapacity;
     bool _isLogging = false;
     int _logid=0;
+    float _voltage;
+    bool _batteryLow = false;
+    //Timer for battery Icon
+    int _timernow_batteryLow = 0;
 };

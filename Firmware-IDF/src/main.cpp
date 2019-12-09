@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include "esp_wifi.h"
 #include "driver/spi_master.h"
 #include "soc/gpio_struct.h"
 #include "driver/gpio.h"
-#include <stdio.h>
 #include "driver/i2c.h"
 #include <soc/efuse_reg.h>
 
@@ -146,6 +149,7 @@ namespace Actions
             ConfigManager::instance()->setIMUConfig(config);
 
             //Save config
+           
             if (ConfigManager::instance()->save_configuration())
             {
                 printf("Configuration saved!\n");
@@ -372,7 +376,7 @@ extern "C"
         //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
         gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
 
-
+        //Flashing Led Task
         TaskHandle_t ledBlinkHandle;
         xTaskCreate(&ledBlink, "Blinky", 2048, NULL, 1, &ledBlinkHandle);
 
@@ -384,12 +388,21 @@ extern "C"
         ConfigManager *configManager = ConfigManager::instance();
         assert(configManager);
         ConfigManager::instance()->print_configuration();
-  
+
+        //Mac Address
+        uint8_t macaddress[6];
+        uint64_t bit64macaddress[6];
+        esp_read_mac(macaddress,ESP_MAC_WIFI_STA);
+        for (int i=0;i<sizeof(macaddress);i++)
+        {
+            bit64macaddress[i]=macaddress[i];  
+        }
+        
         //Display
         Display *display = Display::instance();
         assert(display);
         display->begin();
-        display->showSplashScreen(0);
+        display->showSplashScreen(bit64macaddress);
         TickType_t splashTime = xTaskGetTickCount();
 
         Buttons *buttons = Buttons::instance();
@@ -415,9 +428,8 @@ extern "C"
         //Bluetooth *ble = Bluetooth::instance();
         //assert(ble);
 
-
         //Prototype WiFi transfer Agent
-        WiFiTransfer *wifi = WiFiTransfer::instance();
+        //WiFiTransfer *wifi = WiFiTransfer::instance();
 
         // HOMESCREEN
         Widget::Battery batteryWidget;
@@ -480,15 +492,14 @@ extern "C"
         TickType_t lastBtn = xTaskGetTickCount();
         TickType_t lastRefresh = xTaskGetTickCount();
         TickType_t now;
-        bool active = true;
+        bool active = false;
         bool configscreen = false;
+        bool _batteryLowMode = false;
 
+        //Intialise counter  for message of widget
         Actions::SampleRateCounter = IMU::instance()->getSampleRate();
         Actions::GyroRangeCounter = IMU::instance()->getGyroRange();
         Actions::AccelRangeCounter = IMU::instance()->getAccelRange();
-
-        
-
 
 
         while(1)
@@ -497,12 +508,23 @@ extern "C"
 
             // Sleep for 100ms
             vTaskDelay(100 / portTICK_RATE_MS);
-           
-           
+
+            //Check battery state
+
+            if(power->last_voltage()<3.2)
+            {
+                _batteryLowMode = true;
+            }
+            else if (power->last_voltage()>3.3)
+            {
+                _batteryLowMode = false;
+            }
+
            // Check buttons
+
             while(buttons->getActionCtn() > 0) 
             {
-                if (active) 
+                if (active && !_batteryLowMode) 
                 {
                     if (home.getVisible())
                     {
@@ -520,7 +542,7 @@ extern "C"
 
             while(buttons->getPreviousCtn() > 0) 
             {
-                if (active) 
+                if (active && !_batteryLowMode) 
                 {
                     if (home.getVisible())
                     {
@@ -538,7 +560,7 @@ extern "C"
 
             while(buttons->getNextCtn() > 0) 
             {
-                if (active) 
+                if (active && !_batteryLowMode) 
                 {
                     if (home.getVisible())
                     {
@@ -556,7 +578,7 @@ extern "C"
 
             while(buttons->getBackCtn() > 0) 
             {
-                if (active && !configscreen)
+                if (active && !configscreen && !_batteryLowMode)
                 {  
                     config.replaceSelection();
                     home.setVisible(false);
@@ -566,7 +588,7 @@ extern "C"
                     VibrateMotor(300);
                 }
 
-                else if (active && configscreen)
+                else if (active && configscreen && !_batteryLowMode)
                 {  
                     home.replaceSelection();
                     config.setVisible(false);
@@ -578,8 +600,8 @@ extern "C"
                 buttons->decrementBackCtn();
                 lastBtn = xTaskGetTickCount();
             }
-
-        
+    
+            //Update widgets state
             batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
             gpsWidget.setStatus(gps->getFix());
             logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
@@ -589,7 +611,7 @@ extern "C"
             accelWidget.setStatus(Actions::AccelRangeCounter);
             sdfreespaceWidget.setStatus(SDCard::instance()->getSDfreespace());
 
-
+            //Check logging status
             if (Actions::loggingEnabled && !Actions::wasLogging)
             {
                 home.startLog(-1);
@@ -618,20 +640,21 @@ extern "C"
                 active = true;
             }
 
-            // Update time each second
+            // Update time and battery mode each second
             if (now-lastRefresh > 1000/portTICK_RATE_MS)
             {
                 if (home.getVisible())
                 {
+                    home.updateBatteryMode(_batteryLowMode);
                     home.setVisible(true);
                     lastRefresh = now;
                 }
 
                 if (config.getVisible())
-                {
+                {                   
+                    config.updateBatteryMode(_batteryLowMode);
                     config.setVisible(true);
                     lastRefresh = now;
-
                 }
             }
         } //while 

@@ -22,6 +22,7 @@
 #include "widget/widget.h"
 #include "ssd1331.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define WIDGET_MSG_Y_ORIGIN 51
 
@@ -72,6 +73,8 @@ void AbstractWidget::performAction()
  */
 void AbstractWidget::paint(bool meOnly)
 {
+    //printf("Paint Logo\n");
+    
     if (meOnly)
     {
         SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT -1 , BLACK, true);

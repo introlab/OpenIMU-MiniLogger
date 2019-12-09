@@ -42,7 +42,7 @@ public:
 
     void setBrightness(Brigthness brightness);
 
-    void showSplashScreen(uint64_t mac_adress);
+    void showSplashScreen(uint64_t mac_adress[6]);
     void clear();
 
 private:

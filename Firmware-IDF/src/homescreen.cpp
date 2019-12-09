@@ -27,6 +27,47 @@
 #include <cmath>
 #include <stdio.h>
 
+
+
+// Battery Low Icon
+
+#define ICON_WIDTH 64
+#define ICON_HEIGHT 32
+
+const unsigned char batteryLOWicon[] = {
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0xC0, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0xC0, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0xE0, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0xF0, 0x00, 0x00, 0x00, 0x03, 0xF8, 
+0xE3, 0xFF, 0xF8, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xFF, 0xF8, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE3, 0xFF, 0xF8, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x80, 
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 /**
  * Construct an Homescreen object
  */
@@ -90,12 +131,12 @@ void Homescreen::previous()
         _currentWidget = _currentPage->end();
         _currentWidget--;
         (*_currentWidget)->select();
-        printf("Previous Page \n");
+        //printf("Previous Page \n");
     }
     //If not at the begging of the page
     else if(((_currentPage->size())-(std::distance(_currentWidget, _currentPage->end())))>0)
     {
-        printf("Previous widget\n");
+        //printf("Previous widget\n");
         (*_currentWidget)->unselect();
         _currentWidget--;
         (*_currentWidget)->select();
@@ -163,58 +204,76 @@ void Homescreen::paint()
 {
 
     SSD1331_clear();
-
-    if(_isLogging)  // Show current log time in top bar
-    {
-        time_t now;
-        time(&now);
-        double elapsed = difftime(now, _logStart);
-
-        std::stringstream topStream;
-        topStream << std::setfill('0');
-        topStream << std::setw(2);
-        topStream <<  floor(elapsed / 3600) << ":";
-        topStream << std::setfill('0');
-        topStream << std::setw(2);
-        topStream << floor(fmod(elapsed, 3600)/60) << ":";
-        topStream << std::setfill('0');
-        topStream << std::setw(2);
-        topStream << floor(fmod(elapsed, 60));
     
-        topStream << std::setfill('0');
-        topStream << std::setw(2);
-        topStream << "   ID:" << floor(_logid);
-        //topStream << std::setfill('0');
-        //topStream << std::setw(2);
-        //topStream << floor(fmod(_logCapacity, 3600)/60);
+    if(!_batteryLow)
+    {
         
-        SSD1331_string(0, 0, topStream.str().c_str(), 12, 1, WHITE);
+        if(_isLogging)  // Show current log time in top bar
+        {
+            time_t now;
+            time(&now);
+            double elapsed = difftime(now, _logStart);
+
+            std::stringstream topStream;
+            topStream << std::setfill('0');
+            topStream << std::setw(2);
+            topStream <<  floor(elapsed / 3600) << ":";
+            topStream << std::setfill('0');
+            topStream << std::setw(2);
+            topStream << floor(fmod(elapsed, 3600)/60) << ":";
+            topStream << std::setfill('0');
+            topStream << std::setw(2);
+            topStream << floor(fmod(elapsed, 60));
+        
+            topStream << std::setfill('0');
+            topStream << std::setw(2);
+            topStream << "   ID:" << floor(_logid);
+            //topStream << std::setfill('0');
+            //topStream << std::setw(2);
+            //topStream << floor(fmod(_logCapacity, 3600)/60);
+            
+            SSD1331_string(0, 0, topStream.str().c_str(), 12, 1, WHITE);
+        }
+        
+        else    // Show current date / time in top bar
+        {
+            time_t now;
+            struct tm *timeInfo;
+            time(&now);
+            timeInfo = localtime(&now);
+
+            char strftimeBuf[64];
+            strftime(strftimeBuf, sizeof(strftimeBuf), "%d/%m/%y %H:%M", timeInfo);
+
+            //Page string
+            std::stringstream strfpageBuf;
+            strfpageBuf<<(_pages.size()-(std::distance(_currentPage,_pages.end()))+1);
+            std::string Pagestring = strfpageBuf.str();
+
+            SSD1331_string(0, 0, strftimeBuf, 12, 1, WHITE);
+            SSD1331_string(90, 0, Pagestring.c_str(), 12, 1, GOLDEN);
+        }
+        
+        for (std::list<Widget::AbstractWidget*>::iterator i = _currentPage->begin(); i != _currentPage->end(); i++)
+        {
+            (*i)->paint();
+        }
+    }
+    else
+    {    
+        _timernow_batteryLow++;
+        printf("Count: %d\n",_timernow_batteryLow);
+        SSD1331_string(5, 0, "Battery LOW", 16, 1, RED);
+        if(_timernow_batteryLow == 1)
+        {
+            SSD1331_mono_bitmap(20,25,batteryLOWicon, ICON_WIDTH, ICON_HEIGHT, RED);   
+        }
+        if (_timernow_batteryLow ==2)
+        {
+            _timernow_batteryLow = 0;
+        }
     }
     
-    else    // Show current date / time in top bar
-    {
-        time_t now;
-        struct tm *timeInfo;
-        time(&now);
-        timeInfo = localtime(&now);
-
-        char strftimeBuf[64];
-        strftime(strftimeBuf, sizeof(strftimeBuf), "%d/%m/%y %H:%M", timeInfo);
-
-        //Page string
-        std::stringstream strfpageBuf;
-        strfpageBuf<<(_pages.size()-(std::distance(_currentPage,_pages.end()))+1);
-        std::string Pagestring = strfpageBuf.str();
-
-        SSD1331_string(0, 0, strftimeBuf, 12, 1, WHITE);
-        SSD1331_string(90, 0, Pagestring.c_str(), 12, 1, GOLDEN);
-    }
-    
-    for (std::list<Widget::AbstractWidget*>::iterator i = _currentPage->begin(); i != _currentPage->end(); i++)
-    {
-        (*i)->paint();
-    }
-
     SSD1331_display();
 }
 
@@ -231,7 +290,7 @@ void Homescreen::setVisible(bool isVisible)
     //Set invisible the widgets that are not on the current page and set visible the ones that are.
     for (std::list<std::list<Widget::AbstractWidget*>>::iterator k = _pages.begin(); k != _pages.end();k++)
     {
-        if(k!=_currentPage)
+        if(k!=_currentPage || _batteryLow)
         {
             for (std::list<Widget::AbstractWidget*>::iterator i = k->begin(); i != k->end(); i++)
             {
@@ -241,7 +300,7 @@ void Homescreen::setVisible(bool isVisible)
         else
         {
             for (std::list<Widget::AbstractWidget*>::iterator i = k->begin(); i != k->end(); i++)
-            {
+            { 
                 (*i)->setVisible(isVisible);
             }
         }
@@ -296,4 +355,9 @@ void Homescreen::replaceSelection()
 void Homescreen::setLogID(int id)
 {
     _logid = id;
+}
+
+void Homescreen::updateBatteryMode(bool batterylowMode)
+{
+    _batteryLow = batterylowMode;
 }
