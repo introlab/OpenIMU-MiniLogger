@@ -31,11 +31,11 @@
 #define ICON_WIDTH 10
 #define ICON_HEIGHT 25
 
-#define BATT_LEVEL_LOW 3.55
-#define BATT_LEVEL_1 3.70
-#define BATT_LEVEL_2 3.85
-#define BATT_LEVEL_3 4.00
-#define BATT_LEVEL_4 4.15
+#define BATT_LEVEL_LOW 3.50
+#define BATT_LEVEL_1 3.65
+#define BATT_LEVEL_2 3.80
+#define BATT_LEVEL_3 3.95
+#define BATT_LEVEL_4 4.10
 
 using namespace Widget;
 
