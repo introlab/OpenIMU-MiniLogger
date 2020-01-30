@@ -720,14 +720,12 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
     //if (stat("/sdcard/PARAME~1/STARTI~1.JSO", &stt) != 0)
     if (stat("/sdcard/ParameterFolder/StartingParameter.json", &stt) != 0)
     {
-        printf("No folder found\n");
+        printf("No file found\n");
         return false;
     }
     else   
     {
         
-        //The ESP-32 sees the name differently from what it is when we create the file using the computer
-        //FILE* f = fopen("/sdcard/PARAME~1/STARTI~1.JSO","r");
         FILE* f = fopen("/sdcard/ParameterFolder/StartingParameter.json","r");
 
         if (f==NULL)

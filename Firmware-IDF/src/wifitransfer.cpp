@@ -49,7 +49,7 @@ namespace
 
             case SYSTEM_EVENT_STA_DISCONNECTED:
             {
-                 ESP_LOGI(TAG,"SYSTEM_EVENT_STA_DISCONNECTED...\n");
+                ESP_LOGI(TAG,"SYSTEM_EVENT_STA_DISCONNECTED...\n");
                 //Try to connect
                 esp_wifi_connect();
                 xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
@@ -95,8 +95,7 @@ WiFiTransfer* WiFiTransfer::instance()
 WiFiTransfer::WiFiTransfer()
 {
     _mutex = xSemaphoreCreateMutex();
-  
-    //xTaskCreate(&wifiTransferTask, "WiFiTransferTask", 2048, this, 6, &_wifiTransferTaskHandle);
+    xTaskCreate(&wifiTransferTask, "WiFiTransferTask", 2048, this, 6, &_wifiTransferTaskHandle);
     initialize_wifi();
 }
 
@@ -125,6 +124,7 @@ void WiFiTransfer::initialize_wifi()
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    //printf("before wifi start\n");
     ESP_ERROR_CHECK(esp_wifi_start() );
 
     ESP_LOGI(TAG, "wifi_init_sta finished.");

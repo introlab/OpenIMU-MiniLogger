@@ -24,9 +24,11 @@ Please see also :
 
 <img src="./docs/images/OpenIMU_Case.jpg" width="300">  <img src="./docs/images/OpenIMU_Ports.jpg" width="350">
 
-## Starting Menu and Configuration Menu
+## Starting Screen, Main menu and Configuration Menu
 
-<img src="./docs/images/Starting_Menu.jpg" width="350">  <img src="./docs/images/Config_Menu.jpg" width="293">
+<img src="./docs/images/Starting_Menu.jpg" width="235"> <img src="./docs/images/Main_Menu_Page1.jpg" width="240">  <img src="./docs/images/Configuration_Menu.jpg" width="232">
+
+
 
 # Features
 * [ESP-WROOM-32](https://www.espressif.com/en/esp-wroom-32/resources) based with :

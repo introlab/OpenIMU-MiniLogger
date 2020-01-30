@@ -14,7 +14,7 @@ ConfigManager::ConfigManager()
 {
     //Make a valid default configuration
     _imuConfig = {10,500,8};
-    _openTeraConfig = {"MiniLogger", "localhost", 4040, ""};
+    _openTeraConfig = {"MiniLogger", "localhost", 4040,""};
     _wifiConfig={"wifissid", "wifipassword"};
 
     load_configuration();
@@ -93,7 +93,8 @@ bool ConfigManager::load_configuration(const std::string &path)
     struct stat stt;
     if (stat(path.c_str(), &stt) != 0)
     {
-        printf("No folder found\n");
+        printf("No folder found, Creating folder with default configuration\n");
+        create_configuration_folder();
         return false;
     }
     else   
@@ -170,6 +171,7 @@ bool ConfigManager::load_configuration(const std::string &path)
     if (stat(path.c_str(), &stt) != 0)
     {
         printf("No folder found\n");
+        create_configuration_folder();
         return false;
     }
     else 
@@ -190,6 +192,33 @@ bool ConfigManager::load_configuration(const std::string &path)
         //Close file
         fclose(f);
     }
+
+    return true;
+ }
+
+bool ConfigManager::create_configuration_folder(const std::string &path)
+ {
+    if(mkdir("/sdcard/ParameterFolder",0007)==-1)
+    {
+        printf("Problem Creating Folder\n");
+        return false;
+    }
+
+    FILE* f = fopen(path.c_str(),"w");
+
+    if (f==NULL)
+    {
+        printf("Can't open the directory\n");
+        return false;
+    }
+    //Get JSON string
+    std::string json_conf = json_configuration();
+
+    //Write to file
+    fwrite(json_conf.c_str(), json_conf.size(), 1, f);
+
+    //Close file
+    fclose(f);
 
     return true;
  }
