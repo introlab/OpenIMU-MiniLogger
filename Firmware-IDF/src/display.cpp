@@ -46,6 +46,8 @@ void Display::begin()
 {
     SSD1331_begin();
     SSD1331_clear();
+
+    setDimModeSettings();
 }
 
 void Display::end()
@@ -75,6 +77,25 @@ void Display::showSplashScreen(uint64_t mac_adress[6])
 void Display::clear()
 {
     SSD1331_clear();
+}
+
+void Display::setDimModeSettings()
+{
+    SSD1331_command(0xAB);
+    /*
+    Configure dim mode setting
+        A[7:0] = Reserved. (Set as 00h)
+        B[7:0] = Contrast setting for Color A, valid range 0 to 255d.
+        C[7:0] = Contrast setting for Color B, valid range 0 to 255d.
+        D[7:0] = Contrast setting for Color C, valid range 0 to 255d.
+        E[4:0] = Precharge voltage setting, valid range 0 to 31d. 
+    */
+    SSD1331_command((uint8_t) 0); //A
+    SSD1331_command((uint8_t)100); //B
+    SSD1331_command((uint8_t)100); //C
+    SSD1331_command((uint8_t)100); //D
+    SSD1331_command((uint8_t)16); //E
+
 }
 
 void Display::setBrightness(Brigthness brightness)
