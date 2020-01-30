@@ -143,33 +143,41 @@ void IMU::setSampleRate(int rateHz)
 {
     if (rateHz==10)
     {
+        //_mpu9250.setDlpfBandwidth(DLPF_BANDWIDTH_5HZ);
         _mpu9250.setSampleRate(10);
         _mpu9250.setCompassSampleRate(10);
+
         printf("Set sample Rate:10Hz\n");
         SampleRateHz=10;
     }
     else if (rateHz==50)
     {
+        //_mpu9250.setDlpfBandwidth(DLPF_BANDWIDTH_5HZ);
         _mpu9250.setSampleRate(50);
         _mpu9250.setCompassSampleRate(50);
+        
         printf("Set sample Rate:50Hz\n");
 
         SampleRateHz=50;
     }
     else if (rateHz==100)
     {
+        //_mpu9250.setLPF(42);
         _mpu9250.setSampleRate(100);
         _mpu9250.setCompassSampleRate(100);
+        
         printf("Set sample Rate:100Hz\n");
 
         SampleRateHz=100;
     }
     else if (rateHz==200)
     {
-        
+        //_mpu9250.setLPF(98);
         _mpu9250.setSampleRate(200);
         _mpu9250.setCompassSampleRate(100);
+        
         printf("Set sample Rate:200Hz\n");
+
         SampleRateHz=200;
     }
     else

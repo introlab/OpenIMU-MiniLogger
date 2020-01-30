@@ -29,6 +29,7 @@ class ConfigManager {
 
     bool load_configuration(const std::string &path = "/sdcard/ParameterFolder/StartingParameter.json");
     bool save_configuration(const std::string &path = "/sdcard/ParameterFolder/StartingParameter.json");
+    bool create_configuration_folder(const std::string &path = "/sdcard/ParameterFolder/StartingParameter.json");
 
     std::string json_configuration();
 

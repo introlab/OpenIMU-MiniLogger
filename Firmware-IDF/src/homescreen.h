@@ -45,12 +45,15 @@ public:
 
     void replaceSelection(void);
     void setLogID(int id);
+    void updateBatteryMode(bool batterylowMode);
 
 private:
     void paint();
 
-    std::list<Widget::AbstractWidget*> _widgets;
     std::list<Widget::AbstractWidget*>::iterator _currentWidget;
+
+    std::list<std::list<Widget::AbstractWidget*>> _pages;
+    std::list<std::list<Widget::AbstractWidget*>>::iterator _currentPage;
 
     bool _isVisible = false;
 
@@ -58,4 +61,8 @@ private:
     double _logCapacity;
     bool _isLogging = false;
     int _logid=0;
+    float _voltage;
+    bool _batteryLow = false;
+    //Timer for battery Icon
+    int _timernow_batteryLow = 0;
 };

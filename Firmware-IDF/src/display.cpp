@@ -53,14 +53,20 @@ void Display::end()
     SSD1331_shutdown();
 }
 
-void Display::showSplashScreen(uint64_t mac_adress)
+void Display::showSplashScreen(uint64_t mac_adress[6])
 {
     SSD1331_clear();
     SSD1331_string(0, 0, "Open IMU 0.2", 16, 1, GREEN);
     SSD1331_string(0, 20, "IntRoLab", 12, 1, WHITE);
-
+    SSD1331_string(0, 40, "MAC:", 12, 1, GRAY);
     std::stringstream mac_string;
-    mac_string << "MAC:" << std::uppercase << std::hex << mac_adress;
+    //std::stringstream mac_s;
+    //Adding the Mac address to the stream 
+    
+    for(int i=0;i<6;i++)
+    {
+        mac_string<<std::uppercase<<std::hex<<mac_adress[i];
+    }
 
     SSD1331_string(0, 50, mac_string.str().c_str(), 12, 1, GRAY);
     SSD1331_display();
