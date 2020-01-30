@@ -373,8 +373,10 @@ extern "C"
         gpio_pad_select_gpio(PIN_NUM_ENABLE_PROGRAMMING);
         gpio_set_direction((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, GPIO_MODE_OUTPUT);
         
-        //PIN_NUM_ENABLE_PROGRAMMING = 0 ---> CAN PROGRAM
-        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 0);
+        //PIN_NUM_ENABLE_PROGRAMMING = 
+        //0 ---> CAN PROGRAM, 
+        //1 ---> CANNOT PROGRAM WILL NOT RESET WHEN PLUGGING TO USB
+        gpio_set_level((gpio_num_t)PIN_NUM_ENABLE_PROGRAMMING, 1);
 
         //Flashing Led Task
         TaskHandle_t ledBlinkHandle;

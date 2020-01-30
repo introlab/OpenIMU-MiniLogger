@@ -40,6 +40,8 @@ public:
     void begin();
     void end();
 
+    void setDimModeSettings();
+
     void setBrightness(Brigthness brightness);
 
     void showSplashScreen(uint64_t mac_adress[6]);
