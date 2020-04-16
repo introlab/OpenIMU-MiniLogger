@@ -194,6 +194,8 @@ void MainWindow::saveChangesJSON(QString path)
 void MainWindow::on_RegisterButton_clicked()
 {
 
+    qDebug() << "MainWindow::on_RegisterButton_clicked()";
+
     if (m_netManager)
         m_netManager->deleteLater();
 
@@ -204,8 +206,9 @@ void MainWindow::on_RegisterButton_clicked()
     connect(m_netManager, &QNetworkAccessManager::networkAccessibleChanged, this, &MainWindow::on_networkAccessibleChanged);
     connect(m_netManager, &QNetworkAccessManager::sslErrors, this, &MainWindow::on_networkSslErrors);
 
-
-    QNetworkRequest request(QUrl(m_ui.lineEditServer->text() + ":" + m_ui.lineEditPort->text() + "/api/device/device_register"));
+    QUrl url("https://" + m_ui.lineEditServer->text() + ":" + m_ui.lineEditPort->text() + "/api/device/device_register");
+    qDebug() << url.toString();
+    QNetworkRequest request(url);
 
     request.setRawHeader("Content-Type", "application/json");
 
