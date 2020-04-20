@@ -275,6 +275,7 @@ namespace Actions
     void WifiActions()
     {
         //Action of the wifi
+        WiFiTransfer::instance()->start_transfer();
     }
 }
 
@@ -314,8 +315,6 @@ I2CBus i2cbus;
 //I2C Ext bus configuration
 I2CBusExt i2cbusext;
 
-
-
 ConfigManager *configManager = NULL;
 Display *display = NULL;
 IOExpander *ioExpander = NULL;
@@ -347,6 +346,8 @@ Widget::SDFreeSpace sdfreespaceWidget_c;
 
 
 void setup() {
+
+  //disableCore0WDT();
   // put your setup code here, to run once:
 
   //This needs to be called first

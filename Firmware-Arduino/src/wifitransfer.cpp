@@ -3,7 +3,10 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <sstream>
+#include <list>
 #include <cJSON.h>
+#include "FS.h"
+#include "SD_MMC.h"
 
 WiFiTransfer* WiFiTransfer::_instance = NULL;
 
@@ -21,15 +24,9 @@ namespace
             STATE_CONNECTED, 
             STATE_LOGIN } wifi_state;
 
-        WiFiStateMachine()
-            : _state(STATE_DISCONNECTED)
+        WiFiStateMachine()   
         {
-            //Update configuration
-            _config =  ConfigManager::instance()->getOpenTeraConfig();
-            _id_device = -1;
-            _id_project = -1;
-            _id_participant = -1;
-            _id_session_type = -1;
+            reset();
         }
 
 
@@ -37,11 +34,100 @@ namespace
             return _state;
         }
 
-        bool create_session()
+        bool upload_file(File &file_stream)
         {
-            return true;
+            if (file_stream.available() > 0 && _httpClient.begin(_wifiClient, create_url_with_token("/api/device/upload").c_str()))
+            {
+                //Replace if existing
+                _httpClient.addHeader("Content-Type", "application/octet-stream", true, true);
+                _httpClient.addHeader("X-Id-Session", String(_id_session).c_str());
+                _httpClient.addHeader("X-Filename", file_stream.name());
+                //TODO set date...
+                _httpClient.addHeader("X-Filedate", "2020-04-17 09:50:22");
+
+                //POST
+                //int httpCode = _httpClient.POST("Hello World!");
+                //Send data from stream
+                printf("Sending file: %s size: %i \n", file_stream.name(), file_stream.available());
+                int httpCode = _httpClient.sendRequest("POST",&file_stream, file_stream.available());
+                printf("Return code : %i\n", httpCode);
+                
+                _httpClient.end(); 
+
+
+                return httpCode == HTTP_CODE_OK;
+            }
+
+           
+
+            return false;
         }
 
+        bool create_session()
+        {
+            cJSON *root=cJSON_CreateObject();
+            cJSON *session = cJSON_CreateObject();
+            cJSON_AddItemToObject(root, "session", session);
+
+            //Session info
+            cJSON_AddNumberToObject(session, "id_session", 0);
+            cJSON_AddNumberToObject(session, "id_session_type", _id_session_type);
+            cJSON_AddStringToObject(session, "session_name", "MyName");
+            cJSON_AddStringToObject(session, "session_start_datetime", "2020-04-17 09:50:22-0400");
+            cJSON_AddNumberToObject(session, "session_status", 0);
+
+            //Session participants
+            cJSON *participants_array =  cJSON_AddArrayToObject(session, "session_participants");
+            for (auto iter = _participants.begin(); iter != _participants.end(); iter++)
+            {
+                auto string_item = cJSON_CreateString((*iter).c_str());
+                cJSON_AddItemToArray(participants_array, string_item);
+            }
+
+            std::string result(cJSON_Print(root));
+            printf("Create session result: \n%s\n", result.c_str());
+
+            //Free memory
+            cJSON_free(root);
+
+            //POST session information           
+            if (_httpClient.begin(_wifiClient, create_url_with_token("/api/device/sessions").c_str()))
+            {
+                _httpClient.addHeader("Content-Type", "application/json");
+
+                //POST
+                int httpCode = _httpClient.POST(result.c_str()); 
+
+                if (httpCode == HTTP_CODE_OK) {
+                    String payload = _httpClient.getString();
+                    printf("post result %s\n", payload.c_str());
+                    //Parse JSON
+                    cJSON *root = cJSON_Parse(payload.c_str());
+
+                    if (cJSON_HasObjectItem(root, "id_session")) {
+                        _id_session = cJSON_GetObjectItem(root,"id_session")->valueint;
+                    }
+
+                    //Free memory
+                    cJSON_free(root);
+                }
+
+                _httpClient.end();
+            }
+            return (_id_session != -1);
+        }
+
+        void reset()
+        {
+            _config =  ConfigManager::instance()->getOpenTeraConfig();
+            _state = STATE_DISCONNECTED;
+            _id_device = -1;
+            _id_project = -1;
+            _id_session_type = -1;
+            _id_session = -1;
+            _participants.clear();
+
+        }
 
         bool login()
         {
@@ -49,59 +135,52 @@ namespace
             {
                 //GET
                 int httpCode = _httpClient.GET();                
-                printf("login() - GET code: %i\n", httpCode);
+                //printf("login() - GET code: %i\n", httpCode);
 
                 if (httpCode == HTTP_CODE_OK) {
                     String payload = _httpClient.getString();
-                    printf("data %s\n", payload.c_str());
-                    
-
+                    //printf("data %s\n", payload.c_str());
                     //Parse JSON
                     cJSON *root = cJSON_Parse(payload.c_str());
 
                     //Handle device info
                     if (cJSON_HasObjectItem(root, "device_info"))
-                    {
-                        
+                    {                        
                         auto device_info_item = cJSON_GetObjectItem(root, "device_info");
-                        printf("device_info_item : %p \n", device_info_item);
-                        
+                        //printf("device_info_item : %p \n", device_info_item);                        
                         if (cJSON_HasObjectItem(device_info_item, "id_device"))
-                        {
-                            
+                        {                            
                             _id_device = cJSON_GetObjectItem(device_info_item,"id_device")->valueint;
-                            printf("id_device: %i\n", _id_device);
-                        }
-                        
+                            //printf("id_device: %i\n", _id_device);
+                        }                        
                     }
 
                     if (cJSON_HasObjectItem(root, "participants_info"))
                     {
-                        printf("found participants_info\n");
+                        //printf("found participants_info\n");
                         auto participants_array = cJSON_GetObjectItem(root, "participants_info");
-                        printf("array size: %i\n",cJSON_GetArraySize(participants_array));
+                        //printf("array size: %i\n",cJSON_GetArraySize(participants_array));
                         //TODO handle multiple participants
                         for (auto i = 0; i < cJSON_GetArraySize(participants_array); i++)
                         {
                             auto participant_item = cJSON_GetArrayItem(participants_array, i);
                             _id_project = cJSON_GetObjectItem(participant_item,"id_project")->valueint;
-                            _id_participant = cJSON_GetObjectItem(participant_item,"id_participant")->valueint;
-                            printf("id_project: %i, id_participant: %i \n", _id_project, _id_participant);
+                            _participants.push_back(cJSON_GetObjectItem(participant_item,"participant_uuid")->valuestring);
+                            //printf("id_project: %i, id_participant: %i \n", _id_project, _id_participant);
                         }
-
                     }
 
                     if (cJSON_HasObjectItem(root, "session_types_info"))
                     {
-                        printf("found session_types_info \n");
+                        //printf("found session_types_info \n");
                         auto session_types_array = cJSON_GetObjectItem(root, "session_types_info");
-                        printf("array size: %i\n",cJSON_GetArraySize(session_types_array));
+                        //printf("array size: %i\n",cJSON_GetArraySize(session_types_array));
                         //TODO handle multiple session_types
                         for (auto i = 0; i < cJSON_GetArraySize(session_types_array); i++)
                         {
                             auto session_type_item = cJSON_GetArrayItem(session_types_array, i);
                             _id_session_type = cJSON_GetObjectItem(session_type_item,"id_session_type")->valueint;
-                            printf("id_session_type: %i\n", _id_session_type);
+                            //printf("id_session_type: %i\n", _id_session_type);
                         }
                     }
                     //Free memory
@@ -109,8 +188,11 @@ namespace
                 }
                 _httpClient.end();
             }
+
+            printf("login result: %i %i %i %i \n", _id_device, _participants.size(), _id_project, _id_session_type);
+
             // Returns true if all information is valid
-            return (_id_device != -1 && _id_participant != -1 && _id_project != -1 && _id_session_type != -1);
+            return (_id_device != -1 && !_participants.empty() && _id_project != -1 && _id_session_type != -1);
         }
 
 
@@ -129,10 +211,11 @@ namespace
         OpenTeraConfig_Sd _config;
         HTTPClient _httpClient;
         WiFiClientSecure _wifiClient;
+        std::list<std::string> _participants;
         int _id_device;
         int _id_project;
-        int _id_participant;
         int _id_session_type;
+        int _id_session;
 
     };
 
@@ -146,28 +229,83 @@ namespace
         
 
         //TODO WiFi Stuff...
-        while(1)
+        wifi->initialize_wifi();
+
+        delay(10000);
+        
+        machine.reset();            
+
+        if (!machine.login())
         {
-            delay(10000);
-            
-           
+            printf("Cannot login\n");
+            wifi->stop_transfer();
+        }
 
-            if (!machine.login())
+        //Read files from devices
+        if(SD_MMC.begin()){
+            printf("SdCard opened type: %i \n", SD_MMC.cardType());
+
+            File root = SD_MMC.open("/");
+
+            if (root)
             {
-                printf("Cannot login\n");
-                continue;
+                File file = root.openNextFile();
+                while(file){
+                    //Look for log directory
+                    if(file.isDirectory()) {
+
+                        if (String(file.name()).startsWith("/log")) {
+
+                            // TODO Extract start date and time from log directory
+
+                            printf("Found directory: %s\n", file.name());
+
+                            File dir_root = SD_MMC.open(file.name());
+
+                            while(dir_root) {
+                                
+                                printf("Found file: %s\n", dir_root.name());
+                                String filename(dir_root.name());
+
+                                if (filename.endsWith(".mdat"))
+                                {
+
+                                    if (!machine.create_session())
+                                    {
+                                        printf("Cannot create session\n");
+                                        break;
+                                    }
+
+                                    //Upload file
+                                    if (!machine.upload_file(dir_root))
+                                    {
+                                        printf("Cannot upload file\n");
+                                        break;
+                                    }
+
+                                    //TODO upload log?
+                                    //TODO Terminate session...
+
+                                }
+                                dir_root = dir_root.openNextFile();
+                            }
+                        }
+                    }
+
+                    //Find next file / directory
+                    file = root.openNextFile();                         
+                }
             }
+    
+        }   
 
+        //Shutdown wifi module
+        wifi->terminate_wifi();
 
-
-        } //while(1)
-
-        
-
-        
+        //Will terminate task
+        wifi->stop_transfer();
     }
-}
-
+}//anonymous namespace
 
 WiFiTransfer* WiFiTransfer::instance()
 {
@@ -181,8 +319,36 @@ WiFiTransfer* WiFiTransfer::instance()
 WiFiTransfer::WiFiTransfer()
 {
     _mutex = xSemaphoreCreateMutex();
-    initialize_wifi();
-    xTaskCreate(&wifiTransferTask, "WiFiTransferTask", 8192, this, 12, &_wifiTransferTaskHandle);
+    
+}
+
+void WiFiTransfer::lock()
+{
+    assert(xSemaphoreTake(_mutex, portMAX_DELAY) == pdTRUE);
+}
+
+void WiFiTransfer::unlock()
+{
+    assert(xSemaphoreGive(_mutex) == pdTRUE);
+}
+
+void WiFiTransfer::start_transfer()
+{
+    //initialize_wifi();
+    //xTaskCreate(&wifiTransferTask, "WiFiTransferTask", 8192, this, 1, &_wifiTransferTaskHandle);
+    //Same as Arduino core, IDLE task priority
+    lock();
+    xTaskCreatePinnedToCore(&wifiTransferTask, "WiFiTransferTask", 8192, this, 0, &_wifiTransferTaskHandle, 1);
+    unlock();
+}
+
+void WiFiTransfer::stop_transfer()
+{
+    lock();
+     if (_wifiTransferTaskHandle)
+        vTaskDelete(_wifiTransferTaskHandle); 
+    _wifiTransferTaskHandle = NULL;
+    unlock();
 }
 
 void WiFiTransfer::initialize_wifi()
@@ -202,4 +368,10 @@ void WiFiTransfer::initialize_wifi()
     }
 
     WiFi.printDiag(Serial);
+}
+
+void WiFiTransfer::terminate_wifi()
+{
+    //WiFi 0ff = trye, EraseApp = true
+    WiFi.disconnect(true, true);
 }

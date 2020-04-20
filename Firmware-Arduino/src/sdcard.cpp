@@ -421,8 +421,8 @@ void SDCard::startLog()
             unlock();
 
             //Create task
-            xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 10, &_logTaskHandle);
-            xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 15, &_timestampTask, 1);
+            xTaskCreate(&sdcard::logTask, "LogTask", 4096, this, 11, &_logTaskHandle);
+            xTaskCreatePinnedToCore(&sdcard::generateTimestamp, "SD card log", 2048, this, 20, &_timestampTask, 1);
 
             //Enable interrupt
             setup_interrupt_pin(true);

@@ -82,8 +82,9 @@ IMU::IMU()
         _mpu9250.enableInterrupt();
         _mpu9250.setIntLevel(INT_ACTIVE_LOW);
 
-        //Create reading task
-        xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle, 0);
+        //Create reading task, maximum priority
+        xTaskCreatePinnedToCore(&readIMU, "IMU read task", 2048, this, configMAX_PRIORITIES -1, &_readIMUHandle, 0);
+        //xTaskCreate(&readIMU, "IMU read task", 2048, this, 10, &_readIMUHandle);
         printf("IMU initialized\n");
     }
     else

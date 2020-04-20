@@ -51,7 +51,7 @@ Buttons::Buttons()
     //reset state
     reset();
 
-    xTaskCreate(&readButtons, "Buttons", 2048, this, 10, &_buttonsTaskHandle);
+    xTaskCreate(&readButtons, "Buttons", 2048, this, 15, &_buttonsTaskHandle);
 }
 
 Buttons::~Buttons()

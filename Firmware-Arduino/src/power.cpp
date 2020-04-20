@@ -50,6 +50,8 @@ Power::Power()
     IOExpander::instance()->pinMode(EXT_PIN10_CHARGING, INPUT);
     IOExpander::instance()->pinMode(EXT_PIN14_EXTERNAL_POWER_EN, OUTPUT);
     disableExternalPower();
+    
+    //xTaskCreatePinnedToCore(&powerTask, "PowerTask", 2048, this, 6, &_powerTaskHandle, 1);
     xTaskCreate(&powerTask, "PowerTask", 2048, this, 6, &_powerTaskHandle);
 }
 

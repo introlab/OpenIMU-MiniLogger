@@ -26,15 +26,20 @@ class WiFiTransfer
 
     //Singleton
     static WiFiTransfer* instance();
+    void start_transfer();
+    void stop_transfer();
+    void initialize_wifi();
+    void terminate_wifi();
+    void lock();
+    void unlock();
 
-
-    private:
+    protected:
 
     static WiFiTransfer* _instance;
     TaskHandle_t _wifiTransferTaskHandle;
     SemaphoreHandle_t _mutex;
 
-    void initialize_wifi();
+    
 
 };
 
