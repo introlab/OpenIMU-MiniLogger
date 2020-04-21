@@ -512,7 +512,7 @@ void loop() {
 
 
   // Sleep for 100ms
-  vTaskDelay(100 / portTICK_RATE_MS);
+  vTaskDelay(150 / portTICK_RATE_MS);
 
   //Check battery state
 
