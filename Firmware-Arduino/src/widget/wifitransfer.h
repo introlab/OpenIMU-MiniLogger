@@ -1,8 +1,8 @@
 /*
- * Widget to display current GPS status on Open IMU homesreen
- * author: Cedric Godin
+ * Widget to display current WiFi status on Open IMU homesreen
+ * author: Philippe Boulet, Dominic Létourneau
  * 
- * Copyright 2019 IntRoLab
+ * Copyright 2020 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -27,16 +27,17 @@
 namespace Widget
 {
 
-class Wifitransfer : public AbstractWidget
-{
-public:
-    Wifitransfer(void (*toggleWifi)());
-    void setStatus(int FrequencyRate);
+    class Wifitransfer : public AbstractWidget
+    {
+    public:
+        Wifitransfer(void (*toggleWifi)());
+        void setStatus(const std::string &message);
 
-private:
-    void paintLogo();
-    std::string getMessage();
+    private:
+        void paintLogo();
+        std::string _lastMessage;
+        std::string getMessage();
 
-};
+    };
 
 }

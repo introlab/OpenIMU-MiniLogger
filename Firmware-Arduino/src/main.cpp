@@ -456,6 +456,7 @@ void setup() {
 
   //Prototype WiFi transfer Agent
   WiFiTransfer *wifi = WiFiTransfer::instance();
+  assert(wifi);
 
   //Widgets init
   batteryWidget.updateValue(5.0, 0.0, true);
@@ -614,12 +615,14 @@ void loop() {
   gyroWidget.setStatus(Actions::GyroRangeCounter);
   accelWidget.setStatus(Actions::AccelRangeCounter);
   sdfreespaceWidget.setStatus(SDCard::instance()->getSDfreespace());
+  wifiWidget.setStatus(WiFiTransfer::instance()->getStateString());
 
   //Update widgets state(config)
   sampleWidget_c.setStatus(IMU::instance()->getSampleRate());
   gyroWidget_c.setStatus(IMU::instance()->getGyroRange());
   accelWidget_c.setStatus(IMU::instance()->getAccelRange());
   sdfreespaceWidget_c.setStatus(SDCard::instance()->getSDfreespace());
+  
 
 
   //Check logging status

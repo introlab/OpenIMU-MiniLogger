@@ -1,8 +1,8 @@
 /*
- * Widget to display current GPS status on Open IMU homesreen
- * author: Cedric Godin
+ * Widget to display current WiFi status on Open IMU homesreen
+ * author: Philippe Boulet, Dominic Létourneau
  * 
- * Copyright 2019 IntRoLab
+ * Copyright 2020 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -42,7 +42,10 @@ const unsigned char icon[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 /**
  * Construct a SampleRate widget
  */
-Wifitransfer::Wifitransfer(void (*toggleWifi)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleWifi) { }
+Wifitransfer::Wifitransfer(void (*toggleWifi)()) : AbstractWidget(X_ORIGIN, Y_ORIGIN, toggleWifi) 
+{ 
+    _lastMessage = "Not Initialized.";
+}
 
 /**
  * Paint the SampleRate widget icon to the screen
@@ -53,9 +56,10 @@ void Wifitransfer::paintLogo()
         SSD1331_mono_bitmap(_xorigin + 5, _yorigin + 4, icon, ICON_WIDTH, ICON_HEIGHT, WHITE);
     
 }
-void Wifitransfer::setStatus(int FrequencyRate)
+void Wifitransfer::setStatus(const std::string &message)
 {
     //Update Widget
+    _lastMessage = message;
 }
 /**
  * Return the message that should be displayed when the widget is selected
@@ -63,9 +67,8 @@ void Wifitransfer::setStatus(int FrequencyRate)
 std::string Wifitransfer::getMessage()
 {
 
-    std::stringstream msgStream;
-
-    msgStream<<"Wifi:";
-    return msgStream.str();
-    
+    //std::stringstream msgStream;
+    //msgStream<<_lastMessage;
+    //return msgStream.str();
+    return _lastMessage;
 }

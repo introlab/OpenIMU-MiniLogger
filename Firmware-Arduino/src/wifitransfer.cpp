@@ -19,12 +19,8 @@ namespace
     class WiFiStateMachine
     {
         public:
-        
-        typedef enum {
-            STATE_DISCONNECTED, 
-            STATE_CONNECTED, 
-            STATE_LOGIN } wifi_state;
-
+    
+        //From OpenTera
         typedef enum {
             STATUS_NOTSTARTED = 0, 
             STATUS_INPROGRESS = 1,
@@ -37,13 +33,11 @@ namespace
             reset();
         }
 
-
-        wifi_state getState() {
-            return _state;
-        }
-
         bool upload_file(File &file_stream, const String& date_string="2020-04-17 09:50:22")
         {
+
+            WiFiTransfer::instance()->setState(WiFiTransfer::STATE_UPLOAD_FILE);
+
             if (file_stream.available() > 0 && _httpClient.begin(_wifiClient, create_url_with_token("/api/device/upload").c_str()))
             {
                 //Replace if existing
@@ -66,13 +60,14 @@ namespace
                 return httpCode == HTTP_CODE_OK;
             }
 
-           
-
+            WiFiTransfer::instance()->setState(WiFiTransfer::STATE_UPLOAD_FILE_ERROR);
             return false;
         }
 
         bool create_session(const String &session_name="MyName", const String &date_string="2020-04-17 09:50:22-0400", size_t duration = 0)
         {
+            WiFiTransfer::instance()->setState(WiFiTransfer::STATE_CREATE_SESSION);
+
             cJSON *root=cJSON_CreateObject();
             cJSON *session = cJSON_CreateObject();
             cJSON_AddItemToObject(root, "session", session);
@@ -120,26 +115,30 @@ namespace
                     //Free memory
                     cJSON_free(root);
                 }
-
+                
                 _httpClient.end();
             }
+
+            if (_id_session == -1)
+                WiFiTransfer::instance()->setState(WiFiTransfer::STATE_CREATE_SESSION_ERROR);
+
             return (_id_session != -1);
         }
 
         void reset()
         {
             _config =  ConfigManager::instance()->getOpenTeraConfig();
-            _state = STATE_DISCONNECTED;
             _id_device = -1;
             _id_project = -1;
             _id_session_type = -1;
             _id_session = -1;
             _participants.clear();
-
+            WiFiTransfer::instance()->setState(WiFiTransfer::STATE_DISCONNECTED);
         }
 
         bool login()
         {
+            WiFiTransfer::instance()->setState(WiFiTransfer::STATE_LOGIN);
             if (_httpClient.begin(_wifiClient, create_url_with_token("/api/device/login").c_str()))
             {
                 //GET
@@ -199,9 +198,14 @@ namespace
             }
 
             printf("login result: %i %i %i %i \n", _id_device, _participants.size(), _id_project, _id_session_type);
+            bool status = (_id_device != -1 && !_participants.empty() && _id_project != -1 && _id_session_type != -1);
+
+            if (!status)
+                WiFiTransfer::instance()->setState(WiFiTransfer::STATE_LOGIN_ERROR);
+
 
             // Returns true if all information is valid
-            return (_id_device != -1 && !_participants.empty() && _id_project != -1 && _id_session_type != -1);
+            return status;
         }
 
 
@@ -216,7 +220,6 @@ namespace
             return url.str();
         }
 
-        wifi_state _state;
         OpenTeraConfig_Sd _config;
         HTTPClient _httpClient;
         WiFiClientSecure _wifiClient;
@@ -343,9 +346,71 @@ WiFiTransfer* WiFiTransfer::instance()
 
 
 WiFiTransfer::WiFiTransfer()
+    : _state(STATE_DISCONNECTED)
 {
     _mutex = xSemaphoreCreateMutex();
     
+}
+
+void WiFiTransfer::setState(WiFiTransfer::wifi_state state)
+{
+    _state = state;
+}
+
+WiFiTransfer::wifi_state WiFiTransfer::getState()
+{
+    return _state;
+}
+
+std::string WiFiTransfer::getStateString()
+{
+    switch(_state)
+    {
+        case STATE_DISCONNECTED:
+        return "DISCONNECTED";
+        break;
+
+        case STATE_CONNECTED:
+        return "CONNECTED";
+        break;
+
+        case STATE_LOGIN:
+        return "LOGIN";
+        break;
+
+        case STATE_LOGIN_ERROR:
+        return "LOGIN_ERROR";
+        break;
+
+        case STATE_CREATE_SESSION:
+        return "SESSION";
+        break;
+
+        case STATE_CREATE_SESSION_ERROR:
+        return "SESSION_ERROR";
+        break;
+
+        case STATE_UPLOAD_FILE:
+        return "UPLOAD";
+        break;
+
+        case STATE_UPLOAD_FILE_ERROR:
+        return "UPLOAD_ERR";
+        break;
+
+        case STATE_DONE:
+        return "DONE";
+        break;
+
+        case STATE_ERROR:
+        return "ERROR";
+        break;
+
+        default:
+            return "Unknown";
+    }
+
+    return "Unknown";
 }
 
 void WiFiTransfer::lock()
@@ -391,8 +456,10 @@ void WiFiTransfer::initialize_wifi()
         Serial.print(".");
         // wait 1 second for re-trying
         delay(1000);
+        WiFiTransfer::instance()->setState(WiFiTransfer::STATE_DISCONNECTED);
     }
 
+    WiFiTransfer::instance()->setState(WiFiTransfer::STATE_CONNECTED);
     WiFi.printDiag(Serial);
 }
 
@@ -400,4 +467,5 @@ void WiFiTransfer::terminate_wifi()
 {
     //WiFi 0ff = trye, EraseApp = true
     WiFi.disconnect(true, true);
+    WiFiTransfer::instance()->setState(WiFiTransfer::STATE_DONE);
 }
