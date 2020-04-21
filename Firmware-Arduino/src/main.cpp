@@ -59,6 +59,8 @@ namespace Actions
         }
         sdcardExternal = false;
         SDCard::instance()->toESP32();
+        //Reload configuration, user may have changed it from its computer.
+        ConfigManager::instance()->load_configuration();
     }
 
     void SDToExternal()
@@ -603,7 +605,7 @@ void loop() {
       lastBtn = xTaskGetTickCount();
   }
 
-  //Update widgets state
+  //Update widgets state (home)
   batteryWidget.updateValue(power->last_voltage(), power->last_current(), power->last_charging());
   gpsWidget.setStatus(gps->getFix());
   logWidget.setStatus(Actions::loggingEnabled,SDCard::instance()->getSdCardPresent());
@@ -612,6 +614,12 @@ void loop() {
   gyroWidget.setStatus(Actions::GyroRangeCounter);
   accelWidget.setStatus(Actions::AccelRangeCounter);
   sdfreespaceWidget.setStatus(SDCard::instance()->getSDfreespace());
+
+  //Update widgets state(config)
+  sampleWidget_c.setStatus(IMU::instance()->getSampleRate());
+  gyroWidget_c.setStatus(IMU::instance()->getGyroRange());
+  accelWidget_c.setStatus(IMU::instance()->getAccelRange());
+  sdfreespaceWidget_c.setStatus(SDCard::instance()->getSDfreespace());
 
 
   //Check logging status
