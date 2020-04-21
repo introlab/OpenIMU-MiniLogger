@@ -4,6 +4,7 @@
 #include <HTTPClient.h>
 #include <sstream>
 #include <list>
+#include <time.h>
 #include <cJSON.h>
 #include "FS.h"
 #include "SD_MMC.h"
@@ -24,6 +25,13 @@ namespace
             STATE_CONNECTED, 
             STATE_LOGIN } wifi_state;
 
+        typedef enum {
+            STATUS_NOTSTARTED = 0, 
+            STATUS_INPROGRESS = 1,
+            STATUS_COMPLETED = 2,
+            STATUS_CANCELLED = 3,
+            STATUS_TERMINATED = 4} session_status;
+
         WiFiStateMachine()   
         {
             reset();
@@ -34,7 +42,7 @@ namespace
             return _state;
         }
 
-        bool upload_file(File &file_stream)
+        bool upload_file(File &file_stream, const String& date_string="2020-04-17 09:50:22")
         {
             if (file_stream.available() > 0 && _httpClient.begin(_wifiClient, create_url_with_token("/api/device/upload").c_str()))
             {
@@ -43,7 +51,7 @@ namespace
                 _httpClient.addHeader("X-Id-Session", String(_id_session).c_str());
                 _httpClient.addHeader("X-Filename", file_stream.name());
                 //TODO set date...
-                _httpClient.addHeader("X-Filedate", "2020-04-17 09:50:22");
+                _httpClient.addHeader("X-Filedate", date_string);
 
                 //POST
                 //int httpCode = _httpClient.POST("Hello World!");
@@ -63,7 +71,7 @@ namespace
             return false;
         }
 
-        bool create_session()
+        bool create_session(const String &session_name="MyName", const String &date_string="2020-04-17 09:50:22-0400", size_t duration = 0)
         {
             cJSON *root=cJSON_CreateObject();
             cJSON *session = cJSON_CreateObject();
@@ -72,9 +80,10 @@ namespace
             //Session info
             cJSON_AddNumberToObject(session, "id_session", 0);
             cJSON_AddNumberToObject(session, "id_session_type", _id_session_type);
-            cJSON_AddStringToObject(session, "session_name", "MyName");
-            cJSON_AddStringToObject(session, "session_start_datetime", "2020-04-17 09:50:22-0400");
-            cJSON_AddNumberToObject(session, "session_status", 0);
+            cJSON_AddStringToObject(session, "session_name", session_name.c_str());
+            cJSON_AddStringToObject(session, "session_start_datetime", date_string.c_str());
+            cJSON_AddNumberToObject(session, "session_status", STATUS_COMPLETED);
+            cJSON_AddNumberToObject(session, "session_duration", duration);
 
             //Session participants
             cJSON *participants_array =  cJSON_AddArrayToObject(session, "session_participants");
@@ -219,6 +228,14 @@ namespace
 
     };
 
+    String getTimeStringFromTimestamp(const time_t &timestamp)
+    {
+        struct tm *timeInfo = localtime(&timestamp);
+        char timeStringBuff[50]; //50 chars should be enough
+        strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", timeInfo);
+        return String(timeStringBuff);
+    }
+
     void wifiTransferTask(void *pvParameters)
     {
         printf("wifiTransferTask starting...\n");
@@ -259,6 +276,12 @@ namespace
                             // TODO Extract start date and time from log directory
 
                             printf("Found directory: %s\n", file.name());
+                            ///log_20200415_133021 --> 2020-04-15 13:30:21-0400
+                            // date = (date.substring(5,8) + "-" + date.substring(9,10) + "-" + date.substring(11,12));
+
+                            time_t start_timestamp = file.getLastWrite();
+                            String start_date = getTimeStringFromTimestamp(start_timestamp);
+                            printf("******* Testing start date: %s \n", start_date.c_str());
 
                             File dir_root = SD_MMC.open(file.name());
 
@@ -269,15 +292,18 @@ namespace
 
                                 if (filename.endsWith(".mdat"))
                                 {
-
-                                    if (!machine.create_session())
+                                    time_t end_timestamp = dir_root.getLastWrite();
+                                    String end_date = getTimeStringFromTimestamp(end_timestamp);
+                                    printf("******* Testing end date: %s \n", end_date.c_str());
+                                    time_t duration = end_timestamp - start_timestamp;
+                                    if (!machine.create_session(file.name(), start_date, duration))
                                     {
                                         printf("Cannot create session\n");
                                         break;
                                     }
 
                                     //Upload file
-                                    if (!machine.upload_file(dir_root))
+                                    if (!machine.upload_file(dir_root, end_date))
                                     {
                                         printf("Cannot upload file\n");
                                         break;
