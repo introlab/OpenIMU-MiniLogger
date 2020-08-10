@@ -67,7 +67,7 @@ Please see also :
 # Building The Project
 * Please follow the procedure [here](https://github.com/introlab/OpenIMU-MiniLogger/wiki/Development-Tools).
 
-* [Click on this link to learn how to use the OpenIMU-MiniLogger](./Firmware-IDF/README.md)
+* [Click on this link to learn how to use the OpenIMU-MiniLogger](./Firmware-Arduino/README.md)
 
 
 # See Also
