@@ -1,14 +1,14 @@
 /*
  * Base class for OPEN IMU homescreen widget
  * author: Cedric Godin
- * 
+ *
  * Copyright 2019 IntRoLab
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial
  * portions of the Software.
  *
@@ -30,7 +30,7 @@ using namespace Widget;
 
 /**
  * Construct a widget
- * 
+ *
  * @param uint_8t xorigin: leftmost pixel of the widget when printed with its selection rectangle
  * @param uint_8t yorigin: topmost pixel of the widget when printed with its selection rectangle
  * @param void (*action)(): action function to perform
@@ -68,19 +68,19 @@ void AbstractWidget::performAction()
 /**
  * Paint the widget to the screen
  * Clear the occupied screen portion and write the display buffer is only the widget has to be displayed
- * 
+ *
  * @param bool meOnly : if only the widget has to be redrawn
  */
 void AbstractWidget::paint(bool meOnly)
 {
     //printf("Paint Logo\n");
-    
+
     if (meOnly)
     {
         SSD1331_rectangle(_xorigin, _yorigin, _xorigin + WIDGET_WIDTH - 1, _yorigin + WIDGET_HEIGHT -1 , BLACK, true);
         if (_selected) SSD1331_rectangle(0, WIDGET_MSG_Y_ORIGIN, OLED_WIDTH - 1, OLED_HEIGHT - 1, BLACK, true);
     }
-    
+
     paintLogo();
     if (_selected)
     {
@@ -93,7 +93,7 @@ void AbstractWidget::paint(bool meOnly)
 
 /**
  * Tells the widget if it should paint itself to the screen
- * 
+ *
  * @param bool isVisible : if the widget should be displayed
  */
 void AbstractWidget::setVisible(bool isVisible)
@@ -115,7 +115,7 @@ void AbstractWidget::paintRectangle()
 void AbstractWidget::paintMessage()
 {
     std::string message = getMessage();
-    uint8_t messageOffset = abs(16 - message.length()) * 3;
+    uint8_t messageOffset = abs(16 - (uint8_t) message.length()) * 3;
 
     SSD1331_string(messageOffset, WIDGET_MSG_Y_ORIGIN, message.c_str(), 12, 1, GREEN);
 }

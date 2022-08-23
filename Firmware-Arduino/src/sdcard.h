@@ -68,7 +68,7 @@ public:
 
     //Data from Pulse
     bool enqueue(pulseDataPtr_t data, bool from_isr = false);
-    
+
     bool logFileWrite(const void* data, size_t size);
 
     bool syncFile();
@@ -113,13 +113,13 @@ private:
     TaskHandle_t _logTaskHandle;
     TaskHandle_t _timestampTask;
 
-    QueueHandle_t _imuQueue; 
+    QueueHandle_t _imuQueue;
     QueueHandle_t _gpsQueue;
     QueueHandle_t _powerQueue;
-    QueueHandle_t _baroQueue; 
-    QueueHandle_t _timestampQueue; 
+    QueueHandle_t _baroQueue;
+    QueueHandle_t _timestampQueue;
     QueueHandle_t _pulseQueue;
-    SemaphoreHandle_t _dataReadySemaphore; 
+    SemaphoreHandle_t _dataReadySemaphore;
     FILE* _logFile;
     SemaphoreHandle_t _mutex;
 };
