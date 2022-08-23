@@ -27,16 +27,16 @@ namespace sdcard
             // ts = localtime(&now);
             // Serial.printf("%s", asctime(ts));
             sdcard->enqueue(now,false);
-            
+
                 //Serial.println("giving data ready");
                 // xSemaphoreGive(_dataReadySemaphore);
-            
+
         }
     }
 
 
     /**
-     * Interrupt handler 
+     * Interrupt handler
      */
     // void IRAM_ATTR sdcard_gpio_isr_handler(void* arg)
     // {
@@ -47,7 +47,7 @@ namespace sdcard
     //     //get time
     //     timestampSendable_t now;
     //     time(&now.data);
-        
+
     //     //Post time to queue, from isr
     //     sdcard->enqueue(now, true);
     // }
@@ -72,7 +72,7 @@ namespace sdcard
             xSemaphoreTake(sdcard->getDataReadySemaphore(), portMAX_DELAY);
 
             // Timestamp received
-            if(xQueueReceive(sdcard->getTimestampQueue(), &timestamp.data, 0) == pdTRUE) 
+            if(xQueueReceive(sdcard->getTimestampQueue(), &timestamp.data, 0) == pdTRUE)
             {
 
                 //_logFile.write('t');
@@ -83,7 +83,7 @@ namespace sdcard
                 //Should sync file
                 sdcard->syncFile();
 
-                printf("Timestamp %li i: %i g: %i p: %i b: %i h: %i\n", timestamp.data, 
+                printf("Timestamp %li i: %i g: %i p: %i b: %i h: %i\n", timestamp.data,
                     imu_cnt, gps_cnt, power_cnt, baro_cnt, pulse_cnt);
 
                 //Reset counters
@@ -97,7 +97,7 @@ namespace sdcard
 
             // Data from IMU
             imuDataPtr_t imuPtr = nullptr;
-            if(xQueueReceive(sdcard->getIMUQueue(), &imuPtr, 0) == pdTRUE) 
+            if(xQueueReceive(sdcard->getIMUQueue(), &imuPtr, 0) == pdTRUE)
             {
                 //_logFile.write('i');
                 //_logFile.write((uint8_t*) imuPtr, sizeof(imuData_t));
@@ -131,7 +131,7 @@ namespace sdcard
                 free(baroPtr);
                 baro_cnt++;
             }
-            
+
             // Data from GPS
             gpsDataPtr_t gpsPtr;
             if(xQueueReceive(sdcard->getGPSQueue(), &gpsPtr, 0) == pdTRUE)
@@ -161,14 +161,14 @@ namespace sdcard
 
 void checkSDtask(void *pvParameters)
 {
-    
+
     TickType_t _lastTick = xTaskGetTickCount();
 
     while(1)
     {
         vTaskDelayUntil(&_lastTick, 300 / portTICK_RATE_MS);
 
-        SDCard::instance()->checkSD();    
+        SDCard::instance()->checkSD();
     }
 
 }
@@ -182,15 +182,15 @@ SDCard* SDCard::instance()
 
 
 SDCard::SDCard()
-    :   _logTaskHandle(NULL), 
-        _imuQueue(NULL),  
-        _gpsQueue(NULL), 
-        _powerQueue(NULL), 
+    :   _logTaskHandle(NULL),
+        _imuQueue(NULL),
+        _gpsQueue(NULL),
+        _powerQueue(NULL),
         _baroQueue(NULL),
         _timestampQueue(NULL),
         _pulseQueue(NULL),
-        _dataReadySemaphore(NULL), 
-        _logFile(NULL), 
+        _dataReadySemaphore(NULL),
+        _logFile(NULL),
         _mutex(NULL)
 {
     //Init mutex
@@ -217,10 +217,14 @@ SDCard::SDCard()
 
     //Setup host
     _host = SDMMC_HOST_DEFAULT();
+    //sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    //_host = host;
 
     // This initializes the slot without card detect (CD) and write protect (WP) signals.
     // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
-    _slot_config = SDMMC_SLOT_CONFIG_DEFAULT();    
+    _slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    //sdmmc_slot_config_t config = SDMMC_SLOT_CONFIG_DEFAULT();
+    //_slot_config = config;
 
     toESP32();
     //toExternal();
@@ -327,7 +331,7 @@ bool SDCard::mount()
     esp_vfs_fat_sdmmc_mount_config_t mount_config;
     mount_config.format_if_mount_failed = false;
     mount_config.max_files = 5;
-    
+
 
     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &_host, &_slot_config, &mount_config, &_card);
     if (ret == ESP_OK)
@@ -377,19 +381,19 @@ void SDCard::startLog()
         printf("Log ID: %d\n",getlogID());
 
         char directoryName[64];
-        sprintf(directoryName, "log_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i", 
+        sprintf(directoryName, "log_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i",
             timeInfo->tm_year + 1900, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
 
         std::string fullDirectory = std::string("/sdcard/") + std::string(directoryName);
         printf("Logging to directory : %s \n", fullDirectory.c_str());
 
         int mk_ret = mkdir(fullDirectory.c_str(), 0775);
-      
+
         if (mk_ret == ESP_OK)
         {
             //Open binary file
             char fileName[64];
-            sprintf(fileName, "record_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i.mdat", 
+            sprintf(fileName, "record_%4.4i%2.2i%2.2i_%2.2i%2.2i%2.2i.mdat",
             timeInfo->tm_year + 1900, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
 
             std::string logfile_name = fullDirectory + "/" + std::string(fileName);
@@ -398,7 +402,7 @@ void SDCard::startLog()
 
             _logFile = fopen(logfile_name.c_str(),"w");
             assert(_logFile);
-            
+
             //Write header...
             logFileWrite("h",1);
 
@@ -441,11 +445,11 @@ void SDCard::stopLog()
 
     //Destroy task
     if (_logTaskHandle)
-        vTaskDelete(_logTaskHandle); 
+        vTaskDelete(_logTaskHandle);
     _logTaskHandle = NULL;
 
     if (_timestampTask)
-        vTaskDelete(_timestampTask); 
+        vTaskDelete(_timestampTask);
     _timestampTask = NULL;
 
     //Close file
@@ -459,11 +463,11 @@ void SDCard::stopLog()
     //Destroy queues
     lock();
     if (_timestampQueue)
-        vQueueDelete(_timestampQueue); 
+        vQueueDelete(_timestampQueue);
     _timestampQueue = NULL;
 
     if (_imuQueue)
-        vQueueDelete(_imuQueue); 
+        vQueueDelete(_imuQueue);
     _imuQueue = NULL;
 
     if (_powerQueue)
@@ -471,20 +475,20 @@ void SDCard::stopLog()
     _powerQueue = NULL;
 
     if (_baroQueue)
-        vQueueDelete(_baroQueue); 
+        vQueueDelete(_baroQueue);
     _baroQueue = NULL;
 
     if (_gpsQueue)
-        vQueueDelete(_gpsQueue); 
+        vQueueDelete(_gpsQueue);
     _gpsQueue = NULL;
 
      if (_pulseQueue)
-        vQueueDelete(_pulseQueue); 
+        vQueueDelete(_pulseQueue);
     _pulseQueue = NULL;
 
     //Destroy semaphore
     if (_dataReadySemaphore)
-        vSemaphoreDelete(_dataReadySemaphore); 
+        vSemaphoreDelete(_dataReadySemaphore);
     _dataReadySemaphore = NULL;
 
     unlock();
@@ -522,7 +526,7 @@ bool SDCard::enqueue(imuDataPtr_t data, bool from_isr)
 bool SDCard::enqueue(timestampSendable_t data, bool from_isr)
 {
     /**
-     *  THIS IS CALLED FROM AN ISR. BE CAREFUL. 
+     *  THIS IS CALLED FROM AN ISR. BE CAREFUL.
      *  NO NEED TO PROTECT QUEUES, WE KNOW THEY ARE VALID
      */
     lock(from_isr);
@@ -697,7 +701,7 @@ void SDCard::lock(bool from_isr)
 }
 
 void SDCard::unlock(bool from_isr)
-{   
+{
     if (from_isr)
         xSemaphoreGiveFromISR(_mutex, NULL);
     else
@@ -723,9 +727,9 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
         printf("No file found\n");
         return false;
     }
-    else   
+    else
     {
-        
+
         FILE* f = fopen("/sdcard/ParameterFolder/StartingParameter.json","r");
 
         if (f==NULL)
@@ -741,8 +745,8 @@ bool SDCard::GetIMUConfigFromSd(IMUconfig_Sd *IMUSdConfig)
 
         //Go to begin of file
         fseek(f, 0 , SEEK_SET);
-       
-        //Allocate string with null character at the end 
+
+        //Allocate string with null character at the end
         char* json_string = (char*) malloc(size + 1);
         memset(json_string,0, size +1);
 
@@ -798,7 +802,7 @@ int SDCard::getlogID()
     dir=opendir("/sdcard");
     struct dirent* ent = NULL;
     int NblogFolder = 0;
-    
+
     while ((ent = readdir(dir)) != NULL)
     {
         NblogFolder++;
@@ -812,15 +816,15 @@ float SDCard::getSDfreespace()
     FATFS *fs;
     DWORD fre_clust;
     float freespaceGB = 0.0;
-    
- 
+
+
     /* Get volume information and free clusters of drive 0 */
     if(f_getfree("/sdcard", &fre_clust, &fs) == FR_OK)
     {
         /* Get total sectors and free sectors */
         //DWORD tot_sect = (fs->n_fatent - 2) * fs->csize;
         DWORD fre_sect = fre_clust * fs->csize;
- 
+
         //uint32_t tot = tot_sect / 2;
         uint32_t free = fre_sect / 2;
         freespaceGB=(free/1000000.0)-0.1;
